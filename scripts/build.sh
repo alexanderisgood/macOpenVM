@@ -3,11 +3,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 configuration=${1:-debug}
 case "$configuration" in debug|release) ;; *) echo 'Use debug or release.'; exit 2;; esac
-build_options=()
-if test -n "${MACOPENVM_BUILD_JOBS:-}"; then
-  [[ "$MACOPENVM_BUILD_JOBS" =~ ^[1-9][0-9]*$ ]] || { echo 'Build jobs must be a positive integer.'; exit 2; }
-  build_options=(--jobs "$MACOPENVM_BUILD_JOBS")
-fi
+build_jobs=${MACOPENVM_BUILD_JOBS:-2}
+[[ "$build_jobs" =~ ^[1-9][0-9]*$ ]] || { echo 'Build jobs must be a positive integer.'; exit 2; }
+# Bash 3.2 treats expansion of an empty array as unset under `set -u`.
+build_options=(--jobs "$build_jobs")
 mkdir -p .build
 build_snapshot=$(mktemp "$PWD/.build/macopenvm-inputs.XXXXXX")
 trap 'rm -f "$build_snapshot"' EXIT

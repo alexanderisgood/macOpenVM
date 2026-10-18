@@ -77,4 +77,3 @@ SetAndReadVariable (CHAR16 *Name, EFI_GUID *Guid, UINT8 *Auth, UINTN AuthSize,
   }
   return EFI_SUCCESS;
 }
-
