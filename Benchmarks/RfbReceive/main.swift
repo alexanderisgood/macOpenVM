@@ -88,10 +88,10 @@ import Qemu
       var warmups: [Sample] = []
       var samples: [Sample] = []
       for pair in -2..<10 {
-        for (order, borrowed) in (pair % 2 == 0 ? [false, true] : [true, false]).enumerated() {
+        for (order, isBorrowed) in (pair % 2 == 0 ? [false, true] : [true, false]).enumerated() {
           guard ContinuousClock.now < deadline else { throw Failure.budget }
           let start = ContinuousClock.now
-          let updates = try feed(&decoder, fragments, borrowed: borrowed)
+          let updates = try feed(&decoder, fragments, borrowed: isBorrowed)
           let end = ContinuousClock.now
           let snapshot = decoder.pixels
           let snapshotEnd = ContinuousClock.now
@@ -101,7 +101,7 @@ import Qemu
           else { throw Failure.correctness }
           previous = snapshot
           let sample = Sample(
-            pair: pair, order: order, mode: borrowed ? "borrowed-receive" : "materialized-receive",
+            pair: pair, order: order, mode: isBorrowed ? "borrowed-receive" : "materialized-receive",
             feedMS: ms(start.duration(to: end)), snapshotMS: ms(end.duration(to: snapshotEnd)))
           if pair < 0 { warmups.append(sample) } else { samples.append(sample) }
         }
