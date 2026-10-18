@@ -112,7 +112,7 @@ package actor StoppedVMTrashTicket {
   }
   package func commit() throws -> StoppedVMTrashResult {
     let owner = try TrashIO.phase(.commitTicket) {
-      guard !attempted, let owner else { throw TrashIO.failure(.staleOperation) }
+      guard !attempted, let owner = self.owner else { throw TrashIO.failure(.staleOperation) }
       return owner
     }
     attempted = true
