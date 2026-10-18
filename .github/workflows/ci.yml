@@ -1,0 +1,33 @@
+name: Build and validate
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: source-check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  macos:
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      MACOPENVM_BUILD_JOBS: 2
+      MACOPENVM_TEST_JOBS: 2
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Record toolchain and require the modern build SDK
+        run: |
+          xcodebuild -version
+          xcrun swift --version
+          python3 --version
+          sdk=$(xcrun --sdk macosx --show-sdk-version)
+          test "${sdk%%.*}" -ge 26
+          test "$(uname -m)" = arm64
+      - name: Debug, unit contracts, formatting and inventory
+        run: ./scripts/check.sh
+      - name: Debug bundle and signatures
+        run: ./scripts/build.sh debug
+      - name: Release bundle and signatures
+        run: ./scripts/build.sh release
+      - name: Guest and hardware gates
+        run: echo 'SKIP real guest/UI/device tests; private runtime, OS media and interactive hardware are not supplied. Source CI does not qualify Windows acceleration, HDR or FPS.'

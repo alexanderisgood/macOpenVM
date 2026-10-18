@@ -1,0 +1,110 @@
+From: Akihiko Odaki <odaki@rsg.ci.i.u-tokyo.ac.jp>
+Subject: [PATCH v3 6/9] hw/display/virtio-gpu: Fix fenced blob unmapping
+Source: https://patchew.org/QEMU/20260908-gpu-v3-0-25332a85f909@rsg.ci.i.u-tokyo.ac.jp/
+Signed-off-by: Akihiko Odaki <odaki@rsg.ci.i.u-tokyo.ac.jp>
+Reviewed-by: Marc-André Lureau <marcandre.lureau@redhat.com>
+
+Adapted to the private QEMU11.1 port with unchanged bounded diagnostics.
+GPL-2.0-or-later; preserve upstream authors and corresponding source.
+
+--- a/include/hw/virtio/virtio-gpu.h
++++ b/include/hw/virtio/virtio-gpu.h
+@@ -147,6 +147,7 @@
+     struct virtio_gpu_ctrl_hdr cmd_hdr;
+     uint32_t error;
+     bool finished;
++    bool suspended;
+ #ifdef __APPLE__
+     int64_t mvo_started_us;
+     uint64_t mvo_timing_sequence;
+--- a/hw/display/virtio-gpu.c
++++ b/hw/display/virtio-gpu.c
+@@ -1142,11 +1142,10 @@
+             break;
+         }
+ 
+-        /* process command */
++        cmd->suspended = false;
+         vgc->process_cmd(g, cmd);
+ 
+-        /* command suspended */
+-        if (!cmd->finished && !(cmd->cmd_hdr.flags & VIRTIO_GPU_FLAG_FENCE)) {
++        if (cmd->suspended) {
+             trace_virtio_gpu_cmd_suspended(cmd->cmd_hdr.type);
+             break;
+         }
+--- a/hw/display/virtio-gpu-virgl.c
++++ b/hw/display/virtio-gpu-virgl.c
+@@ -460,8 +460,7 @@
+ }
+ 
+ static void virgl_cmd_resource_unref(VirtIOGPU *g,
+-                                     struct virtio_gpu_ctrl_command *cmd,
+-                                     bool *cmd_suspended)
++                                     struct virtio_gpu_ctrl_command *cmd)
+ {
+     struct virtio_gpu_resource_unref unref;
+     struct virtio_gpu_virgl_resource *res;
+@@ -477,7 +476,7 @@
+         return;
+     }
+ 
+-    virtio_gpu_virgl_resource_unref(g, res, cmd_suspended);
++    virtio_gpu_virgl_resource_unref(g, res, &cmd->suspended);
+ }
+ 
+ void virtio_gpu_virgl_resource_destroy(VirtIOGPU *g,
+@@ -983,8 +982,7 @@
+ }
+ 
+ static void virgl_cmd_resource_unmap_blob(VirtIOGPU *g,
+-                                          struct virtio_gpu_ctrl_command *cmd,
+-                                          bool *cmd_suspended)
++                                          struct virtio_gpu_ctrl_command *cmd)
+ {
+     struct virtio_gpu_resource_unmap_blob ublob;
+     struct virtio_gpu_virgl_resource *res;
+@@ -1001,7 +999,7 @@
+         return;
+     }
+ 
+-    ret = virtio_gpu_virgl_unmap_resource_blob(g, res, cmd_suspended);
++    ret = virtio_gpu_virgl_unmap_resource_blob(g, res, &cmd->suspended);
+     if (ret) {
+         cmd->error = VIRTIO_GPU_RESP_ERR_UNSPEC;
+         return;
+@@ -1117,7 +1115,6 @@
+ void virtio_gpu_virgl_process_cmd(VirtIOGPU *g,
+                                       struct virtio_gpu_ctrl_command *cmd)
+ {
+-    bool cmd_suspended = false;
+     int ret;
+ 
+     VIRTIO_GPU_FILL_CMD(cmd->cmd_hdr);
+@@ -1164,7 +1161,7 @@
+         virgl_cmd_resource_flush(g, cmd);
+         break;
+     case VIRTIO_GPU_CMD_RESOURCE_UNREF:
+-        virgl_cmd_resource_unref(g, cmd, &cmd_suspended);
++        virgl_cmd_resource_unref(g, cmd);
+         break;
+     case VIRTIO_GPU_CMD_CTX_ATTACH_RESOURCE:
+         /* TODO add security */
+@@ -1194,7 +1191,7 @@
+         virgl_cmd_resource_map_blob(g, cmd);
+         break;
+     case VIRTIO_GPU_CMD_RESOURCE_UNMAP_BLOB:
+-        virgl_cmd_resource_unmap_blob(g, cmd, &cmd_suspended);
++        virgl_cmd_resource_unmap_blob(g, cmd);
+         break;
+     case VIRTIO_GPU_CMD_SET_SCANOUT_BLOB:
+         virgl_cmd_set_scanout_blob(g, cmd);
+@@ -1205,7 +1202,7 @@
+         break;
+     }
+ 
+-    if (cmd_suspended || cmd->finished) {
++    if (cmd->suspended || cmd->finished) {
+         return;
+     }
+     if (cmd->error) {

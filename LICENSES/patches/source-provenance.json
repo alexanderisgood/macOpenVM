@@ -1,0 +1,511 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-10-18",
+  "scope": "Exact license copies and source-header attribution for 21 downstream patch files only. No binary/runtime redistribution clearance.",
+  "licenseCopies": [
+    {
+      "path": "licenses/QEMU-LICENSE.txt",
+      "bytes": 1177,
+      "sha256": "139c64b7a9ae62858ff969aae622ecfcf4f1519655bd92d2e70a1a2fb615690e",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/LICENSE",
+      "upstreamFamily": "qemu",
+      "upstreamVersion": "11.1.0",
+      "copyMethod": "exact bytes, no normalization"
+    },
+    {
+      "path": "licenses/GPL-2.0-QEMU-COPYING.txt",
+      "bytes": 17880,
+      "sha256": "dd3ce02338c3a48abb6ba59b48809f7108a8bd242cb0cc8be90daafa30707c28",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/COPYING",
+      "upstreamFamily": "qemu",
+      "upstreamVersion": "11.1.0",
+      "copyMethod": "exact bytes, no normalization"
+    },
+    {
+      "path": "licenses/DXMT-LICENSE.txt",
+      "bytes": 782,
+      "sha256": "b87c35aef7b2cf14de854118ca55ce5c4b284c85b5f002421fb8d46d868c2d17",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/LICENSE",
+      "upstreamFamily": "dxmt",
+      "upstreamVersion": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "copyMethod": "exact bytes, no normalization"
+    },
+    {
+      "path": "licenses/LGPL-2.1-DXMT-COPYING.LIB.txt",
+      "bytes": 26434,
+      "sha256": "e237fa56668030e928551ddd60f05df5fe957f75eab874bbd017e085ed722e7c",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/COPYING.LIB",
+      "upstreamFamily": "dxmt",
+      "upstreamVersion": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "copyMethod": "exact bytes, no normalization"
+    },
+    {
+      "path": "licenses/DXMT-LICENSE.OLD-historical-MIT.txt",
+      "bytes": 1272,
+      "sha256": "3422f02eb18f1e598731b586832afab8b322badd61d45a4b95674ceec4b6108d",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/LICENSE.OLD",
+      "upstreamFamily": "dxmt",
+      "upstreamVersion": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "copyMethod": "exact bytes, no normalization"
+    },
+    {
+      "path": "licenses/DXVK-zlib-notice.txt",
+      "bytes": 970,
+      "sha256": "03ca4af84f5cd28cef3ed3f1ef4d17996992d35ccdbe82b29cc020ca02c16f3d",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/util/dxvk.LICENSE",
+      "upstreamFamily": "dxmt",
+      "upstreamVersion": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "copyMethod": "exact bytes, no normalization"
+    },
+    {
+      "path": "licenses/virglrenderer-MIT-COPYING.txt",
+      "bytes": 1098,
+      "sha256": "3b32caf16e2402c2aff2b716858713f3e1feded85c25e71bf829816ee5009402",
+      "retainedSource": ".lab/manager-iteration-20261016/root-shm-scanout-cache-r3-renderer-stage1/host-source/COPYING",
+      "upstreamFamily": "renderer",
+      "upstreamVersion": "451505ad0aa449290f2c0672da6877d57ee770e5",
+      "copyMethod": "exact bytes, no normalization"
+    },
+    {
+      "path": "licenses/libepoxy-MIT-COPYING.txt",
+      "bytes": 2465,
+      "sha256": "8d5144666f9c4df9bbd69b8900086d5979259152a1060421cdcc0fb9061a1c12",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/epoxy-source/COPYING",
+      "upstreamFamily": "epoxy",
+      "upstreamVersion": "bf98587477fe68d07b93319ece7b40a7d0e2eabe",
+      "copyMethod": "exact bytes, no normalization"
+    },
+    {
+      "path": "licenses/Apache-2.0-original-project.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "retainedSource": "LICENSE",
+      "copyMethod": "exact bytes; applies to original Apache-licensed helper additions, not upstream files"
+    }
+  ],
+  "retainedSourceRecords": [
+    {
+      "family": "qemu",
+      "target": "hw/uefi/var-service-vars.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/hw/uefi/var-service-vars.c",
+      "sourceBytesSHA256": "4b6befcaf02eda12392c64732ed6e7707430406422f8483fbc6a7e84cffe3e61",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/dxmt/dxmt_command_queue.cpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/dxmt/dxmt_command_queue.cpp",
+      "sourceBytesSHA256": "0db09d21288e154a1d22fc3962965fd72b09925d71d513489db7f263fb476956",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/util/com/com_guid.hpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/util/com/com_guid.hpp",
+      "sourceBytesSHA256": "1bb5ff0724e75d38eb1f623b7788e63eeed49b2d2ba5767db05ee8b8d19c12c0",
+      "license": "LGPL-2.1-or-later AND MIT AND Zlib",
+      "licenseBasis": "Current DXMT LICENSE plus file attribution to DXVK zlib and Alexander Bessonov MIT parser; complete retained DXVK notice copied",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "meson.build",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/meson.build",
+      "sourceBytesSHA256": "0e9a6f95ee75b6f10d5b8f8d984567a50f32d5c3618e164eccc7f17460defba8",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "meson.options",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/meson.options",
+      "sourceBytesSHA256": "2bfe36dfc2e96d065497e44b5ba4a1926ac7387bcf25cdcc24e2bd25a0f207a2",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/dxmt/GpuTimings.hpp",
+      "retainedSource": null,
+      "sourceBytesSHA256": "3d5f117c2769070d05447606b011194b331134329e5535ba52133e4f13b6de60",
+      "license": "Apache-2.0",
+      "licenseBasis": "Explicit SPDX notice in independently added helper source; does not relicense modified DXMT sources",
+      "addedByPatch": true
+    },
+    {
+      "family": "dxmt",
+      "target": "src/dxmt/NativeTiming.hpp",
+      "retainedSource": null,
+      "sourceBytesSHA256": "9a3cd42a7c3bbd7e1e4d33ae88ea74e996aa81fba6e01e00118b1b738ac3d2f2",
+      "license": "Apache-2.0",
+      "licenseBasis": "Explicit SPDX notice in independently added helper source; does not relicense modified DXMT sources",
+      "addedByPatch": true
+    },
+    {
+      "family": "dxmt",
+      "target": "src/dxmt/Report.hpp",
+      "retainedSource": null,
+      "sourceBytesSHA256": "795fc898f57346184a9a56cc7ad6e7084e1ce3a6f3baf1b7f66802aa71deba47",
+      "license": "Apache-2.0",
+      "licenseBasis": "Explicit SPDX notice in independently added helper source; does not relicense modified DXMT sources",
+      "addedByPatch": true
+    },
+    {
+      "family": "dxmt",
+      "target": "src/dxmt/dxmt_command_queue.hpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/dxmt/dxmt_command_queue.hpp",
+      "sourceBytesSHA256": "965ab33d83903a6f3f7d04baa55615c861c6de899fcdd03d41e2cbfa7006378d",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/winemetal/Metal.hpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/winemetal/Metal.hpp",
+      "sourceBytesSHA256": "4f273fc3e18bfd75f7de60833d74361bdb40615d1c0dbd470d33878946359233",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/d3d11/d3d11_pipeline_cache.cpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/d3d11/d3d11_pipeline_cache.cpp",
+      "sourceBytesSHA256": "265e3b7155d8281387ca90d486d92e0b8482ba61111c64794d68b8916cf947e4",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "include/hw/virtio/virtio-gpu.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/include/hw/virtio/virtio-gpu.h",
+      "sourceBytesSHA256": "e780e43f121d624e385e7897f8676ba8aa7ca5e627559ead5b66ca9770677a03",
+      "license": "GPL-2.0-only",
+      "licenseBasis": "Explicit GPLv2 header; accel/hvf additionally permits later versions for post-2012 contributions",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "hw/display/virtio-gpu.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/hw/display/virtio-gpu.c",
+      "sourceBytesSHA256": "971ad6ab065af353d8a0b3ab48c9ddd8433a4f219c93f668b275e62e4d204c33",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "hw/display/virtio-gpu-virgl.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/hw/display/virtio-gpu-virgl.c",
+      "sourceBytesSHA256": "7dddcbbe08969aa1234dc80b2ef44153465603a88895c11dbdb2b7e02fd5b77a",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "hw/display/mvo-gpu-timing.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/hw/display/mvo-gpu-timing.h",
+      "sourceBytesSHA256": "bb6b88930a563cdf879629a602ee9223dbc781019850c92b50979c3d63fe41a6",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "Explicit SPDX notice in added source",
+      "addedByPatch": true
+    },
+    {
+      "family": "qemu",
+      "target": "ui/egl-headless.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/egl-headless.c",
+      "sourceBytesSHA256": "4f769ef25d9339ab3508473cfd85251732511d670fce971887895e114be2a228",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "qapi/ui.json",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/qapi/ui.json",
+      "sourceBytesSHA256": "280fb9eb47ee1d0bb6e7960afcf99371a84852a4ee8a855d891cf0e399d62b45",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "ui/mvo-metal-damage.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/mvo-metal-damage.h",
+      "sourceBytesSHA256": "01286571926fe3c2f5631633eb821341683697451dac39db82206f42b2183f6d",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "Explicit SPDX notice in added source",
+      "addedByPatch": true
+    },
+    {
+      "family": "qemu",
+      "target": "ui/mvo-metal-readback.m",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/mvo-metal-readback.m",
+      "sourceBytesSHA256": "53fd4ac8a8240116df5efdc7334daa55834540f87452bc17082f4295b4d0214d",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "ui/mvo-metal-readback.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/mvo-metal-readback.h",
+      "sourceBytesSHA256": "08e5e65ecea6cf0f5e1d990a60fe282f20ad2d8ea1fb580831e4da3341dddc56",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "ui/mvo-metal-swizzle.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/mvo-metal-swizzle.h",
+      "sourceBytesSHA256": "b8a800e553469d67dd50f582be43b6e46bf36f9f9a5a1d629c810fd545faf3ef",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "Explicit SPDX notice in added source",
+      "addedByPatch": true
+    },
+    {
+      "family": "qemu",
+      "target": "accel/hvf/hvf-all.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/accel/hvf/hvf-all.c",
+      "sourceBytesSHA256": "0e6d0dc6f551480f38c457336e95108b5f2106ed78bbfdc6237d44ef22d01c05",
+      "license": "GPL-2.0-only",
+      "licenseBasis": "Explicit GPLv2 header; accel/hvf additionally permits later versions for post-2012 contributions",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "include/system/hvf.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/include/system/hvf.h",
+      "sourceBytesSHA256": "eda7847a2f0f41ec21acf1c9c53405e2439a75924b8f6cd6363ee056f5a3561d",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "include/system/hvf_int.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/include/system/hvf_int.h",
+      "sourceBytesSHA256": "3ba2794676fd885becfc512e9dfcedf7697221e17752013666c9539bb99caa32",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "target/arm/hvf/hvf.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/target/arm/hvf/hvf.c",
+      "sourceBytesSHA256": "1d9d5ea31f2e2ad8da76b69570fcbfaeaa28618b63515c4d9df1a770d687b5cb",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "target/i386/hvf/hvf.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/target/i386/hvf/hvf.c",
+      "sourceBytesSHA256": "c8fcdb388968b70191498add6f78fbafad41e1016347b9bcd6e4dacba12ad680",
+      "license": "GPL-2.0-only AND BSD-2-Clause",
+      "licenseBasis": "Explicit GPLv2-only header plus retained NetApp two-condition BSD and public-domain attribution",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "include/standard-headers/linux/virtio_gpu.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/include/standard-headers/linux/virtio_gpu.h",
+      "sourceBytesSHA256": "8d8b78602f965bac5ce7c709acdea22a260f483ae69ed3edd14ba53c125ff0fc",
+      "license": "BSD-3-Clause",
+      "licenseBasis": "Complete three-condition BSD notice in retained source header, including its original IBM wording",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "hw/display/virtio-gpu-gl.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/hw/display/virtio-gpu-gl.c",
+      "sourceBytesSHA256": "957455b18ac920ac87752e772cc1dbc64f9805af11172eb6054fa4c3ffca16bf",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "hw/display/meson.build",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/hw/display/meson.build",
+      "sourceBytesSHA256": "554f8d3ab58d7d55b73dfb53d0bcdcce3d73919148d4ea3138d9593dff984fa5",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "hw/display/virtio-ramfb.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/hw/display/virtio-ramfb.c",
+      "sourceBytesSHA256": "de2774f2a53ae9381cfb28b3ccc25c0af27fda7d3e54bcfd33ed95839c9ace59",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": true
+    },
+    {
+      "family": "qemu",
+      "target": "hw/display/virtio-ramfb-gl.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/hw/display/virtio-ramfb-gl.c",
+      "sourceBytesSHA256": "aa1e8c32c8d34a2d7933fef485aa5a700b8de46c6059bec18c0532bf05c77b30",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": true
+    },
+    {
+      "family": "qemu",
+      "target": "hw/display/virtio-ramfb.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/hw/display/virtio-ramfb.h",
+      "sourceBytesSHA256": "f122f09a0d06f4d214c1a42011f5105bafa16f42cd810a946d8ad0d4cfbc01c3",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": true
+    },
+    {
+      "family": "qemu",
+      "target": "ui/egl-helpers.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/egl-helpers.c",
+      "sourceBytesSHA256": "aba2f81d7c8a9e23a68af97c56a2620ca27e207b545c7dcf05030151e93f2f74",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Explicit retained source header",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "ui/meson.build",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/meson.build",
+      "sourceBytesSHA256": "4b41794ef70a9aaf9f211b0f7bbfbfa99385e1c10874df37c3772c4d9cd674f7",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+      "addedByPatch": false
+    },
+    {
+      "family": "epoxy",
+      "target": "src/dispatch_common.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/epoxy-source/src/dispatch_common.c",
+      "sourceBytesSHA256": "e3ff00f726605d941c44785b30446514bcf2fce9410d9987249acfc12b570989",
+      "license": "MIT",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "renderer",
+      "target": "src/neptune/npt_library_names.h",
+      "retainedSource": ".lab/manager-iteration-20261016/root-shm-scanout-cache-r3-renderer-stage1/host-source/src/neptune/npt_library_names.h",
+      "sourceBytesSHA256": "ef3d50e2f9303847a95cc1a7231927b71a508477c836efb3b562728c7e614769",
+      "license": "MIT",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "renderer",
+      "target": "src/neptune/npt_renderer.c",
+      "retainedSource": ".lab/manager-iteration-20261016/root-shm-scanout-cache-r3-renderer-stage1/host-source/src/neptune/npt_renderer.c",
+      "sourceBytesSHA256": "f63a9c6c772de47eaf09d42222e0bd252818e24a9ec9cb921adffad3037a254b",
+      "license": "MIT",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "renderer",
+      "target": "server/render_worker.c",
+      "retainedSource": ".lab/manager-iteration-20261016/root-shm-scanout-cache-r3-renderer-stage1/host-source/server/render_worker.c",
+      "sourceBytesSHA256": "a720272377fa5f6a8b87751a934747c7beea4e5b198e464ca5cb795cd2c2cbcf",
+      "license": "MIT",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "audio/coreaudio.m",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/audio/coreaudio.m",
+      "sourceBytesSHA256": "e9ec7b43840ec7c42e555df71bb86203685e9d2edc3cebed218022dcafeae63a",
+      "license": "MIT",
+      "licenseBasis": "Complete permission/copyright notice in retained source header",
+      "addedByPatch": false
+    },
+    {
+      "family": "renderer",
+      "target": "src/virgl_resource.c",
+      "retainedSource": ".lab/manager-iteration-20261016/root-shm-scanout-cache-r3-renderer-stage1/host-source/src/virgl_resource.c",
+      "sourceBytesSHA256": "2d6eed22fe2db243d04ced0e0abf155463a98ea4248e726d66d9bf1037a6e117",
+      "license": "MIT",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "renderer",
+      "target": "src/virgl_resource.h",
+      "retainedSource": ".lab/manager-iteration-20261016/root-shm-scanout-cache-r3-renderer-stage1/host-source/src/virgl_resource.h",
+      "sourceBytesSHA256": "f7d8149057ce5ead8fede7d337ee5995d266fdba19b3ecb6f2a560662f728d6e",
+      "license": "MIT",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "renderer",
+      "target": "src/virglrenderer.c",
+      "retainedSource": ".lab/manager-iteration-20261016/root-shm-scanout-cache-r3-renderer-stage1/host-source/src/virglrenderer.c",
+      "sourceBytesSHA256": "2b0e3450815add4ba42d9a871bd738f670ab3e8ce49ec0a4caf548a8f75cbace",
+      "license": "MIT",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "renderer",
+      "target": "src/virgl_scanout_cache.h",
+      "retainedSource": ".lab/manager-iteration-20261016/root-shm-scanout-cache-r3-renderer-stage1/host-source/src/virgl_scanout_cache.h",
+      "sourceBytesSHA256": "8ee27a211e41c11b6d451233c6ae29558caeeb51483a9d0322e5105c5e3cc94e",
+      "license": "MIT",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": true
+    },
+    {
+      "family": "renderer",
+      "target": "tests/scanout_cache_test.c",
+      "retainedSource": ".lab/manager-iteration-20261016/root-shm-scanout-cache-r3-renderer-stage1/host-source/tests/scanout_cache_test.c",
+      "sourceBytesSHA256": "77f70cc1251e4dbdf585f48c5cc77bdd7028d89bc923a5fa8c88772af968328d",
+      "license": "MIT",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": true
+    },
+    {
+      "family": "qemu",
+      "target": "ui/vnc.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/vnc.c",
+      "sourceBytesSHA256": "4f84e2b6c74635f4c5adc0cab780bda79c922e1861d868ad9a2f255ab8b1b874",
+      "license": "MIT",
+      "licenseBasis": "Complete permission/copyright notice in retained source header",
+      "addedByPatch": false
+    },
+    {
+      "family": "qemu",
+      "target": "ui/mvo-shared-frame.c",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/mvo-shared-frame.c",
+      "sourceBytesSHA256": "cfe9168fb5f034ce41fb09f42238ddc77968450513626070ca74465b0d833020",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "Explicit SPDX notice in added source",
+      "addedByPatch": true
+    },
+    {
+      "family": "qemu",
+      "target": "ui/mvo-shared-frame.h",
+      "retainedSource": ".lab/qemu-neptune-port-20261013/source/ui/mvo-shared-frame.h",
+      "sourceBytesSHA256": "4850c27d6ac79ea71e1bf75376fa28212eb126d589437a5d5bbf7be1fc24db68",
+      "license": "GPL-2.0-or-later",
+      "licenseBasis": "Explicit SPDX notice in added source",
+      "addedByPatch": true
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "application": {
+    "backend": "AppleVz",
+    "backendVersion": "26A428",
+    "configuration": {
+      "build": "debug",
+      "cpuCount": 2,
+      "diskBytes": 2147483648,
+      "durability": "VZ full synchronization; sparse raw",
+      "graphics": "headless serial",
+      "memoryBytes": 2147483648,
+      "runnerSHA256": "96bf0844a3187ca08fb6a30eaed6685cc59c3f7353861af292d7d923df32b055",
+      "sourceScope": "CLI, Core, Storage, Backends"
+    },
+    "entitlements": [
+      "com.apple.security.virtualization"
+    ],
+    "revision": null,
+    "sourceSHA256": "2cfcdfcd78c2d1d55d94f2052a312de9e9dd7456b78583bffd232b2d1bbd0ef7",
+    "version": "0.1.0-dev"
+  },
+  "guest": {
+    "agentVersion": null,
+    "architecture": "aarch64",
+    "build": "6.18.52-0-virt",
+    "disk": {
+      "format": "raw",
+      "liveRoot": "RAM; not installed",
+      "virtualBytes": 2147483648
+    },
+    "driverVersions": null,
+    "edition": "virt live media 3.24.2",
+    "network": "disconnected; no guest NIC",
+    "os": "Alpine Linux",
+    "patchLevel": "official fixture; no online patches",
+    "ramBytes": 2147483648,
+    "vCPU": 2
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "displays": [
+      {
+        "availableHeightPoints": 1003,
+        "availableWidthPoints": 1728,
+        "backingScale": 2,
+        "heightPoints": 1117,
+        "widthPoints": 1728
+      }
+    ],
+    "efficiencyCores": null,
+    "gpuCores": null,
+    "macOSBuild": "26A428",
+    "macOSVersion": "Version 27.0 (Build 26A428)",
+    "model": "Mac17,8",
+    "performanceCores": 12,
+    "powerMode": null,
+    "ramBytes": 51539607552,
+    "storageFreeBytes": 66153058304,
+    "storageModel": null,
+    "thermalState": null
+  },
+  "limitations": [
+    "Named-host feasibility only; not a release or parity benchmark.",
+    "Live RAM-root guest; no GUI, installed disk, agent or network workload. Cache and host load uncontrolled.",
+    "Raw transcripts stay in ignored .lab; public result excludes paths, MAC, UUID and guest content."
+  ],
+  "method": {
+    "backgroundWorkload": "Interactive development host; not quiesced",
+    "cache": "uncontrolled",
+    "confidenceInterval": null,
+    "outlierPolicy": "retain all; no exclusions",
+    "trialCount": 5
+  },
+  "metrics": [
+    {
+      "definition": "Monotonic native framework start call to completion; not guest readiness",
+      "name": "framework_start",
+      "samples": [
+        78.157958,
+        81.112084,
+        80.410875,
+        82.302125,
+        86.266917
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Monotonic CLI spawn to received guest login prompt; no authenticated agent",
+      "name": "process_to_console_login",
+      "samples": [
+        3453.479874995537,
+        3664.788750000298,
+        3631.3827499980107,
+        3635.4799170512706,
+        3649.6240000706166
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Serial poweroff to CLI exit after observed guest stop; includes polling",
+      "name": "guest_poweroff_to_process_exit",
+      "samples": [
+        2692.8367089712992,
+        2870.7694170298055,
+        2637.311084079556,
+        2698.301582946442,
+        2634.542000014335
+      ],
+      "unit": "ms"
+    }
+  ],
+  "recordedAt": "2026-10-06T10:53:18.609257+00:00",
+  "schemaVersion": 1,
+  "status": "measured",
+  "unknownReasons": {
+    "application.revision": "Workspace has no Git repository or commit",
+    "guest.agentVersion": "No guest agent installed",
+    "guest.driverVersions": "Individual driver builds not inventoried",
+    "host.efficiencyCores": "Not collected or unavailable through this host probe",
+    "host.gpuCores": "Not collected or unavailable through this host probe",
+    "host.powerMode": "Not collected or unavailable through this host probe",
+    "host.storageModel": "Not collected or unavailable through this host probe",
+    "host.thermalState": "Not collected or unavailable through this host probe",
+    "method.confidenceInterval": "Uncontrolled feasibility trials; no statistical claim"
+  }
+}

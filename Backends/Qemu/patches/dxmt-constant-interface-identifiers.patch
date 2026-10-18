@@ -1,0 +1,11 @@
+--- a/src/util/com/com_guid.hpp
++++ b/src/util/com/com_guid.hpp
+@@ -99,7 +99,7 @@
+   constexpr GUID iid = dxmt::guid::make_guid(guid_str);
+ 
+ # define DXMT_DECLARE_UUIDOF_HELPER(type, guid_str) \
+-  extern "C++" { template <> constexpr GUID __uuidof_helper<type>() { return dxmt::guid::make_guid(guid_str); } } \
++  extern "C++" { template <> constexpr GUID __uuidof_helper<type>() { constexpr GUID value = dxmt::guid::make_guid(guid_str); return value; } } \
+   extern "C++" { template <> constexpr GUID __uuidof_helper<type*>() { return __uuidof_helper<type>(); } } \
+   extern "C++" { template <> constexpr GUID __uuidof_helper<const type*>() { return __uuidof_helper<type>(); } } \
+   extern "C++" { template <> constexpr GUID __uuidof_helper<type&>() { return __uuidof_helper<type>(); } } \

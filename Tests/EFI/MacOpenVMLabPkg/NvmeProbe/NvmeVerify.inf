@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: Apache-2.0
+[Defines]
+  INF_VERSION = 0x00010017
+  BASE_NAME = MacOpenVMNvmeVerifyProbe
+  FILE_GUID = b0a3c22f-756e-4c99-b331-6086d4c282eb
+  MODULE_TYPE = UEFI_APPLICATION
+  VERSION_STRING = 0.1
+  ENTRY_POINT = UefiMain
+
+[Sources]
+  NvmeProbe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  UefiBootServicesTableLib
+  BaseMemoryLib
+  MemoryAllocationLib
+
+[Guids]
+  gEfiFileInfoGuid
+
+[Protocols]
+  gEfiBlockIoProtocolGuid
+  gEfiDevicePathProtocolGuid
+  gEfiLoadedImageProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid
+
+[BuildOptions]
+  GCC:*_*_*_CC_FLAGS = -DMVO_NVME_VERIFY_ONLY=1

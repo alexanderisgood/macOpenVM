@@ -1,0 +1,77 @@
+--- a/epoxy-source/src/dispatch_common.c
++++ b/epoxy-source/src/dispatch_common.c
+@@ -177,7 +177,7 @@
+ #include <TargetConditionals.h>
+ #if TARGET_OS_OSX
+ #define GLX_LIB "/opt/X11/lib/libGL.1.dylib"
+-#define EGL_LIB "EGL.framework/Versions/Current/EGL"
++#define EGL_LIB "/Users/developer/Documents/Code/VM/macOpenVM/.lab/qemu-neptune-port-20261013/graphics/lib/libEGL.dylib"
+ #define OPENGL_LIB "/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
+ #define GLES1_LIB "GLESv1_CM.framework/Versions/Current/GLESv1_CM"
+ #define GLES2_LIB "GLESv2.framework/Versions/Current/GLESv2"
+--- a/epoxy-source/src/dispatch_common.c
++++ b/epoxy-source/src/dispatch_common.c
+@@ -180,7 +180,7 @@
+ #define EGL_LIB "/Users/developer/Documents/Code/VM/macOpenVM/.lab/qemu-neptune-port-20261013/graphics/lib/libEGL.dylib"
+ #define OPENGL_LIB "/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
+ #define GLES1_LIB "GLESv1_CM.framework/Versions/Current/GLESv1_CM"
+-#define GLES2_LIB "GLESv2.framework/Versions/Current/GLESv2"
++#define GLES2_LIB "/Users/developer/Documents/Code/VM/macOpenVM/.lab/qemu-neptune-port-20261013/graphics/lib/libGLESv2.dylib"
+ #elif TARGET_OS_IPHONE
+ #define GLX_LIB "/opt/X11/lib/libGL.1.dylib"
+ #define EGL_LIB "EGL.framework/EGL"
+--- a/renderer-source/src/neptune/npt_library_names.h
++++ b/renderer-source/src/neptune/npt_library_names.h
+@@ -23,7 +23,7 @@
+ #define NPT_D3D12_LIBRARY_ENV "NPT_D3D12_LIBRARY_PATH"
+ 
+ #if defined(__APPLE__) && defined(__aarch64__)
+-#define NPT_D3D11_LIBRARY_DEFAULT "libdxmt-native.dylib"
++#define NPT_D3D11_LIBRARY_DEFAULT "/Users/developer/Documents/Code/VM/macOpenVM/.lab/qemu-neptune-port-20261013/graphics/lib/libdxmt-native.dylib"
+ #define NPT_DXGI_LIBRARY_DEFAULT  "libdxmt-native.dylib"
+ #define NPT_D3D12_LIBRARY_DEFAULT "libdxmt-native.dylib"
+ #elif defined(__APPLE__)
+--- a/renderer-source/src/neptune/npt_library_names.h
++++ b/renderer-source/src/neptune/npt_library_names.h
+@@ -24,7 +24,7 @@
+ 
+ #if defined(__APPLE__) && defined(__aarch64__)
+ #define NPT_D3D11_LIBRARY_DEFAULT "/Users/developer/Documents/Code/VM/macOpenVM/.lab/qemu-neptune-port-20261013/graphics/lib/libdxmt-native.dylib"
+-#define NPT_DXGI_LIBRARY_DEFAULT  "libdxmt-native.dylib"
++#define NPT_DXGI_LIBRARY_DEFAULT "/Users/developer/Documents/Code/VM/macOpenVM/.lab/qemu-neptune-port-20261013/graphics/lib/libdxmt-native.dylib"
+ #define NPT_D3D12_LIBRARY_DEFAULT "libdxmt-native.dylib"
+ #elif defined(__APPLE__)
+ #define NPT_D3D11_LIBRARY_DEFAULT "libd3dmetal-native.dylib"
+--- a/renderer-source/src/neptune/npt_library_names.h
++++ b/renderer-source/src/neptune/npt_library_names.h
+@@ -25,7 +25,7 @@
+ #if defined(__APPLE__) && defined(__aarch64__)
+ #define NPT_D3D11_LIBRARY_DEFAULT "/Users/developer/Documents/Code/VM/macOpenVM/.lab/qemu-neptune-port-20261013/graphics/lib/libdxmt-native.dylib"
+ #define NPT_DXGI_LIBRARY_DEFAULT "/Users/developer/Documents/Code/VM/macOpenVM/.lab/qemu-neptune-port-20261013/graphics/lib/libdxmt-native.dylib"
+-#define NPT_D3D12_LIBRARY_DEFAULT "libdxmt-native.dylib"
++#define NPT_D3D12_LIBRARY_DEFAULT "/Users/developer/Documents/Code/VM/macOpenVM/.lab/qemu-neptune-port-20261013/graphics/lib/libdxmt-native.dylib"
+ #elif defined(__APPLE__)
+ #define NPT_D3D11_LIBRARY_DEFAULT "libd3dmetal-native.dylib"
+ #define NPT_DXGI_LIBRARY_DEFAULT  "libd3dmetal-native.dylib"
+--- a/renderer-source/src/neptune/npt_renderer.c
++++ b/renderer-source/src/neptune/npt_renderer.c
+@@ -80,7 +80,7 @@
+ npt_capset_backend_caps(void)
+ {
+    const char *backend = getenv("NPT_BACKEND");
+-   if (backend && !strcmp(backend, "dxmt")) {
++   if (!backend || !strcmp(backend, "dxmt")) {
+       /* Not EXTENDED_RESOURCE_SHARING: DXMT reports the cap but fails
+        * every SHARED_NTHANDLE texture create, so advertising it would
+        * only move an app's failure from the cap check to create time. */
+--- a/renderer-source/server/render_worker.c
++++ b/renderer-source/server/render_worker.c
+@@ -514,7 +514,7 @@
+     * instead of failing with EBADARCH. */
+    if (ctx_args->init_flags & VIRGL_RENDERER_NEPTUNE) {
+       const char *backend = getenv("NPT_BACKEND");
+-      const bool use_dxmt = backend && !strcmp(backend, "dxmt");
++      const bool use_dxmt = !backend || !strcmp(backend, "dxmt");
+       if (backend && *backend && !use_dxmt && strcmp(backend, "d3dmetal"))
+          render_log("unknown NPT_BACKEND '%s', using d3dmetal", backend);
+       cpu_type_t cpu_pref[] = { use_dxmt ? CPU_TYPE_ARM64 : CPU_TYPE_X86_64,

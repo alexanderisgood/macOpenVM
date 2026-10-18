@@ -1,0 +1,17 @@
+--- a/audio/coreaudio.m
++++ b/audio/coreaudio.m
+@@ -743,6 +743,14 @@
+     AudiodevCoreaudioPerDirectionOptions *cpdo = dev->u.coreaudio.out;
+     struct audsettings obt_as;
+ 
++    /* The unmixed path is unsupported by this fixed F32 output recipe.
++     * Require the existing mixing recipe before creating any mutex, listener,
++     * device callback or output buffer. */
++    if (!qapi_AudiodevCoreaudioPerDirectionOptions_base(cpdo)->mixing_engine) {
++        error_report("coreaudio: Playback requires mixing-engine=on");
++        return -1;
++    }
++
+     /* create mutex */
+     err = pthread_mutex_init(&core->buf_mutex, NULL);
+     if (err) {

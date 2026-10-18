@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+[Defines]
+  INF_VERSION = 0x00010017
+  BASE_NAME = MacOpenVMKeyboardInputProbe
+  FILE_GUID = 53b9d57e-3b51-4b2e-a2f4-e40d671aa847
+  MODULE_TYPE = UEFI_APPLICATION
+  VERSION_STRING = 0.1
+  ENTRY_POINT = UefiMain
+
+[Sources]
+  KeyboardInputProbe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  UefiBootServicesTableLib
+
+[Protocols]
+  gEfiSimpleTextInputExProtocolGuid

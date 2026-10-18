@@ -1,0 +1,1060 @@
+--- a/accel/hvf/hvf-all.c
++++ b/accel/hvf/hvf-all.c
+@@ -10,6 +10,8 @@
+ 
+ #include "qemu/osdep.h"
+ #include "qemu/error-report.h"
++#include "qemu/units.h"
++#include "qapi/error.h"
+ #include "qapi/error.h"
+ #include "qapi/qapi-visit-common.h"
+ #include "accel/accel-ops.h"
+@@ -23,6 +25,19 @@
+ #include "trace.h"
+ 
+ bool hvf_allowed;
++
++static uint64_t hvf_map_granule;
++
++void hvf_set_map_granule(uint64_t size)
++{
++    hvf_map_granule = size;
++}
++
++uint64_t hvf_get_map_granule(void)
++{
++    return hvf_map_granule ? hvf_map_granule : qemu_real_host_page_size();
++}
++
+ bool hvf_kernel_irqchip;
+ bool hvf_nested_virt;
+ static bool hvf_kernel_irqchip_override;
+@@ -63,7 +78,7 @@
+ static void do_hv_vm_protect(hwaddr start, size_t size,
+                              hv_memory_flags_t flags)
+ {
+-    intptr_t page_mask = qemu_real_host_page_mask();
++    intptr_t page_mask = -(intptr_t)hvf_get_map_granule();
+     hv_return_t ret;
+ 
+     trace_hvf_vm_protect(start, size, flags,
+@@ -93,7 +108,7 @@
+     MemoryRegion *area = section->mr;
+     bool writable = !area->readonly && !area->rom_device;
+     hv_memory_flags_t flags;
+-    uint64_t page_size = qemu_real_host_page_size();
++    uint64_t page_size = hvf_get_map_granule();
+     uint64_t gpa = section->offset_within_address_space;
+     uint64_t size = int128_get64(section->size);
+     hv_return_t ret;
+@@ -196,6 +211,11 @@
+     int pa_range = 36;
+     MachineClass *mc = MACHINE_GET_CLASS(ms);
+ 
++    if (!s->ipa_granule) {
++        s->ipa_granule = qemu_real_host_page_size();
++    }
++    hvf_set_map_granule(s->ipa_granule);
++
+ 
+     if (mc->get_physical_address_range) {
+         pa_range = mc->get_physical_address_range(ms,
+@@ -275,6 +295,7 @@
+     ac->name = "HVF";
+     ac->init_machine = hvf_accel_init;
+     ac->allowed = &hvf_allowed;
++    hvf_arch_accel_class_init(oc);
+     hvf_kernel_irqchip_override = false;
+     hvf_kernel_irqchip = false;
+     object_class_property_add(oc, "kernel-irqchip", "on|off|split",
+--- a/include/system/hvf.h
++++ b/include/system/hvf.h
+@@ -44,4 +44,19 @@
+ DECLARE_INSTANCE_CHECKER(HVFState, HVF_STATE,
+                          TYPE_HVF_ACCEL)
+ 
++#ifdef CONFIG_HVF_IS_POSSIBLE
++/*
++ * Minimum alignment for hv_vm_map().  Returns the configured IPA granule
++ * or host page size if not set.
++ */
++void hvf_set_map_granule(uint64_t size);
++uint64_t hvf_get_map_granule(void);
++#else
++static inline void hvf_set_map_granule(uint64_t size) {}
++static inline uint64_t hvf_get_map_granule(void)
++{
++    return qemu_real_host_page_size();
++}
+ #endif
++
++#endif
+--- a/include/system/hvf_int.h
++++ b/include/system/hvf_int.h
+@@ -39,6 +39,7 @@
+ 
+     hvf_vcpu_caps *hvf_caps;
+     uint64_t vtimer_offset;
++    uint32_t ipa_granule;
+     QTAILQ_HEAD(, hvf_sw_breakpoint) hvf_sw_breakpoints;
+ };
+ extern HVFState *hvf_state;
+@@ -59,6 +60,7 @@
+ const char *hvf_return_string(hv_return_t ret);
+ int hvf_arch_init(void);
+ hv_return_t hvf_arch_vm_create(MachineState *ms, uint32_t pa_range);
++void hvf_arch_accel_class_init(ObjectClass *oc);
+ uint32_t hvf_arch_get_default_ipa_bit_size(void);
+ uint32_t hvf_arch_get_max_ipa_bit_size(void);
+ void hvf_kick_vcpu_thread(CPUState *cpu);
+--- a/target/arm/hvf/hvf.c
++++ b/target/arm/hvf/hvf.c
+@@ -12,6 +12,8 @@
+ #include "qemu/osdep.h"
+ #include "qemu/error-report.h"
+ #include "qemu/log.h"
++#include "qemu/units.h"
++#include "qapi/error.h"
+ 
+ #include "system/runstate.h"
+ #include "system/hvf.h"
+@@ -1332,6 +1334,44 @@
+ }
+ 
+ 
++static char *hvf_get_ipa_granule(Object *obj, Error **errp)
++{
++    HVFState *s = HVF_STATE(obj);
++
++    if (s->ipa_granule == 4 * KiB) {
++        return g_strdup("4k");
++    }
++    if (s->ipa_granule == 16 * KiB) {
++        return g_strdup("16k");
++    }
++    return g_strdup("auto");
++}
++
++static void hvf_set_ipa_granule(Object *obj, const char *value, Error **errp)
++{
++    HVFState *s = HVF_STATE(obj);
++
++    if (!g_strcmp0(value, "auto")) {
++        s->ipa_granule = 0;
++    } else if (!g_strcmp0(value, "4k")) {
++        s->ipa_granule = 4 * KiB;
++    } else if (!g_strcmp0(value, "16k")) {
++        s->ipa_granule = 16 * KiB;
++    } else {
++        error_setg(errp, "invalid ipa-granule: '%s' (use auto, 4k, 16k)",
++                   value);
++    }
++}
++
++void hvf_arch_accel_class_init(ObjectClass *oc)
++{
++    object_class_property_add_str(oc, "ipa-granule",
++                                  hvf_get_ipa_granule,
++                                  hvf_set_ipa_granule);
++    object_class_property_set_description(oc, "ipa-granule",
++        "IPA granule for HVF stage-2 translation (auto, 4k, 16k)");
++}
++
+ hv_return_t hvf_arch_vm_create(MachineState *ms, uint32_t pa_range)
+ {
+     hv_return_t ret;
+@@ -1354,6 +1394,38 @@
+                 error_report("Failed to enable nested virtualization.");
+                 goto cleanup;
+             }
++        }
++    }
++
++    /*
++     * Configure IPA granule from the ipa-granule property.
++     * hvf_get_map_granule() was set by hvf_accel_init() before this call.
++     */
++    {
++        uint64_t granule = hvf_get_map_granule();
++        bool granule_set = false;
++
++#if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && \
++    (__MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_26_0)
++        if (__builtin_available(macOS 26, *)) {
++            hv_ipa_granule_t hv_gran = (granule <= 4 * KiB)
++                ? HV_IPA_GRANULE_4KB : HV_IPA_GRANULE_16KB;
++            ret = hv_vm_config_set_ipa_granule(config, hv_gran);
++            if (ret != HV_SUCCESS) {
++                error_report("HVF: failed to set IPA granule: %s",
++                             hvf_return_string(ret));
++                goto cleanup;
++            }
++            granule_set = true;
++        }
++#endif
++
++        if (!granule_set && granule < qemu_real_host_page_size()) {
++            warn_report("HVF: ipa-granule=%zuKB requested but macOS < 26; "
++                        "falling back to host page size (%zuKB)",
++                        (size_t)(granule / KiB),
++                        (size_t)(qemu_real_host_page_size() / KiB));
++            hvf_set_map_granule(qemu_real_host_page_size());
+         }
+     }
+ 
+@@ -2419,7 +2491,7 @@
+                                                        NULL, true,
+                                                        MEMTXATTRS_UNSPECIFIED);
+             if (memory_region_is_ram(mr)) {
+-                uintptr_t page_size = qemu_real_host_page_size();
++                uintptr_t page_size = hvf_get_map_granule();
+                 intptr_t page_mask = -(intptr_t)page_size;
+                 uint64_t ipa_page = ipa & page_mask;
+ 
+--- a/target/i386/hvf/hvf.c
++++ b/target/i386/hvf/hvf.c
+@@ -228,6 +228,10 @@
+     return 0;
+ }
+ 
++void hvf_arch_accel_class_init(ObjectClass *oc)
++{
++}
++
+ /* 48-bit on all Intel Macs. Function currently unused. */
+ uint32_t hvf_arch_get_default_ipa_bit_size(void)
+ {
+--- a/include/hw/virtio/virtio-gpu.h
++++ b/include/hw/virtio/virtio-gpu.h
+@@ -101,6 +101,7 @@
+     VIRTIO_GPU_FLAG_VENUS_ENABLED,
+     VIRTIO_GPU_FLAG_RESOURCE_UUID_ENABLED,
+     VIRTIO_GPU_FLAG_DRM_ENABLED,
++    VIRTIO_GPU_FLAG_NEPTUNE_ENABLED,
+ };
+ 
+ #define virtio_gpu_virgl_enabled(_cfg) \
+@@ -125,6 +126,9 @@
+     (_cfg.flags & (1 << VIRTIO_GPU_FLAG_VENUS_ENABLED))
+ #define virtio_gpu_drm_enabled(_cfg) \
+     (_cfg.flags & (1 << VIRTIO_GPU_FLAG_DRM_ENABLED))
++
++#define virtio_gpu_neptune_enabled(_cfg) \
+++    (_cfg.flags & (1 << VIRTIO_GPU_FLAG_NEPTUNE_ENABLED))
+ 
+ struct virtio_gpu_base_conf {
+     uint32_t max_outputs;
+--- a/include/standard-headers/linux/virtio_gpu.h
++++ b/include/standard-headers/linux/virtio_gpu.h
+@@ -321,6 +321,8 @@
+ #define VIRTIO_GPU_CAPSET_VENUS 4
+ #define VIRTIO_GPU_CAPSET_CROSS_DOMAIN 5
+ #define VIRTIO_GPU_CAPSET_DRM 6
++/* Public Neptune protocol capset, matching reviewed renderer and driver. */
++#define VIRTIO_GPU_CAPSET_NEPTUNE 7
+ 
+ /* VIRTIO_GPU_CMD_GET_CAPSET_INFO */
+ struct virtio_gpu_get_capset_info {
+--- a/hw/display/virtio-gpu-gl.c
++++ b/hw/display/virtio-gpu-gl.c
+@@ -166,6 +166,8 @@
+ static const Property virtio_gpu_gl_properties[] = {
+     DEFINE_PROP_BIT("stats", VirtIOGPU, parent_obj.conf.flags,
+                     VIRTIO_GPU_FLAG_STATS_ENABLED, false),
++    DEFINE_PROP_BIT("neptune", VirtIOGPU, parent_obj.conf.flags,
++                    VIRTIO_GPU_FLAG_NEPTUNE_ENABLED, false),
+     DEFINE_PROP_BIT("venus", VirtIOGPU, parent_obj.conf.flags,
+                     VIRTIO_GPU_FLAG_VENUS_ENABLED, false),
+     DEFINE_PROP_BIT("drm_native_context", VirtIOGPU, parent_obj.conf.flags,
+--- a/hw/display/virtio-gpu.c
++++ b/hw/display/virtio-gpu.c
+@@ -1615,6 +1615,15 @@
+         }
+     #endif
+ #endif
++    }
++
++    if (virtio_gpu_neptune_enabled(g->parent_obj.conf)) {
++        if (!virtio_gpu_virgl_enabled(g->parent_obj.conf) ||
++            !virtio_gpu_blob_enabled(g->parent_obj.conf) ||
++            !virtio_gpu_hostmem_enabled(g->parent_obj.conf)) {
++            error_setg(errp, "neptune requires virgl, blob and hostmem");
++            return;
++        }
+     }
+ 
+     if (virtio_gpu_venus_enabled(g->parent_obj.conf)) {
+--- a/hw/display/virtio-gpu-virgl.c
++++ b/hw/display/virtio-gpu-virgl.c
+@@ -22,6 +22,7 @@
+ 
+ #include "ui/egl-helpers.h"
+ 
++#define VIRGL_RENDERER_UNSTABLE_APIS
+ #include <virglrenderer.h>
+ 
+ /*
+@@ -41,8 +42,11 @@
+      VIRGL_VERSION_MICRO >= (micro))
+ #endif
+ 
++/* Darwin HVF mappings must be rebound through MemoryRegion notifications.
++ * Replacing a live backing HVA with MAP_FIXED does not update its IPA mapping.
++ * Use the renderer-backed subregion path, including for host-aligned blobs. */
+ #define VIRGL_HAS_MAP_FIXED \
+-    (VIRGL_CHECK_VERSION(1, 3, 0) && !IS_ENABLED(CONFIG_WIN32))
++    (VIRGL_CHECK_VERSION(1, 3, 0) && !IS_ENABLED(CONFIG_WIN32) && !IS_ENABLED(CONFIG_DARWIN))
+ 
+ struct virtio_gpu_virgl_resource {
+     struct virtio_gpu_simple_resource base;
+@@ -185,29 +189,45 @@
+         return -EBUSY;
+     }
+ 
+-    ret = virgl_renderer_resource_map_fixed(res->base.resource_id,
+-                                            gl->hostmem_mmap + offset);
+-    switch (ret) {
+-    case 0:
+-        res->map_fixed = gl->hostmem_mmap + offset;
+-        return 0;
+-
+-    case -EOPNOTSUPP:
+-        /*
+-         * MAP_FIXED is unsupported by this resource.
+-         * Mapping falls back to a blob subregion method in that case.
+-         */
+-        break;
+-
+-    default:
+-        qemu_log_mask(LOG_GUEST_ERROR,
+-                      "%s: failed to map(fixed) virgl resource: %s\n",
+-                      __func__, strerror(-ret));
+-        return ret;
++    /*
++     * MAP_FIXED requires host-page-aligned offset and size.  Hosts with
++     * page sizes larger than the guest's (e.g. 16KB on ARM64) may receive
++     * non-aligned blob offsets.  Fall through to the subregion method when
++     * alignment requirements are not met.
++     */
++    if (QEMU_IS_ALIGNED(offset, qemu_real_host_page_size()) &&
++        QEMU_IS_ALIGNED(res->base.blob_size, qemu_real_host_page_size())) {
++        ret = virgl_renderer_resource_map_fixed(res->base.resource_id,
++                                                gl->hostmem_mmap + offset);
++        switch (ret) {
++        case 0:
++            res->map_fixed = gl->hostmem_mmap + offset;
++            return 0;
++
++        case -EOPNOTSUPP:
++            /*
++             * MAP_FIXED is unsupported by this resource.
++             * Mapping falls back to a blob subregion method in that case.
++             */
++            break;
++
++        default:
++            qemu_log_mask(LOG_GUEST_ERROR,
++                          "%s: failed to map(fixed) virgl resource: %s\n",
++                          __func__, strerror(-ret));
++            return ret;
++        }
+     }
+ #endif
+ 
+     ret = virgl_renderer_resource_map(res->base.resource_id, &data, &size);
++#ifdef __APPLE__
++    static unsigned int map_diagnostics;
++    if (map_diagnostics++ < 32) {
++        error_report("macOpenVM GPU blob mapping: resource=%u; offset=%" PRIu64 "; size=%" PRIu64 "; result=%d; explicit-region=1",
++                     res->base.resource_id, offset, res->base.blob_size, ret);
++    }
++#endif
+     if (ret) {
+         qemu_log_mask(LOG_GUEST_ERROR, "%s: failed to map virgl resource: %s\n",
+                       __func__, strerror(-ret));
+@@ -569,7 +589,14 @@
+         memset(&ext, 0, sizeof(ext));
+         ret = virgl_renderer_resource_get_info_ext(ss.resource_id, &ext);
+         info = ext.base;
+-        d3d_tex2d = ext.d3d_tex2d;
++        if (ext.native_type == VIRGL_NATIVE_HANDLE_D3D_TEX2D) {
++            d3d_tex2d = ext.native_handle;
++        }
++#ifdef __APPLE__
++        if (ext.native_type == VIRGL_NATIVE_HANDLE_METAL_TEXTURE) {
++            d3d_tex2d = ext.native_handle;
++        }
++#endif
+ #else
+         memset(&info, 0, sizeof(info));
+         ret = virgl_renderer_resource_get_info(ss.resource_id, &info);
+@@ -586,6 +613,12 @@
+                                              &cmd->error)) {
+             return;
+         }
++#ifdef __APPLE__
++        if (g->parent_obj.scanout[ss.scanout_id].resource_id != ss.resource_id) {
++            error_report("macOpenVM scanout: %ux%u; native=%d; texture=%u",
++                         ss.r.width, ss.r.height, ext.native_type, info.tex_id);
++        }
++#endif
+         qemu_console_resize(g->parent_obj.scanout[ss.scanout_id].con,
+                             ss.r.width, ss.r.height);
+         virgl_renderer_force_ctx_0();
+@@ -1016,6 +1049,37 @@
+         cmd->error = VIRTIO_GPU_RESP_ERR_INVALID_PARAMETER;
+         return;
+     }
++
++#ifdef __APPLE__
++    /* The renderer owns channel-order correction and bounded SHM import.
++     * The headless Metal listener retains its own texture until replacement.
++     * Release this caller's reference after the synchronous scanout callback.
++     */
++    if (virtio_gpu_neptune_enabled(g->parent_obj.conf)) {
++        virgl_renderer_native_handle handle = NULL;
++        enum virgl_renderer_native_handle_type type;
++        type = virgl_renderer_create_handle_for_scanout(
++            ss.resource_id, ss.width, ss.height, ss.format, ss.padding,
++            ss.strides[0], ss.offsets[0], &handle);
++        if (type == VIRGL_NATIVE_HANDLE_METAL_TEXTURE) {
++            qemu_console_resize(g->parent_obj.scanout[ss.scanout_id].con,
++                                ss.r.width, ss.r.height);
++            qemu_console_gl_scanout_texture(
++                g->parent_obj.scanout[ss.scanout_id].con, 0, true,
++                ss.width, ss.height, ss.r.x, ss.r.y, ss.r.width, ss.r.height,
++                handle);
++            virgl_renderer_release_handle_for_scanout(type, handle);
++            g->parent_obj.enable = 1;
++            virtio_gpu_update_scanout(g, ss.scanout_id, &res->base, &fb, &ss.r);
++            return;
++        }
++        if (type != VIRGL_NATIVE_HANDLE_NONE) {
++            virgl_renderer_release_handle_for_scanout(type, handle);
++        }
++        cmd->error = VIRTIO_GPU_RESP_ERR_UNSPEC;
++        return;
++    }
++#endif
+ 
+     g->parent_obj.enable = 1;
+     if (virtio_gpu_update_dmabuf(g, ss.scanout_id, &res->base, &fb, &ss.r)) {
+@@ -1437,6 +1501,15 @@
+     uint32_t flags = 0;
+     VirtIOGPUGL *gl = VIRTIO_GPU_GL(g);
+ 
++    if (qemu_egl_mode == DISPLAY_GL_MODE_ES) {
++        flags |= VIRGL_RENDERER_USE_GLES;
++    }
++#ifdef __APPLE__
++    if (qemu_egl_display && virtio_gpu_neptune_enabled(g->parent_obj.conf)) {
++        flags |= VIRGL_RENDERER_NATIVE_SHARE_TEXTURE;
++    }
++#endif
++
+ #if VIRGL_RENDERER_CALLBACKS_VERSION >= 4
+     if (qemu_egl_display) {
+         virtio_gpu_3d_cbs.version = 4;
+@@ -1457,6 +1530,9 @@
+ #if VIRGL_VERSION_MAJOR >= 1
+     if (virtio_gpu_venus_enabled(g->parent_obj.conf)) {
+         flags |= VIRGL_RENDERER_VENUS | VIRGL_RENDERER_RENDER_SERVER;
++    }
++    if (virtio_gpu_neptune_enabled(g->parent_obj.conf)) {
++        flags |= VIRGL_RENDERER_NEPTUNE | VIRGL_RENDERER_RENDER_SERVER;
+     }
+     if (virtio_gpu_drm_enabled(g->parent_obj.conf)) {
+         flags |= VIRGL_RENDERER_DRM;
+@@ -1484,6 +1560,11 @@
+         error_report("virgl could not be initialized: %d", ret);
+         return ret;
+     }
++#ifdef __APPLE__
++    error_report("macOpenVM renderer initialized: Neptune=%d; GLES=%d",
++                 virtio_gpu_neptune_enabled(g->parent_obj.conf) != 0,
++                 qemu_egl_mode == DISPLAY_GL_MODE_ES);
++#endif
+ 
+     gl->fence_poll = timer_new_ms(QEMU_CLOCK_VIRTUAL,
+                                   virtio_gpu_fence_poll, g);
+@@ -1569,6 +1650,14 @@
+         }
+     }
+ 
++    if (virtio_gpu_neptune_enabled(g->parent_obj.conf)) {
++        virgl_renderer_get_cap_set(VIRTIO_GPU_CAPSET_NEPTUNE,
++                                  &capset_max_ver, &capset_max_size);
++        if (capset_max_size) {
++            virtio_gpu_virgl_add_capset(capset_ids, VIRTIO_GPU_CAPSET_NEPTUNE);
++        }
++    }
++
+     if (virtio_gpu_drm_enabled(g->parent_obj.conf)) {
+         virgl_renderer_get_cap_set(VIRTIO_GPU_CAPSET_DRM,
+                                    &capset_max_ver,
+--- a/hw/display/meson.build
++++ b/hw/display/meson.build
+@@ -92,6 +92,17 @@
+   endif
+ endif
+ 
++if config_all_devices.has_key('CONFIG_FW_CFG_DMA')
++  virtio_ramfb_ss = ss.source_set()
++  virtio_ramfb_ss.add(when: ['CONFIG_VIRTIO_GPU', 'CONFIG_FW_CFG_DMA'],
++                      if_true: [files('virtio-ramfb.c'), pixman])
++  hw_display_modules += {'virtio-ramfb': virtio_ramfb_ss}
++  virtio_ramfb_gl_ss = ss.source_set()
++  virtio_ramfb_gl_ss.add(when: ['CONFIG_VIRTIO_GPU', 'CONFIG_FW_CFG_DMA', virgl, opengl],
++                         if_true: files('virtio-ramfb-gl.c'))
++  hw_display_modules += {'virtio-ramfb-gl': virtio_ramfb_gl_ss}
++endif
++
+ if config_all_devices.has_key('CONFIG_VIRTIO_PCI')
+   virtio_gpu_pci_ss = ss.source_set()
+   virtio_gpu_pci_ss.add(when: ['CONFIG_VIRTIO_GPU', 'CONFIG_VIRTIO_PCI'],
+--- /dev/null
++++ b/hw/display/virtio-ramfb.c
+@@ -0,0 +1,201 @@
++#include "qemu/osdep.h"
++#include "system/system.h"
++#include "hw/pci/pci.h"
++#include "ui/console.h"
++#include "hw/core/qdev-properties.h"
++#include "virtio-ramfb.h"
++#include "qapi/error.h"
++#include "qom/object.h"
++
++static int virtio_ramfb_get_flags(void *opaque)
++{
++    VirtIORAMFBBase *vramfb = opaque;
++    VirtIOGPUBase *g = vramfb->vgpu;
++
++    if (g->hw_ops->get_flags) {
++        return g->hw_ops->get_flags(g);
++    } else {
++        return 0;
++    }
++}
++
++static void virtio_ramfb_invalidate_display(void *opaque)
++{
++    VirtIORAMFBBase *vramfb = opaque;
++    VirtIOGPUBase *g = vramfb->vgpu;
++
++    if (g->enable) {
++        g->hw_ops->invalidate(g);
++    }
++}
++
++static bool virtio_ramfb_update_display(void *opaque)
++{
++    VirtIORAMFBBase *vramfb = opaque;
++    VirtIOGPUBase *g = vramfb->vgpu;
++
++    if (g->enable) {
++        return g->hw_ops->gfx_update(g);
++    } else {
++        ramfb_display_update(g->scanout[0].con, vramfb->ramfb);
++        return true;
++    }
++}
++
++static void virtio_ramfb_ui_info(void *opaque, uint32_t idx, QemuUIInfo *info)
++{
++    VirtIORAMFBBase *vramfb = opaque;
++    VirtIOGPUBase *g = vramfb->vgpu;
++
++    if (g->hw_ops->ui_info) {
++        g->hw_ops->ui_info(g, idx, info);
++    }
++}
++
++static void virtio_ramfb_gl_block(void *opaque, bool block)
++{
++    VirtIORAMFBBase *vramfb = opaque;
++    VirtIOGPUBase *g = vramfb->vgpu;
++
++    if (g->hw_ops->gl_block) {
++        g->hw_ops->gl_block(g, block);
++    }
++}
++
++static const GraphicHwOps virtio_ramfb_ops = {
++    .get_flags = virtio_ramfb_get_flags,
++    .invalidate = virtio_ramfb_invalidate_display,
++    .gfx_update = virtio_ramfb_update_display,
++    .ui_info = virtio_ramfb_ui_info,
++    .gl_block = virtio_ramfb_gl_block,
++};
++
++static const VMStateDescription vmstate_virtio_ramfb = {
++    .name = "virtio-ramfb",
++    .version_id = 2,
++    .minimum_version_id = 2,
++    .fields = (const VMStateField[]) {
++        /* no pci stuff here, saving the virtio device will handle that */
++        /* FIXME */
++        VMSTATE_END_OF_LIST()
++    }
++};
++
++/* RAMFB device wrapper around PCI device around virtio GPU */
++static void virtio_ramfb_realize(VirtIOPCIProxy *vpci_dev, Error **errp)
++{
++    VirtIORAMFBBase *vramfb = VIRTIO_RAMFB_BASE(vpci_dev);
++    VirtIOGPUBase *g = vramfb->vgpu;
++    int i;
++
++    if (virtio_gpu_hostmem_enabled(g->conf)) {
++        vpci_dev->msix_bar_idx = 1;
++        vpci_dev->modern_mem_bar_idx = 2;
++        memory_region_init(&g->hostmem, OBJECT(g), "virtio-gpu-hostmem",
++                           g->conf.hostmem);
++        pci_register_bar(&vpci_dev->pci_dev, 4,
++                         PCI_BASE_ADDRESS_SPACE_MEMORY |
++                         PCI_BASE_ADDRESS_MEM_PREFETCH |
++                         PCI_BASE_ADDRESS_MEM_TYPE_64,
++                         &g->hostmem);
++        virtio_pci_add_shm_cap(vpci_dev, 4, 0, g->conf.hostmem,
++                               VIRTIO_GPU_SHM_ID_HOST_VISIBLE);
++    }
++
++    /* init virtio bits */
++    virtio_pci_force_virtio_1(vpci_dev);
++    if (!qdev_realize(DEVICE(g), BUS(&vpci_dev->bus), errp)) {
++        return;
++    }
++
++    /* init ramfb */
++    vramfb->ramfb = ramfb_setup(false, errp);
++    if (!vramfb->ramfb) {
++        return;
++    }
++    qemu_graphic_console_set_hwops(g->scanout[0].con, &virtio_ramfb_ops, vramfb);
++
++    for (i = 0; i < g->conf.max_outputs; i++) {
++        object_property_set_link(OBJECT(g->scanout[i].con), "device",
++                                 OBJECT(vpci_dev), &error_abort);
++    }
++}
++
++static void virtio_ramfb_reset_hold(Object *obj, ResetType type)
++{
++    VirtIORAMFBBase *dev = VIRTIO_RAMFB_BASE(obj);
++    VirtIORAMFBBaseClass *klass = VIRTIO_RAMFB_BASE_GET_CLASS(dev);
++
++    /* reset virtio-gpu */
++    if (klass->parent_phases.hold) {
++        klass->parent_phases.hold(obj, type);
++    }
++}
++
++static const Property virtio_ramfb_base_properties[] = {
++    DEFINE_VIRTIO_GPU_PCI_PROPERTIES(VirtIOPCIProxy),
++};
++
++static void virtio_ramfb_base_class_init(ObjectClass *klass, const void *data)
++{
++    DeviceClass *dc = DEVICE_CLASS(klass);
++    VirtioPCIClass *k = VIRTIO_PCI_CLASS(klass);
++    VirtIORAMFBBaseClass *v = VIRTIO_RAMFB_BASE_CLASS(klass);
++    PCIDeviceClass *pcidev_k = PCI_DEVICE_CLASS(klass);
++    ResettableClass *rc = RESETTABLE_CLASS(klass);
++
++    set_bit(DEVICE_CATEGORY_DISPLAY, dc->categories);
++    device_class_set_props(dc, virtio_ramfb_base_properties);
++    dc->vmsd = &vmstate_virtio_ramfb;
++    dc->hotpluggable = false;
++    resettable_class_set_parent_phases(rc, NULL, virtio_ramfb_reset_hold, NULL,
++                                       &v->parent_phases);
++
++    k->realize = virtio_ramfb_realize;
++    pcidev_k->class_id = PCI_CLASS_DISPLAY_OTHER;
++}
++
++static const TypeInfo virtio_ramfb_base_info = {
++    .name          = TYPE_VIRTIO_RAMFB_BASE,
++    .parent        = TYPE_VIRTIO_PCI,
++    .instance_size = sizeof(VirtIORAMFBBase),
++    .class_size    = sizeof(VirtIORAMFBBaseClass),
++    .class_init    = virtio_ramfb_base_class_init,
++    .abstract      = true,
++};
++
++#define TYPE_VIRTIO_RAMFB "virtio-ramfb"
++
++typedef struct VirtIORAMFB VirtIORAMFB;
++DECLARE_INSTANCE_CHECKER(VirtIORAMFB, VIRTIO_RAMFB,
++                         TYPE_VIRTIO_RAMFB)
++
++struct VirtIORAMFB {
++    VirtIORAMFBBase parent_obj;
++
++    VirtIOGPU     vdev;
++};
++
++static void virtio_ramfb_inst_initfn(Object *obj)
++{
++    VirtIORAMFB *dev = VIRTIO_RAMFB(obj);
++
++    virtio_instance_init_common(obj, &dev->vdev, sizeof(dev->vdev),
++                                TYPE_VIRTIO_GPU);
++    VIRTIO_RAMFB_BASE(dev)->vgpu = VIRTIO_GPU_BASE(&dev->vdev);
++}
++
++static VirtioPCIDeviceTypeInfo virtio_ramfb_info = {
++    .generic_name  = TYPE_VIRTIO_RAMFB,
++    .parent        = TYPE_VIRTIO_RAMFB_BASE,
++    .instance_size = sizeof(VirtIORAMFB),
++    .instance_init = virtio_ramfb_inst_initfn,
++};
++
++static void virtio_ramfb_register_types(void)
++{
++    type_register_static(&virtio_ramfb_base_info);
++    virtio_pci_types_register(&virtio_ramfb_info);
++}
++
++type_init(virtio_ramfb_register_types)
+--- /dev/null
++++ b/hw/display/virtio-ramfb-gl.c
+@@ -0,0 +1,48 @@
++#include "qemu/osdep.h"
++#include "hw/pci/pci.h"
++#include "hw/core/qdev-properties.h"
++#include "hw/virtio/virtio-gpu.h"
++#include "hw/display/vga.h"
++#include "qapi/error.h"
++#include "qemu/module.h"
++#include "virtio-ramfb.h"
++#include "qom/object.h"
++
++#define TYPE_VIRTIO_RAMFB_GL "virtio-ramfb-gl"
++
++typedef struct VirtIORAMFBGL VirtIORAMFBGL;
++DECLARE_INSTANCE_CHECKER(VirtIORAMFBGL, VIRTIO_RAMFB_GL,
++                         TYPE_VIRTIO_RAMFB_GL)
++
++struct VirtIORAMFBGL {
++    VirtIORAMFBBase parent_obj;
++
++    VirtIOGPUGL   vdev;
++};
++
++static void virtio_ramfb_gl_inst_initfn(Object *obj)
++{
++    VirtIORAMFBGL *dev = VIRTIO_RAMFB_GL(obj);
++    
++    virtio_instance_init_common(obj, &dev->vdev, sizeof(dev->vdev),
++                                TYPE_VIRTIO_GPU_GL);
++    VIRTIO_RAMFB_BASE(dev)->vgpu = VIRTIO_GPU_BASE(&dev->vdev);
++}
++
++
++static VirtioPCIDeviceTypeInfo virtio_ramfb_gl_info = {
++    .generic_name  = TYPE_VIRTIO_RAMFB_GL,
++    .parent        = TYPE_VIRTIO_RAMFB_BASE,
++    .instance_size = sizeof(VirtIORAMFBGL),
++    .instance_init = virtio_ramfb_gl_inst_initfn,
++};
++module_obj(TYPE_VIRTIO_RAMFB_GL);
++
++static void virtio_ramfb_register_types(void)
++{
++    virtio_pci_types_register(&virtio_ramfb_gl_info);
++}
++
++type_init(virtio_ramfb_register_types)
++
++module_dep("hw-display-virtio-ramfb");
+--- /dev/null
++++ b/hw/display/virtio-ramfb.h
+@@ -0,0 +1,28 @@
++#ifndef VIRTIO_RAMFB_H
++#define VIRTIO_RAMFB_H
++
++#include "hw/virtio/virtio-gpu-pci.h"
++#include "hw/display/ramfb.h"
++#include "qom/object.h"
++
++/*
++ * virtio-ramfb-base: This extends VirtioPCIProxy.
++ */
++#define TYPE_VIRTIO_RAMFB_BASE "virtio-ramfb-base"
++OBJECT_DECLARE_TYPE(VirtIORAMFBBase, VirtIORAMFBBaseClass,
++                    VIRTIO_RAMFB_BASE)
++
++struct VirtIORAMFBBase {
++    VirtIOPCIProxy parent_obj;
++
++    VirtIOGPUBase *vgpu;
++    RAMFBState    *ramfb;
++};
++
++struct VirtIORAMFBBaseClass {
++    VirtioPCIClass parent_class;
++
++    ResettablePhases parent_phases;
++};
++
++#endif /* VIRTIO_RAMFB_H */
+--- a/ui/egl-headless.c
++++ b/ui/egl-headless.c
+@@ -6,6 +6,10 @@
+ #include "ui/egl-helpers.h"
+ #include "ui/egl-context.h"
+ #include "ui/shader.h"
++#include "system/system.h"
++#ifdef __APPLE__
++#include "mvo-metal-readback.h"
++#endif
+ 
+ typedef struct egl_dpy {
+     DisplayChangeListener dcl;
+@@ -16,6 +20,10 @@
+     egl_fb cursor_fb;
+     egl_fb blit_fb;
+     bool y_0_top;
++#ifdef __APPLE__
++    void *metal_texture;
++    uint32_t metal_x, metal_y;
++#endif
+     uint32_t pos_x;
+     uint32_t pos_y;
+ } egl_dpy;
+@@ -52,6 +60,10 @@
+ {
+     egl_dpy *edpy = container_of(dcl, egl_dpy, dcl);
+ 
++#ifdef __APPLE__
++    mvo_metal_release(edpy->metal_texture);
++    edpy->metal_texture = NULL;
++#endif
+     egl_fb_destroy(&edpy->guest_fb);
+     egl_fb_destroy(&edpy->blit_fb);
+ }
+@@ -67,6 +79,21 @@
+ {
+     egl_dpy *edpy = container_of(dcl, egl_dpy, dcl);
+ 
++#ifdef __APPLE__
++    /* In this explicitly selected macOS headless backend, the opaque native
++     * scanout parameter carries a retained public Metal texture. No Cocoa
++     * or Windows display listener is enabled in this candidate.
++     */
++    mvo_metal_release(edpy->metal_texture);
++    edpy->metal_texture = NULL;
++    if (d3d_tex2d && mvo_metal_can_read(d3d_tex2d)) {
++        edpy->metal_texture = mvo_metal_retain(d3d_tex2d);
++        edpy->metal_x = x;
++        edpy->metal_y = y;
++        egl_fb_destroy(&edpy->guest_fb);
++        return;
++    }
++#endif
+     edpy->y_0_top = backing_y_0_top;
+ 
+     /* source framebuffer */
+@@ -146,6 +173,17 @@
+ {
+     egl_dpy *edpy = container_of(dcl, egl_dpy, dcl);
+ 
++#ifdef __APPLE__
++    if (edpy->metal_texture && edpy->ds) {
++        if (mvo_metal_copy(edpy->metal_texture, surface_data(edpy->ds),
++                           surface_stride(edpy->ds), surface_width(edpy->ds),
++                           surface_height(edpy->ds), edpy->metal_x, edpy->metal_y)) {
++            qemu_console_update(edpy->dcl.con, 0, 0,
++                                surface_width(edpy->ds), surface_height(edpy->ds));
++        }
++        return;
++    }
++#endif
+     if (!edpy->guest_fb.texture || !edpy->ds) {
+         return;
+     }
+@@ -214,7 +252,41 @@
+         mode = opts->gl;
+     }
+ 
++#ifdef __APPLE__
++    /* ANGLE's published Metal platform; never select a software renderer. */
++    const EGLint platform_attribs[] = { 0x3203, 0x3489, EGL_NONE };
++    const EGLint config_attribs[] = {
++        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
++        EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8,
++        EGL_NONE
++    };
++    EGLint count, major, minor;
++    PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform =
++        (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress("eglGetPlatformDisplayEXT");
++    if (!get_platform) {
++        error_report("macOpenVM ANGLE Metal platform unavailable");
++        exit(1);
++    }
++    qemu_egl_display = get_platform(0x3202, NULL, platform_attribs);
++    if (!eglInitialize(qemu_egl_display, &major, &minor) ||
++        !eglChooseConfig(qemu_egl_display, config_attribs, &qemu_egl_config, 1, &count) ||
++        count != 1 || !eglBindAPI(EGL_OPENGL_ES_API)) {
++        error_report("macOpenVM ANGLE Metal initialization failed");
++        exit(1);
++    }
++    qemu_egl_mode = DISPLAY_GL_MODE_ES;
++    qemu_egl_rn_ctx = qemu_egl_init_ctx();
++    const char *renderer = (const char *)glGetString(GL_RENDERER);
++    if (!qemu_egl_rn_ctx || !renderer || !strstr(renderer, "Metal") ||
++        strstr(renderer, "SwiftShader") || strstr(renderer, "llvmpipe")) {
++        error_report("macOpenVM requires a verified hardware Metal renderer");
++        exit(1);
++    }
++    error_report("macOpenVM GPU: %s; EGL %d.%d", renderer, major, minor);
++    display_opengl = 1;
++#else
+     egl_init(opts->u.egl_headless.rendernode, mode, &error_fatal);
++#endif
+ }
+ 
+ static void egl_headless_init(DisplayState *ds, DisplayOptions *opts)
+@@ -242,6 +314,12 @@
+         qemu_console_register_listener(con, &edpy->dcl, &egl_ops);
+         g_ptr_array_add(egl_dpys, edpy);
+     }
++#ifdef __APPLE__
++    /* macOS starts the VM loop on its own thread. Hand the EGL context over
++     * explicitly instead of leaving initialization's thread as its owner.
++     */
++    eglMakeCurrent(qemu_egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
++#endif
+ }
+ 
+ static void egl_headless_cleanup(void)
+@@ -249,6 +327,13 @@
+     if (!egl_dpys) {
+         return;
+     }
++
++#ifdef __APPLE__
++    if (qemu_egl_make_context_current(NULL, qemu_egl_rn_ctx)) {
++        error_report("macOpenVM EGL cleanup context unavailable");
++        return;
++    }
++#endif
+ 
+     for (guint i = 0; i < egl_dpys->len; i++) {
+         egl_dpy *edpy = g_ptr_array_index(egl_dpys, i);
+@@ -258,6 +343,9 @@
+         egl_fb_destroy(&edpy->guest_fb);
+         egl_fb_destroy(&edpy->cursor_fb);
+         egl_fb_destroy(&edpy->blit_fb);
++#ifdef __APPLE__
++        mvo_metal_release(edpy->metal_texture);
++#endif
+         qemu_gl_fini_shader(edpy->gls);
+         g_free(edpy->ctx);
+         g_free(edpy);
+--- a/ui/egl-helpers.c
++++ b/ui/egl-helpers.c
+@@ -132,7 +132,12 @@
+ 
+     glGenTextures(1, &texture);
+     glBindTexture(GL_TEXTURE_2D, texture);
+-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
++    /* GLES requires the BGRA extension's internal and external formats to
++     * match. Desktop GL accepts RGBA/BGRA; ANGLE Metal rejects that pair.
++     */
++    glTexImage2D(GL_TEXTURE_2D, 0,
++                 qemu_egl_mode == DISPLAY_GL_MODE_ES ? GL_BGRA : GL_RGBA,
++                 width, height,
+                  0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+ 
+     egl_fb_setup_for_tex(fb, width, height, texture, true);
+@@ -528,7 +533,7 @@
+     /* In practise any EGL 1.5 implementation would support the EXT extension */
+     if (epoxy_has_egl_extension(NULL, "EGL_EXT_platform_base")) {
+         if (platform != 0) {
+-            dpy = eglGetPlatformDisplayEXT(platform, native, NULL);
++            dpy = eglGetPlatformDisplayEXT(platform, (void *)(uintptr_t)native, NULL);
+         }
+     }
+ 
+--- a/ui/meson.build
++++ b/ui/meson.build
+@@ -111,6 +111,10 @@
+   egl_headless_ss = ss.source_set()
+   egl_headless_ss.add(when: [opengl, pixman],
+                       if_true: [files('egl-headless.c'), gbm])
++  if host_os == 'darwin'
++    egl_headless_ss.add(files('mvo-metal-readback.m'),
++                        dependency('appleframeworks', modules: ['Metal', 'Foundation']))
++  endif
+   ui_modules += {'egl-headless' : egl_headless_ss}
+ endif
+ 
+--- /dev/null
++++ b/ui/mvo-metal-readback.h
+@@ -0,0 +1,13 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later
++ * Original macOpenVM experimental headless Metal scanout bridge.
++ */
++#ifndef MVO_METAL_READBACK_H
++#define MVO_METAL_READBACK_H
++#include <stdbool.h>
++#include <stdint.h>
++void *mvo_metal_retain(void *texture);
++void mvo_metal_release(void *texture);
++bool mvo_metal_can_read(void *texture);
++bool mvo_metal_copy(void *texture, uint8_t *target, uint32_t stride,
++                    uint32_t width, uint32_t height, uint32_t x, uint32_t y);
++#endif
+--- /dev/null
++++ b/ui/mvo-metal-readback.m
+@@ -0,0 +1,49 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#include "mvo-metal-readback.h"
++#import <Foundation/Foundation.h>
++#import <Metal/Metal.h>
++
++void *mvo_metal_retain(void *texture)
++{
++    return [(id<MTLTexture>)texture retain];
++}
++
++void mvo_metal_release(void *texture)
++{
++    [(id<MTLTexture>)texture release];
++}
++
++bool mvo_metal_can_read(void *texture)
++{
++    id<MTLTexture> t = (id<MTLTexture>)texture;
++    return t && t.storageMode == MTLStorageModeShared &&
++        (t.pixelFormat == MTLPixelFormatBGRA8Unorm ||
++         t.pixelFormat == MTLPixelFormatBGRA8Unorm_sRGB ||
++         t.pixelFormat == MTLPixelFormatRGBA8Unorm ||
++         t.pixelFormat == MTLPixelFormatRGBA8Unorm_sRGB);
++}
++
++bool mvo_metal_copy(void *texture, uint8_t *target, uint32_t stride,
++                    uint32_t width, uint32_t height, uint32_t x, uint32_t y)
++{
++    @autoreleasepool {
++        id<MTLTexture> t = (id<MTLTexture>)texture;
++        if (!mvo_metal_can_read(texture) || !target || !width || !height ||
++            (uint64_t)width * 4 > stride || x > t.width || y > t.height ||
++            width > t.width - x || height > t.height - y) {
++            return false;
++        }
++        [t getBytes:target bytesPerRow:stride
++            fromRegion:MTLRegionMake2D(x, y, width, height) mipmapLevel:0];
++        if (t.pixelFormat == MTLPixelFormatRGBA8Unorm ||
++            t.pixelFormat == MTLPixelFormatRGBA8Unorm_sRGB) {
++            for (uint32_t row = 0; row < height; row++) {
++                uint8_t *p = target + (uint64_t)row * stride;
++                for (uint32_t col = 0; col < width; col++, p += 4) {
++                    uint8_t red = p[0]; p[0] = p[2]; p[2] = red;
++                }
++            }
++        }
++        return true;
++    }
++}

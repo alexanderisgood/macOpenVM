@@ -1,0 +1,127 @@
+--- a/audio/coreaudio.m
++++ b/audio/coreaudio.m
+@@ -163,7 +163,11 @@
+         kAudioDevicePropertyScopeOutput,
+         kAudioObjectPropertyElementMain
+     };
+-    return AudioObjectGetPropertyData(id, &addr, 0, NULL, &size, d);
++    OSStatus status = AudioObjectGetPropertyData(id, &addr, 0, NULL, &size, d);
++    if (status == kAudioHardwareNoError && size != sizeof(*d)) {
++        return kAudioHardwareBadPropertySizeError;
++    }
++    return status;
+ }
+ 
+ static void coreaudio_logstatus(OSStatus status)
+@@ -326,7 +330,11 @@
+     size_t len;
+ 
+     /* Every early return and partial underrun must deliver silence rather than
+-     * leave stale output bytes. No logging or allocation occurs in this callback. */
++     * leave stale output bytes. All supplied buffers are cleared, even when the
++     * layout cannot be consumed by this stereo interleaved float32 backend. */
++    if (!outOutputData) {
++        return 0;
++    }
+     for (UInt32 i = 0; i < outOutputData->mNumberBuffers; i++) {
+         if (outOutputData->mBuffers[i].mData) {
+             memset(outOutputData->mBuffers[i].mData, 0,
+@@ -334,8 +342,7 @@
+         }
+     }
+ 
+-    if (coreaudio_voice_out_buf_lock(core, "out_device_ioproc")) {
+-        inInputTime = 0;
++    if (!core || coreaudio_voice_out_buf_lock(core, "out_device_ioproc")) {
+         return 0;
+     }
+ 
+@@ -346,12 +353,22 @@
+ 
+     core->mvo_callback_buffers = outOutputData->mNumberBuffers;
+     core->mvo_callbacks++;
+-    if (!outOutputData->mNumberBuffers || !outOutputData->mBuffers[0].mData) {
+-        coreaudio_voice_out_buf_unlock(core, "out_device_ioproc(no buffer)");
++    if (outOutputData->mNumberBuffers) {
++        core->mvo_callback_channels = outOutputData->mBuffers[0].mNumberChannels;
++        core->mvo_callback_bytes = outOutputData->mBuffers[0].mDataByteSize;
++    }
++    /* An ASBD readback admits the encoding at initialization, but every IOProc
++     * call must also have the supported buffer topology and complete frames.
++     * In particular, never consume a stereo ring into a mono or planar buffer. */
++    if (outOutputData->mNumberBuffers != 1 ||
++        outOutputData->mBuffers[0].mNumberChannels != 2 ||
++        hw->info.bytes_per_frame != 8 ||
++        outOutputData->mBuffers[0].mDataByteSize % 8 ||
++        !outOutputData->mBuffers[0].mData ||
++        (uintptr_t)outOutputData->mBuffers[0].mData % _Alignof(float)) {
++        coreaudio_voice_out_buf_unlock(core, "out_device_ioproc(unsupported buffer)");
+         return 0;
+     }
+-    core->mvo_callback_channels = outOutputData->mBuffers[0].mNumberChannels;
+-    core->mvo_callback_bytes = outOutputData->mBuffers[0].mDataByteSize;
+     out = outOutputData->mBuffers[0].mData;
+ 
+     /* The callback's supplied byte capacity is authoritative. The device can
+@@ -406,6 +423,23 @@
+     return 0;
+ }
+ 
++/* This experimental output recipe has one native float32 stereo stream.
++ * CoreAudio documents Packed as implied when all channel bits fill the frame,
++ * so the equivalent flags without the explicit Packed bit are also admitted. */
++static bool coreaudio_output_format_is_supported(
++    const AudioStreamBasicDescription *format)
++{
++    return format->mSampleRate == 48000 &&
++           format->mFormatID == kAudioFormatLinearPCM &&
++           (format->mFormatFlags | kAudioFormatFlagIsPacked) ==
++               kAudioFormatFlagsNativeFloatPacked &&
++           format->mBitsPerChannel == 32 &&
++           format->mBytesPerFrame == 8 &&
++           format->mBytesPerPacket == 8 &&
++           format->mFramesPerPacket == 1 &&
++           format->mChannelsPerFrame == 2;
++}
++
+ static OSStatus init_out_device(CoreaudioVoiceOut *core)
+ {
+     AudioDeviceID device_id;
+@@ -419,11 +453,18 @@
+         .mBytesPerFrame = core->hw.info.bytes_per_frame,
+         .mBytesPerPacket = core->hw.info.bytes_per_frame,
+         .mChannelsPerFrame = core->hw.info.nchannels,
+-        .mFormatFlags = kLinearPCMFormatFlagIsFloat,
++        .mFormatFlags = kAudioFormatFlagsNativeFloatPacked,
+         .mFormatID = kAudioFormatLinearPCM,
+         .mFramesPerPacket = 1,
+         .mSampleRate = core->hw.info.freq
+     };
++
++    if (core->hw.info.af != AUDIO_FORMAT_F32 ||
++        !coreaudio_output_format_is_supported(&stream_basic_description)) {
++        coreaudio_playback_logerr(kAudioDeviceUnsupportedFormatError,
++                                  "Unsupported output voice format");
++        return kAudioDeviceUnsupportedFormatError;
++    }
+ 
+     status = coreaudio_get_voice_out(&device_id);
+     if (status != kAudioHardwareNoError) {
+@@ -511,6 +552,17 @@
+                     (unsigned)actual_format.mBitsPerChannel,
+                     (unsigned)actual_format.mBytesPerFrame,
+                     (unsigned)actual_format.mChannelsPerFrame);
++    }
++
++    if (format_status != kAudioHardwareNoError) {
++        coreaudio_playback_logerr(format_status,
++                                  "Could not read output stream format");
++        return format_status;
++    }
++    if (!coreaudio_output_format_is_supported(&actual_format)) {
++        coreaudio_playback_logerr(kAudioDeviceUnsupportedFormatError,
++                                  "Unsupported actual output stream format");
++        return kAudioDeviceUnsupportedFormatError;
+     }
+ 
+     /*

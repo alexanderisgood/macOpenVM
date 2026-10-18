@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0
+[Defines]
+  INF_VERSION = 0x00010017
+  BASE_NAME = MacOpenVMTpmNvVerifyProbe
+  FILE_GUID = f2af7b8a-a5c0-4bca-8776-39e0ce42b3f9
+  MODULE_TYPE = UEFI_APPLICATION
+  VERSION_STRING = 0.1
+  ENTRY_POINT = UefiMain
+
+[Sources]
+  TpmNvProbe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
+  BaseMemoryLib
+
+[Guids]
+  gEfiGlobalVariableGuid
+
+[Protocols]
+  gEfiTcg2ProtocolGuid
+  gEfiLoadedImageProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid
+
+[BuildOptions]
+  GCC:*_*_*_CC_FLAGS = -DMVO_NV_VERIFY_ONLY=1

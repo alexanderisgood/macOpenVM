@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
+[Defines]
+  INF_VERSION = 0x00010017
+  BASE_NAME = MacOpenVMPlatformProbe
+  FILE_GUID = 50a6fc18-3f29-46b3-b8d0-1dbc53cc7dca
+  MODULE_TYPE = UEFI_APPLICATION
+  VERSION_STRING = 0.1
+  ENTRY_POINT = UefiMain
+
+[Sources]
+  PlatformProbe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
+  BaseMemoryLib
+
+[Guids]
+  gEfiGlobalVariableGuid
+
+[Protocols]
+  gEfiTcg2ProtocolGuid

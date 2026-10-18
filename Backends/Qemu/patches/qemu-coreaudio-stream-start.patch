@@ -1,0 +1,245 @@
+--- a/audio/coreaudio.m
++++ b/audio/coreaudio.m
+@@ -49,6 +49,7 @@
+     UInt32 device_frame_size;
+     AudioDeviceIOProcID ioprocid;
+     bool enabled;
++    bool ioproc_started;
+     /* Numeric playback diagnostics only; no sample contents are retained. */
+     uint64_t mvo_callbacks;
+     uint64_t mvo_delivered_frames;
+@@ -142,23 +143,6 @@
+                                       NULL,
+                                       size,
+                                       d);
+-}
+-
+-static OSStatus coreaudio_get_out_isrunning(AudioDeviceID id, UInt32 *result)
+-{
+-    UInt32 size = sizeof(*result);
+-    AudioObjectPropertyAddress addr = {
+-        kAudioDevicePropertyDeviceIsRunning,
+-        kAudioDevicePropertyScopeOutput,
+-        kAudioObjectPropertyElementMain
+-    };
+-
+-    return AudioObjectGetPropertyData(id,
+-                                      &addr,
+-                                      0,
+-                                      NULL,
+-                                      &size,
+-                                      result);
+ }
+ 
+ static void coreaudio_logstatus(OSStatus status)
+@@ -405,13 +389,13 @@
+     if (device_id == kAudioDeviceUnknown) {
+         error_report("coreaudio: Could not initialize playback: "
+                      "Unknown audio device");
+-        return status;
++        return kAudioHardwareBadDeviceError;
+     }
+ 
+     /* get minimum and maximum buffer frame sizes */
+     status = coreaudio_get_out_framesizerange(device_id, &value_range);
+     if (status == kAudioHardwareBadObjectError) {
+-        return 0;
++        return status;
+     }
+     if (status != kAudioHardwareNoError) {
+         coreaudio_playback_logerr(status,
+@@ -434,7 +418,7 @@
+     /* set Buffer Frame Size */
+     status = coreaudio_set_out_framesize(device_id, &device_frame_size);
+     if (status == kAudioHardwareBadObjectError) {
+-        return 0;
++        return status;
+     }
+     if (status != kAudioHardwareNoError) {
+         coreaudio_playback_logerr(status,
+@@ -446,7 +430,7 @@
+     /* get Buffer Frame Size */
+     status = coreaudio_get_out_framesize(device_id, &device_frame_size);
+     if (status == kAudioHardwareBadObjectError) {
+-        return 0;
++        return status;
+     }
+     if (status != kAudioHardwareNoError) {
+         coreaudio_playback_logerr(status,
+@@ -458,7 +442,7 @@
+     status = coreaudio_set_out_streamformat(device_id,
+                                             &stream_basic_description);
+     if (status == kAudioHardwareBadObjectError) {
+-        return 0;
++        return status;
+     }
+     if (status != kAudioHardwareNoError) {
+         coreaudio_playback_logerr(status,
+@@ -483,11 +467,12 @@
+                                        &core->hw,
+                                        &ioprocid);
+     if (status == kAudioHardwareBadDeviceError) {
+-        return 0;
++        return status;
+     }
+     if (status != kAudioHardwareNoError || ioprocid == NULL) {
+         coreaudio_playback_logerr(status, "Could not set IOProc");
+-        return status;
++        return status != kAudioHardwareNoError
++            ? status : kAudioHardwareUnspecifiedError;
+     }
+ 
+     core->device_id = device_id;
+@@ -495,6 +480,7 @@
+     core->hw.samples = core->buffer_count * core->device_frame_size;
+     audio_generic_initialize_buffer_out(&core->hw);
+     core->ioprocid = ioprocid;
++    core->ioproc_started = false;
+ 
+     return 0;
+ }
+@@ -502,22 +488,13 @@
+ static void fini_out_device(CoreaudioVoiceOut *core)
+ {
+     OSStatus status;
+-    UInt32 isrunning;
+-
+-    /* stop playback */
+-    status = coreaudio_get_out_isrunning(core->device_id, &isrunning);
+-    if (status != kAudioHardwareBadObjectError) {
+-        if (status != kAudioHardwareNoError) {
+-            coreaudio_logerr(status,
+-                             "Could not determine whether device is playing");
++    /* Stop only our registered IOProc, independently of device-wide activity. */
++    if (core->ioproc_started) {
++        status = AudioDeviceStop(core->device_id, core->ioprocid);
++        if (status != kAudioHardwareBadDeviceError && status != kAudioHardwareNoError) {
++            coreaudio_logerr(status, "Could not stop playback");
+         }
+-
+-        if (isrunning) {
+-            status = AudioDeviceStop(core->device_id, core->ioprocid);
+-            if (status != kAudioHardwareBadDeviceError && status != kAudioHardwareNoError) {
+-                coreaudio_logerr(status, "Could not stop playback");
+-            }
+-        }
++        core->ioproc_started = false;
+     }
+ 
+     /* remove callback */
+@@ -535,52 +512,67 @@
+ 
+ static void mvo_report_playback(CoreaudioVoiceOut *core)
+ {
+-    if (coreaudio_voice_out_buf_lock(core, "mvo_report_playback")) {
++    uint64_t callbacks, frames, samples, underruns;
++    if (!mvo_playback_report_budget ||
++        coreaudio_voice_out_buf_lock(core, "mvo_report_playback")) {
+         return;
+     }
+-    if (mvo_playback_report_budget && core->mvo_callbacks) {
+-        mvo_playback_report_budget--;
+-        info_report("macOpenVM audio playback: callbacks=%" PRIu64
+-                    " delivered_frames=%" PRIu64 " nonzero_samples=%" PRIu64
+-                    " underrun_callbacks=%" PRIu64,
+-                    core->mvo_callbacks, core->mvo_delivered_frames,
+-                    core->mvo_nonzero_samples, core->mvo_underrun_callbacks);
+-    }
++    callbacks = core->mvo_callbacks;
++    frames = core->mvo_delivered_frames;
++    samples = core->mvo_nonzero_samples;
++    underruns = core->mvo_underrun_callbacks;
+     coreaudio_voice_out_buf_unlock(core, "mvo_report_playback");
++    mvo_playback_report_budget--;
++    info_report("macOpenVM audio playback: callbacks=%" PRIu64
++                " delivered_frames=%" PRIu64 " nonzero_samples=%" PRIu64
++                " underrun_callbacks=%" PRIu64,
++                callbacks, frames, samples, underruns);
++}
++
++/* Numeric control diagnostics have a separate fixed budget. Device API calls
++ * and logging never hold the realtime callback's buffer mutex. */
++static unsigned mvo_stream_report_budget = 16;
++
++static void mvo_report_stream(CoreaudioVoiceOut *core, int requested, OSStatus status)
++{
++    if (mvo_stream_report_budget) {
++        mvo_stream_report_budget--;
++        info_report("macOpenVM audio stream: requested=%d started=%d status=%" PRId32
++                    " device=%u device_frames=%u",
++                    requested, core->ioproc_started, (int32_t)status,
++                    (unsigned)core->device_id, (unsigned)core->device_frame_size);
++    }
+ }
+ 
+ static void update_out_device_playback_state(CoreaudioVoiceOut *core)
+ {
+-    OSStatus status;
+-    UInt32 isrunning;
+-
+-    status = coreaudio_get_out_isrunning(core->device_id, &isrunning);
+-    if (status != kAudioHardwareNoError) {
+-        if (status != kAudioHardwareBadObjectError) {
+-            coreaudio_logerr(status,
+-                             "Could not determine whether device is playing");
++    OSStatus status = kAudioHardwareNoError;
++
++    if (core->device_id == kAudioDeviceUnknown || core->ioprocid == NULL) {
++        mvo_report_stream(core, core->enabled, kAudioHardwareBadDeviceError);
++        return;
++    }
++
++    if (core->enabled && !core->ioproc_started) {
++        /* AudioDeviceStart starts the specified callback. Hardware being
++         * active cannot prove that this particular callback is started. */
++        status = AudioDeviceStart(core->device_id, core->ioprocid);
++        if (status == kAudioHardwareNoError) {
++            core->ioproc_started = true;
++        } else {
++            coreaudio_logerr(status, "Could not resume playback");
+         }
+-
+-        return;
+-    }
+-
+-    if (core->enabled) {
+-        /* start playback */
+-        if (!isrunning) {
+-            status = AudioDeviceStart(core->device_id, core->ioprocid);
+-            if (status != kAudioHardwareBadDeviceError && status != kAudioHardwareNoError) {
+-                coreaudio_logerr(status, "Could not resume playback");
+-            }
++    } else if (!core->enabled && core->ioproc_started) {
++        status = AudioDeviceStop(core->device_id, core->ioprocid);
++        if (status == kAudioHardwareNoError || status == kAudioHardwareBadDeviceError) {
++            core->ioproc_started = false;
++        } else {
++            coreaudio_logerr(status, "Could not pause playback");
+         }
+-    } else {
+-        /* stop playback */
+-        if (isrunning) {
+-            status = AudioDeviceStop(core->device_id,
+-                                     core->ioprocid);
+-            if (status != kAudioHardwareBadDeviceError && status != kAudioHardwareNoError) {
+-                coreaudio_logerr(status, "Could not pause playback");
+-            }
+-        }
++    }
++    mvo_report_stream(core, core->enabled, status);
++    if (!core->enabled) {
++        mvo_report_playback(core);
+     }
+ }
+ 
+@@ -645,7 +637,9 @@
+         return -1;
+     }
+ 
+-    if (init_out_device(core)) {
++    status = init_out_device(core);
++    mvo_report_stream(core, -1, status);
++    if (status) {
+         status = AudioObjectRemovePropertyListener(kAudioObjectSystemObject,
+                                                    &voice_out_addr,
+                                                    handle_voice_out_change,

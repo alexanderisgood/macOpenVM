@@ -1,0 +1,203 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Private default-off experiment on the qualified Neptune/Metal port.
+--- a/ui/egl-headless.c
++++ b/ui/egl-headless.c
+@@ -10,6 +10,7 @@
+ #include "system/system.h"
+ #ifdef __APPLE__
+ #include "mvo-metal-readback.h"
++#include "mvo-metal-damage.h"
+ #endif
+ 
+ typedef struct egl_dpy {
+@@ -25,8 +26,10 @@
+     void *metal_texture;
+     uint32_t metal_x, metal_y;
+     uint32_t metal_width, metal_height;
++    bool metal_damage_readback, metal_full_readback;
+     unsigned metal_geometry_reports, metal_copy_failures, metal_timing_reports;
+     uint64_t metal_copy_count, metal_copy_ns;
++    uint64_t metal_partial_count, metal_copy_pixels;
+ #endif
+     uint32_t pos_x;
+     uint32_t pos_y;
+@@ -52,6 +55,9 @@
+     egl_dpy *edpy = container_of(dcl, egl_dpy, dcl);
+ 
+     edpy->ds = new_surface;
++#ifdef __APPLE__
++    edpy->metal_full_readback = true;
++#endif
+ }
+ 
+ static QEMUGLContext egl_create_context(DisplayGLCtx *dgc,
+@@ -67,6 +73,7 @@
+ #ifdef __APPLE__
+     mvo_metal_release(edpy->metal_texture);
+     edpy->metal_texture = NULL;
++    edpy->metal_full_readback = true;
+ #endif
+     egl_fb_destroy(&edpy->guest_fb);
+     egl_fb_destroy(&edpy->blit_fb);
+@@ -92,12 +99,15 @@
+     edpy->metal_texture = NULL;
+     if (d3d_tex2d && mvo_metal_can_read(d3d_tex2d)) {
+         edpy->metal_texture = mvo_metal_retain(d3d_tex2d);
++        /* A new scanout may change pixels outside the next flush rectangle. */
++        edpy->metal_full_readback = true;
+         edpy->metal_x = x;
+         edpy->metal_y = y;
+         if (edpy->metal_width != w || edpy->metal_height != h) {
+             edpy->metal_width = w;
+             edpy->metal_height = h;
+             edpy->metal_copy_count = edpy->metal_copy_ns = 0;
++            edpy->metal_partial_count = edpy->metal_copy_pixels = 0;
+             if (edpy->metal_geometry_reports++ < 32) {
+                 error_report("macOpenVM Metal scanout: frame=%ux%u backing=%ux%u origin=%u,%u surface=%dx%d",
+                              w, h, backing_width, backing_height, x, y,
+@@ -190,22 +200,52 @@
+ 
+ #ifdef __APPLE__
+     if (edpy->metal_texture && edpy->ds) {
++        uint32_t dx = 0, dy = 0;
++        uint32_t sx = edpy->metal_x, sy = edpy->metal_y;
++        uint32_t width = surface_width(edpy->ds);
++        uint32_t height = surface_height(edpy->ds);
++        if (edpy->metal_damage_readback) {
++            MVODamagePlan plan;
++            if (mvo_damage_plan(edpy->metal_x, edpy->metal_y,
++                                edpy->metal_width, edpy->metal_height,
++                                width, height, x, y, w, h,
++                                edpy->metal_full_readback, &plan)) {
++                if (!plan.width || !plan.height) {
++                    return;
++                }
++                sx = plan.source_x;
++                sy = plan.source_y;
++                dx = plan.destination_x;
++                dy = plan.destination_y;
++                width = plan.width;
++                height = plan.height;
++            }
++            /* Unknown/mismatched geometry retains the full-copy fallback. */
++        }
++        uint32_t stride = surface_stride(edpy->ds);
++        uint8_t *target = surface_data(edpy->ds) + (uint64_t)dy * stride + (uint64_t)dx * 4;
+         int64_t copy_start = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+-        if (mvo_metal_copy(edpy->metal_texture, surface_data(edpy->ds),
+-                           surface_stride(edpy->ds), surface_width(edpy->ds),
+-                           surface_height(edpy->ds), edpy->metal_x, edpy->metal_y)) {
++        if (mvo_metal_copy(edpy->metal_texture, target, stride,
++                           width, height, sx, sy)) {
++            edpy->metal_full_readback = false;
+             edpy->metal_copy_ns += qemu_clock_get_ns(QEMU_CLOCK_REALTIME) - copy_start;
+             edpy->metal_copy_count++;
++            edpy->metal_copy_pixels += (uint64_t)width * height;
++            edpy->metal_partial_count += dx || dy ||
++                width != (uint32_t)surface_width(edpy->ds) ||
++                height != (uint32_t)surface_height(edpy->ds);
+             if (edpy->metal_copy_count == 120) {
+                 if (edpy->metal_timing_reports++ < 64) {
+-                    error_report("macOpenVM Metal readback: frame=%dx%d copies=120 total_ns=%" PRIu64,
++                    error_report("macOpenVM Metal readback: frame=%dx%d copies=120 total_ns=%" PRIu64
++                                 " partial=%" PRIu64 " pixels=%" PRIu64 " damage=%d",
+                                  surface_width(edpy->ds), surface_height(edpy->ds),
+-                                 edpy->metal_copy_ns);
++                                 edpy->metal_copy_ns, edpy->metal_partial_count,
++                                 edpy->metal_copy_pixels, edpy->metal_damage_readback);
+                 }
+                 edpy->metal_copy_count = edpy->metal_copy_ns = 0;
++                edpy->metal_partial_count = edpy->metal_copy_pixels = 0;
+             }
+-            qemu_console_update(edpy->dcl.con, 0, 0,
+-                                surface_width(edpy->ds), surface_height(edpy->ds));
++            qemu_console_update(edpy->dcl.con, dx, dy, width, height);
+         } else if (edpy->metal_copy_failures++ < 16) {
+             error_report("macOpenVM Metal readback failed: surface=%dx%d stride=%d scanout=%ux%u origin=%u,%u",
+                          surface_width(edpy->ds), surface_height(edpy->ds),
+@@ -337,6 +377,11 @@
+         }
+ 
+         edpy = g_new0(egl_dpy, 1);
++#ifdef __APPLE__
++        edpy->metal_damage_readback = opts->u.egl_headless.has_damage_readback &&
++                                      opts->u.egl_headless.damage_readback;
++        edpy->metal_full_readback = true;
++#endif
+         edpy->gls = qemu_gl_init_shader();
+         ctx = g_new0(DisplayGLCtx, 1);
+         ctx->ops = &eglctx_ops;
+--- a/qapi/ui.json
++++ b/qapi/ui.json
+@@ -1363,10 +1363,13 @@
+ # @rendernode: Which DRM render node should be used.  Default is the
+ #     first available node on the host.
+ #
++# @damage-readback: Private macOpenVM Metal experiment for partial
++#     resource readback after full initialization (default: false).
++#
+ # Since: 3.1
+ ##
+ { 'struct'  : 'DisplayEGLHeadless',
+-  'data'    : { '*rendernode' : 'str' } }
++  'data'    : { '*rendernode' : 'str', '*damage-readback' : 'bool' } }
+ 
+ ##
+ # @DisplayDBus:
+--- /dev/null
++++ b/ui/mvo-metal-damage.h
+@@ -0,0 +1,54 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/* Private generated-pixel prototype. Not installed in the running backend. */
++#ifndef MVO_DAMAGE_PLAN_H
++#define MVO_DAMAGE_PLAN_H
++#include <stdbool.h>
++#include <stdint.h>
++
++typedef struct MVODamagePlan {
++    uint32_t source_x, source_y, destination_x, destination_y, width, height;
++} MVODamagePlan;
++
++static inline bool mvo_damage_plan(uint32_t sx, uint32_t sy,
++                                  uint32_t sw, uint32_t sh,
++                                  uint32_t dw, uint32_t dh,
++                                  uint32_t x, uint32_t y,
++                                  uint32_t w, uint32_t h,
++                                  bool force_full, MVODamagePlan *out)
++{
++    if (!out) {
++        return false;
++    }
++    *out = (MVODamagePlan){0};
++    /* Partial copies require exact surface/scanout geometry. */
++    if (!sw || !sh || sw != dw || sh != dh ||
++        (uint64_t)sx + sw > UINT32_MAX || (uint64_t)sy + sh > UINT32_MAX) {
++        return false;
++    }
++    if (force_full) {
++        *out = (MVODamagePlan){sx, sy, 0, 0, sw, sh};
++        return true;
++    }
++    if (!w || !h) {
++        return true;
++    }
++    /* Flush coordinates belong to the resource, not to its cropped scanout. */
++    uint64_t left = x > sx ? x : sx;
++    uint64_t top = y > sy ? y : sy;
++    uint64_t right = (uint64_t)x + w;
++    uint64_t bottom = (uint64_t)y + h;
++    if (right > (uint64_t)sx + sw) {
++        right = (uint64_t)sx + sw;
++    }
++    if (bottom > (uint64_t)sy + sh) {
++        bottom = (uint64_t)sy + sh;
++    }
++    if (left >= right || top >= bottom) {
++        return true;
++    }
++    *out = (MVODamagePlan){(uint32_t)left, (uint32_t)top,
++        (uint32_t)(left - sx), (uint32_t)(top - sy),
++        (uint32_t)(right - left), (uint32_t)(bottom - top)};
++    return true;
++}
++#endif

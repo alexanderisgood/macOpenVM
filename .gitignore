@@ -1,0 +1,34 @@
+.build/
+build/
+.lab/
+*.macopenvm/
+*.iso
+*.qcow2
+*.raw
+*.vhdx
+*.fd
+*.sock
+*.log
+.DS_Store
+Benchmarks/results/local/
+__pycache__/
+*.py[cod]
+
+# Local environment and private signing stores. Review the final publication set too.
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.mobileprovision
+*.provisionprofile
+*.keychain
+*.keychain-db
+
+# Keep operational handovers, private evidence and local signing keys local.
+CHATGPT_HANDOVER*.md
+docs/CHECKPOINT.md
+docs/checkpoint-history/
+docs/checkpoints/
+*.key
+*.p8

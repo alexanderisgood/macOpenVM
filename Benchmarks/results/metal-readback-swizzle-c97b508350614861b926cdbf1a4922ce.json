@@ -1,0 +1,823 @@
+{
+  "application": {
+    "backend": "generated Metal CPU-readback colour conversion",
+    "backendVersion": "reviewed private QEMU28 baseline and QEMU29 row helper",
+    "configuration": {
+      "paired": {
+        "copiesPerSample": 20,
+        "device": "Apple M5 Pro",
+        "formats": [
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "beforeFullMS": [
+              1.4421000003814697,
+              1.3892000198364258,
+              1.3917999982833862,
+              1.4017500162124634,
+              1.3876499891281129,
+              1.4473500013351441,
+              1.4509999990463256,
+              1.5891000032424927,
+              1.5641999959945678,
+              1.7046499967575073
+            ],
+            "beforePartialMS": [
+              0.0249500036239624,
+              0.02409999370574951,
+              0.024149990081787108,
+              0.02519998550415039,
+              0.025250005722045898,
+              0.02409999370574951,
+              0.026349997520446776,
+              0.024250006675720213,
+              0.024500012397766113,
+              0.02434999942779541
+            ],
+            "candidateFullMS": [
+              1.467899990081787,
+              1.398300004005432,
+              1.4251499891281127,
+              1.3982500076293944,
+              1.438800001144409,
+              1.426199984550476,
+              1.5214999914169312,
+              1.5603500127792358,
+              1.5746999979019165,
+              1.698799991607666
+            ],
+            "candidatePartialMS": [
+              0.02409999370574951,
+              0.024200010299682616,
+              0.02455000877380371,
+              0.024250006675720213,
+              0.026250004768371582,
+              0.02630000114440918,
+              0.02409999370574951,
+              0.025,
+              0.025300002098083495,
+              0.025099992752075195
+            ],
+            "format": 80
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "beforeFullMS": [
+              1.402649998664856,
+              2.1444000005722046,
+              2.279949998855591,
+              1.9269500017166137,
+              1.95239999294281,
+              1.9394500017166139,
+              2.238349986076355,
+              2.615899991989136,
+              2.041249990463257,
+              2.217199993133545
+            ],
+            "beforePartialMS": [
+              0.02524998188018799,
+              0.026149988174438477,
+              0.026200008392333985,
+              0.0250499963760376,
+              0.026500010490417482,
+              0.026200008392333985,
+              0.027699995040893554,
+              0.02630000114440918,
+              0.026599979400634764,
+              0.026600003242492676
+            ],
+            "candidateFullMS": [
+              1.4058000087738036,
+              2.0212000131607057,
+              2.330299997329712,
+              1.90385000705719,
+              2.1141000032424926,
+              1.954699993133545,
+              2.0758000135421755,
+              2.211199998855591,
+              2.1322499990463255,
+              2.119700002670288
+            ],
+            "candidatePartialMS": [
+              0.024900007247924804,
+              0.024249982833862305,
+              0.026500010490417482,
+              0.02645001411437988,
+              0.02519998550415039,
+              0.02590000629425049,
+              0.02624998092651367,
+              0.026250004768371582,
+              0.026599979400634764,
+              0.026349997520446776
+            ],
+            "format": 81
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "beforeFullMS": [
+              5.4653000116348265,
+              4.8266000032424925,
+              4.901200008392334,
+              5.41100001335144,
+              4.385999989509583,
+              5.425,
+              5.271799993515015,
+              5.441499996185303,
+              5.0360499858856205,
+              5.558049988746643
+            ],
+            "beforePartialMS": [
+              0.061399984359741214,
+              0.06159999370574951,
+              0.06150000095367432,
+              0.06419999599456787,
+              0.06164999008178711,
+              0.06109998226165771,
+              0.0946000099182129,
+              0.060899996757507326,
+              0.06109998226165771,
+              0.06145000457763672
+            ],
+            "candidateFullMS": [
+              3.265599989891052,
+              3.3816499948501586,
+              3.3247000217437743,
+              2.9439500093460085,
+              2.9617000102996824,
+              3.3829499959945677,
+              3.2735499858856203,
+              3.280550003051758,
+              3.636899995803833,
+              3.5599999904632567
+            ],
+            "candidatePartialMS": [
+              0.035700011253356936,
+              0.039949989318847655,
+              0.03599998950958252,
+              0.04644999504089355,
+              0.058350014686584475,
+              0.054849982261657715,
+              0.03910000324249267,
+              0.035899996757507324,
+              0.053049993515014646,
+              0.05239999294281006
+            ],
+            "format": 70
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "beforeFullMS": [
+              5.525099992752075,
+              4.792550015449524,
+              5.410500001907349,
+              6.084750008583069,
+              6.055349993705749,
+              6.244100022315979,
+              5.957750010490417,
+              5.834249997138977,
+              5.7370000123977665,
+              5.414999985694886
+            ],
+            "beforePartialMS": [
+              0.06404998302459716,
+              0.07224998474121094,
+              0.06610000133514404,
+              0.08355000019073486,
+              0.09684998989105224,
+              0.10425000190734864,
+              0.0690000057220459,
+              0.10334999561309814,
+              0.06170001029968262,
+              0.06409997940063476
+            ],
+            "candidateFullMS": [
+              3.529849982261658,
+              3.874300003051758,
+              3.8407999992370607,
+              4.0741499900817875,
+              4.514600014686584,
+              4.676600003242493,
+              4.5625,
+              4.050699996948242,
+              4.021799993515015,
+              4.010699987411499
+            ],
+            "candidatePartialMS": [
+              0.060649991035461426,
+              0.05409998893737793,
+              0.04335000514984131,
+              0.03629999160766602,
+              0.05390000343322754,
+              0.05434999465942383,
+              0.06124999523162842,
+              0.053600001335144046,
+              0.03554999828338623,
+              0.03604998588562012
+            ],
+            "format": 71
+          }
+        ],
+        "fullPixels": 7492608,
+        "guestOrDisplayPerformanceQualified": false,
+        "height": 2168,
+        "partialPixels": 131072,
+        "partialSize": [
+          512,
+          256
+        ],
+        "scanoutOrigin": [
+          3,
+          5
+        ],
+        "scope": "paired-generated-before-after-readback-channel-swizzle-component",
+        "screenFileSaved": false,
+        "timingScope": "CPU completed getBytes plus channel conversion; no GPU render/fence wait in scope",
+        "trials": 10,
+        "warmupsPerSample": 4,
+        "width": 3456
+      },
+      "initialOrderedObservation": {
+        "copiesPerSample": 20,
+        "device": "Apple M5 Pro",
+        "formats": [
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "candidate": false,
+            "format": 80,
+            "fullMS": [
+              1.5560499906539917,
+              1.5155499935150147,
+              1.3811500072479248,
+              1.3799999952316284,
+              1.3881999969482421
+            ],
+            "partialMS": [
+              0.025500011444091798,
+              0.025150012969970704,
+              0.024600005149841307,
+              0.024200010299682616,
+              0.02440001964569092
+            ]
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "candidate": true,
+            "format": 80,
+            "fullMS": [
+              1.412000012397766,
+              1.4000499963760376,
+              1.5844000101089477,
+              1.7182500123977662,
+              1.6743499994277955
+            ],
+            "partialMS": [
+              0.024399995803833008,
+              0.02434999942779541,
+              0.0247499942779541,
+              0.024500012397766113,
+              0.02649998664855957
+            ]
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "candidate": false,
+            "format": 81,
+            "fullMS": [
+              1.402999997138977,
+              1.4036499977111816,
+              1.401200008392334,
+              1.3983999967575074,
+              1.4306999921798706
+            ],
+            "partialMS": [
+              0.025099992752075195,
+              0.02409999370574951,
+              0.024949979782104493,
+              0.02434999942779541,
+              0.026049995422363283
+            ]
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "candidate": true,
+            "format": 81,
+            "fullMS": [
+              1.4344500064849854,
+              1.410800004005432,
+              1.4159000158309936,
+              1.4068000078201295,
+              1.4144500017166137
+            ],
+            "partialMS": [
+              0.024500012397766113,
+              0.024449992179870605,
+              0.024450016021728516,
+              0.024049997329711914,
+              0.02434999942779541
+            ]
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "candidate": false,
+            "format": 70,
+            "fullMS": [
+              3.272850012779236,
+              3.269000005722046,
+              3.2534000158309935,
+              3.2569499969482423,
+              3.2464999914169312
+            ],
+            "partialMS": [
+              0.05815000534057617,
+              0.056299996376037595,
+              0.058100008964538576,
+              0.0564000129699707,
+              0.05774998664855957
+            ]
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "candidate": true,
+            "format": 70,
+            "fullMS": [
+              1.9406500101089477,
+              1.9254500150680542,
+              1.9253000020980835,
+              1.927150011062622,
+              1.9377000093460084
+            ],
+            "partialMS": [
+              0.03304998874664307,
+              0.03580000400543213,
+              0.032699990272521975,
+              0.03275001049041748,
+              0.03280000686645508
+            ]
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "candidate": false,
+            "format": 71,
+            "fullMS": [
+              3.6013499975204466,
+              3.7804500102996825,
+              3.384100008010864,
+              3.3644999980926515,
+              3.405999994277954
+            ],
+            "partialMS": [
+              0.05970001220703125,
+              0.058050012588500975,
+              0.0564000129699707,
+              0.05945000648498535,
+              0.05720000267028809
+            ]
+          },
+          {
+            "allPixelsAndGuardsCorrect": true,
+            "candidate": true,
+            "format": 71,
+            "fullMS": [
+              2.0490999937057497,
+              1.9949499845504761,
+              2.0131500005722045,
+              2.0027499914169313,
+              2.0697500228881838
+            ],
+            "partialMS": [
+              0.03345000743865967,
+              0.03600001335144043,
+              0.03554999828338623,
+              0.035400009155273436,
+              0.034449982643127444
+            ]
+          }
+        ],
+        "fullPixels": 7492608,
+        "guestOrDisplayPerformanceQualified": false,
+        "height": 2168,
+        "partialPixels": 131072,
+        "partialSize": [
+          512,
+          256
+        ],
+        "scanoutOrigin": [
+          3,
+          5
+        ],
+        "scope": "generated-before-after-readback-channel-swizzle-component",
+        "screenFileSaved": false,
+        "timingScope": "CPU completed getBytes plus channel conversion; no GPU render/fence wait in scope",
+        "trials": 5,
+        "warmupsPerSample": 4,
+        "width": 3456
+      },
+      "pairedInputs": {
+        "mvo-metal-readback.m": "0b03d0e82695779091080af68e98303e78c0de9b28eb280247687d3a9e1bd381",
+        "mvo-metal-readback.h": "5fa38d53f04c3e756eb1e67bd692621155edd6016e4d92e57be2c7bd5d28fde3",
+        "mvo-metal-swizzle.h": "b8a800e553469d67dd50f582be43b6e46bf36f9f9a5a1d629c810fd545faf3ef",
+        "before.m": "de9a0af4bf3e586f0a178d08cb52076090f8351a1096e15c1e20656d763ae799",
+        "probe.m": "e3f2b40b64ed0d091021769e8b1b9664a960767276ff0a411bd8b4e65a785a75",
+        "damage.h": "01286571926fe3c2f5631633eb821341683697451dac39db82206f42b2183f6d",
+        "check.c": "f5f22e5e52f421119ed769af2d68ce24a6fb1b83e1416ab4a745eec92f079fba"
+      },
+      "pairedBinaries": {
+        "probe": {
+          "sha256": "30a53e39d517a60253660c056a526de61793f3b6f9d7ec82182b74875b60d54f",
+          "bytes": 53736
+        },
+        "check-scalar": {
+          "sha256": "190ce61f90f348cd2c8b3142b1f5fedc28df23590a6d89a37a466338fd8dd9b0",
+          "bytes": 53296
+        },
+        "check-neon": {
+          "sha256": "21da6e7e45a8c9ec4f73b42d6ad1c65a0f14707241cb1dfadd10c7084d2f3f19",
+          "bytes": 53640
+        }
+      },
+      "initialInputs": {
+        "mvo-metal-readback.m": "0b03d0e82695779091080af68e98303e78c0de9b28eb280247687d3a9e1bd381",
+        "mvo-metal-readback.h": "5fa38d53f04c3e756eb1e67bd692621155edd6016e4d92e57be2c7bd5d28fde3",
+        "mvo-metal-swizzle.h": "b8a800e553469d67dd50f582be43b6e46bf36f9f9a5a1d629c810fd545faf3ef",
+        "before.m": "de9a0af4bf3e586f0a178d08cb52076090f8351a1096e15c1e20656d763ae799",
+        "probe.m": "8adbb6bc519447afe7a08d40d4b889f9701f42de0cfffb4a2145bff35b5b5df1",
+        "damage.h": "01286571926fe3c2f5631633eb821341683697451dac39db82206f42b2183f6d",
+        "check.c": "f5f22e5e52f421119ed769af2d68ce24a6fb1b83e1416ab4a745eec92f079fba"
+      },
+      "initialBinaries": {
+        "probe": {
+          "sha256": "5a8f56780be170c702e27cad0b1090e4cca5524686228562148840931349e2c6",
+          "bytes": 53880
+        },
+        "check-scalar": {
+          "sha256": "be15584a801583172f6e3da19e60102d393582888a5a1a87345750e589e704de",
+          "bytes": 53296
+        },
+        "check-neon": {
+          "sha256": "920479152721c6792cd68f9f0ffbfbaa6a466714a40e40d71487d59a0ec6ac5e",
+          "bytes": 53640
+        }
+      },
+      "actualProducerExits": {
+        "paired": [
+          0,
+          0,
+          0
+        ],
+        "initial": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sanitizerScope": "original row helper only; ARM64 NEON and forced scalar;139 widths x32 unaligned offsets, every byte and boundary guard"
+    },
+    "entitlements": [],
+    "revision": null,
+    "sourceSHA256": "eb9f5c717bbc0dc17136819b3946cd8824157a1a1a767c8770239d7de164c998",
+    "version": "0.1.0-dev"
+  },
+  "guest": {
+    "agentVersion": null,
+    "architecture": null,
+    "build": null,
+    "disk": null,
+    "driverVersions": null,
+    "edition": null,
+    "network": null,
+    "os": null,
+    "patchLevel": null,
+    "ramBytes": null,
+    "vCPU": null
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "displays": null,
+    "efficiencyCores": null,
+    "gpuCores": null,
+    "macOSBuild": "26A428",
+    "macOSVersion": "27.0",
+    "model": "Mac17,8",
+    "performanceCores": null,
+    "powerMode": null,
+    "ramBytes": 51539607552,
+    "storageFreeBytes": null,
+    "storageModel": null,
+    "thermalState": null
+  },
+  "limitations": [
+    "Generated native-resolution GPU texture only, no VM or guest content accessed.",
+    "No confidence interval or live FPS claim; ten paired samples retain all outliers, earlier ordered measurements also retained.",
+    "Full and512x256 cropped copies are distinct scopes; small-damage results do not imply Windows supplies small damage.",
+    "Component source was frozen before adding the later numeric format diagnostic; exact changed row helper is retained in both.",
+    "The installed Windows test VM reports BGRA80 and does not execute the changed RGBA loop; no live gain is inferred.",
+    "Live App44 native draws measured41.2 and38.6 per second, lower than historical App43 samples; cause is not established and a current-conditions prior-runtime comparison is required.",
+    "Local source-built experiment only; LGPL/GPL dependency and distribution obligations remain."
+  ],
+  "method": {
+    "backgroundWorkload": "Live Windows test VM and interactive development host; CPU/GPU load, cache, power and thermal state uncontrolled",
+    "cache": "uncontrolled",
+    "confidenceInterval": null,
+    "outlierPolicy": "retain all; ten paired batches alternating implementation and full/partial order; four warmup copies and20 timed copies per sample. Earlier ordered five-sample observation retained separately.",
+    "trialCount": 10
+  },
+  "metrics": [
+    {
+      "name": "80_beforeFullMS",
+      "unit": "ms",
+      "samples": [
+        1.4421000003814697,
+        1.3892000198364258,
+        1.3917999982833862,
+        1.4017500162124634,
+        1.3876499891281129,
+        1.4473500013351441,
+        1.4509999990463256,
+        1.5891000032424927,
+        1.5641999959945678,
+        1.7046499967575073
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "80_candidateFullMS",
+      "unit": "ms",
+      "samples": [
+        1.467899990081787,
+        1.398300004005432,
+        1.4251499891281127,
+        1.3982500076293944,
+        1.438800001144409,
+        1.426199984550476,
+        1.5214999914169312,
+        1.5603500127792358,
+        1.5746999979019165,
+        1.698799991607666
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "80_beforePartialMS",
+      "unit": "ms",
+      "samples": [
+        0.0249500036239624,
+        0.02409999370574951,
+        0.024149990081787108,
+        0.02519998550415039,
+        0.025250005722045898,
+        0.02409999370574951,
+        0.026349997520446776,
+        0.024250006675720213,
+        0.024500012397766113,
+        0.02434999942779541
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "80_candidatePartialMS",
+      "unit": "ms",
+      "samples": [
+        0.02409999370574951,
+        0.024200010299682616,
+        0.02455000877380371,
+        0.024250006675720213,
+        0.026250004768371582,
+        0.02630000114440918,
+        0.02409999370574951,
+        0.025,
+        0.025300002098083495,
+        0.025099992752075195
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "81_beforeFullMS",
+      "unit": "ms",
+      "samples": [
+        1.402649998664856,
+        2.1444000005722046,
+        2.279949998855591,
+        1.9269500017166137,
+        1.95239999294281,
+        1.9394500017166139,
+        2.238349986076355,
+        2.615899991989136,
+        2.041249990463257,
+        2.217199993133545
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "81_candidateFullMS",
+      "unit": "ms",
+      "samples": [
+        1.4058000087738036,
+        2.0212000131607057,
+        2.330299997329712,
+        1.90385000705719,
+        2.1141000032424926,
+        1.954699993133545,
+        2.0758000135421755,
+        2.211199998855591,
+        2.1322499990463255,
+        2.119700002670288
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "81_beforePartialMS",
+      "unit": "ms",
+      "samples": [
+        0.02524998188018799,
+        0.026149988174438477,
+        0.026200008392333985,
+        0.0250499963760376,
+        0.026500010490417482,
+        0.026200008392333985,
+        0.027699995040893554,
+        0.02630000114440918,
+        0.026599979400634764,
+        0.026600003242492676
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "81_candidatePartialMS",
+      "unit": "ms",
+      "samples": [
+        0.024900007247924804,
+        0.024249982833862305,
+        0.026500010490417482,
+        0.02645001411437988,
+        0.02519998550415039,
+        0.02590000629425049,
+        0.02624998092651367,
+        0.026250004768371582,
+        0.026599979400634764,
+        0.026349997520446776
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "70_beforeFullMS",
+      "unit": "ms",
+      "samples": [
+        5.4653000116348265,
+        4.8266000032424925,
+        4.901200008392334,
+        5.41100001335144,
+        4.385999989509583,
+        5.425,
+        5.271799993515015,
+        5.441499996185303,
+        5.0360499858856205,
+        5.558049988746643
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "70_candidateFullMS",
+      "unit": "ms",
+      "samples": [
+        3.265599989891052,
+        3.3816499948501586,
+        3.3247000217437743,
+        2.9439500093460085,
+        2.9617000102996824,
+        3.3829499959945677,
+        3.2735499858856203,
+        3.280550003051758,
+        3.636899995803833,
+        3.5599999904632567
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "70_beforePartialMS",
+      "unit": "ms",
+      "samples": [
+        0.061399984359741214,
+        0.06159999370574951,
+        0.06150000095367432,
+        0.06419999599456787,
+        0.06164999008178711,
+        0.06109998226165771,
+        0.0946000099182129,
+        0.060899996757507326,
+        0.06109998226165771,
+        0.06145000457763672
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "70_candidatePartialMS",
+      "unit": "ms",
+      "samples": [
+        0.035700011253356936,
+        0.039949989318847655,
+        0.03599998950958252,
+        0.04644999504089355,
+        0.058350014686584475,
+        0.054849982261657715,
+        0.03910000324249267,
+        0.035899996757507324,
+        0.053049993515014646,
+        0.05239999294281006
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "71_beforeFullMS",
+      "unit": "ms",
+      "samples": [
+        5.525099992752075,
+        4.792550015449524,
+        5.410500001907349,
+        6.084750008583069,
+        6.055349993705749,
+        6.244100022315979,
+        5.957750010490417,
+        5.834249997138977,
+        5.7370000123977665,
+        5.414999985694886
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "71_candidateFullMS",
+      "unit": "ms",
+      "samples": [
+        3.529849982261658,
+        3.874300003051758,
+        3.8407999992370607,
+        4.0741499900817875,
+        4.514600014686584,
+        4.676600003242493,
+        4.5625,
+        4.050699996948242,
+        4.021799993515015,
+        4.010699987411499
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "71_beforePartialMS",
+      "unit": "ms",
+      "samples": [
+        0.06404998302459716,
+        0.07224998474121094,
+        0.06610000133514404,
+        0.08355000019073486,
+        0.09684998989105224,
+        0.10425000190734864,
+        0.0690000057220459,
+        0.10334999561309814,
+        0.06170001029968262,
+        0.06409997940063476
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    },
+    {
+      "name": "71_candidatePartialMS",
+      "unit": "ms",
+      "samples": [
+        0.060649991035461426,
+        0.05409998893737793,
+        0.04335000514984131,
+        0.03629999160766602,
+        0.05390000343322754,
+        0.05434999465942383,
+        0.06124999523162842,
+        0.053600001335144046,
+        0.03554999828338623,
+        0.03604998588562012
+      ],
+      "definition": "CPU getBytes and channel conversion per copy, averaged over20 copies; completed immutable GPU source, rendering and fence wait excluded"
+    }
+  ],
+  "recordedAt": "2026-10-14T22:32:20.671581+00:00",
+  "schemaVersion": 1,
+  "status": "measured",
+  "unknownReasons": {
+    "application.revision": "Not collected or no statistical claim",
+    "guest.agentVersion": "No guest exists in this component",
+    "guest.architecture": "No guest exists in this component",
+    "guest.build": "No guest exists in this component",
+    "guest.disk": "No guest exists in this component",
+    "guest.driverVersions": "No guest exists in this component",
+    "guest.edition": "No guest exists in this component",
+    "guest.network": "No guest exists in this component",
+    "guest.os": "No guest exists in this component",
+    "guest.patchLevel": "No guest exists in this component",
+    "guest.ramBytes": "No guest exists in this component",
+    "guest.vCPU": "No guest exists in this component",
+    "host.displays": "Not collected or no statistical claim",
+    "host.efficiencyCores": "Not collected or no statistical claim",
+    "host.gpuCores": "Not collected or no statistical claim",
+    "host.performanceCores": "Not collected or no statistical claim",
+    "host.powerMode": "Not collected or no statistical claim",
+    "host.storageModel": "Not collected or no statistical claim",
+    "host.thermalState": "Not collected or no statistical claim",
+    "method.confidenceInterval": "Not collected or no statistical claim",
+    "host.storageFreeBytes": "Not collected at this component measurement"
+  }
+}

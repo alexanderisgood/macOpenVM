@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+[Defines]
+  INF_VERSION = 0x00010017
+  BASE_NAME = MacOpenVMShutdownProbe
+  FILE_GUID = 9e8a69db-7b78-45af-9ae7-c041b3a9fc35
+  MODULE_TYPE = UEFI_APPLICATION
+  VERSION_STRING = 0.1
+  ENTRY_POINT = UefiMain
+
+[Sources]
+  ShutdownProbe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib

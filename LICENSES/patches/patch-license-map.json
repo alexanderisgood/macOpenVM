@@ -1,0 +1,984 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-10-18",
+  "scope": "Conservative aggregate license expressions for separately distributed source patches; per-target notices govern. Original application remains separately Apache-2.0.",
+  "patches": [
+    {
+      "path": "Backends/Qemu/patches/auth2-strict-timestamp.patch",
+      "patchSHA256": "5f5036b56ab412521de1d760d1e2d6e5e85de76d495410ffedb67b26c6ff57f1",
+      "patchBytes": 589,
+      "license": "GPL-2.0-or-later",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/uefi/var-service-vars.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/uefi/var-service-vars.c"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-completion-autorelease-pool.patch",
+      "patchSHA256": "807e75cde651005f615734d42e5dec43e96b5588d15de59e66788148fe2f5852",
+      "patchBytes": 597,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.cpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-constant-interface-identifiers.patch",
+      "patchSHA256": "6bac67898b6f9f070dd1e8f11dc3c04ba56618237caae450762ca702ea2e8ddc",
+      "patchBytes": 796,
+      "license": "LGPL-2.1-or-later AND MIT AND Zlib",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/util/com/com_guid.hpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later AND MIT AND Zlib",
+          "licenseBasis": "Current DXMT LICENSE plus file attribution to DXVK zlib and Alexander Bessonov MIT parser; complete retained DXVK notice copied",
+          "sourceNoticeKey": "dxmt:src/util/com/com_guid.hpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-native-gpu-timing-evaluation.patch",
+      "patchSHA256": "3d42daacc990108851d58b76014a255631a927338ad4cfb4950c16ad7a2f625b",
+      "patchBytes": 11631,
+      "license": "LGPL-2.1-or-later AND Apache-2.0",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "meson.build",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:meson.build"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "meson.options",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:meson.options"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/GpuTimings.hpp",
+          "newFile": true,
+          "license": "Apache-2.0",
+          "licenseBasis": "Explicit SPDX notice in independently added helper source; does not relicense modified DXMT sources",
+          "sourceNoticeKey": "dxmt:src/dxmt/GpuTimings.hpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/NativeTiming.hpp",
+          "newFile": true,
+          "license": "Apache-2.0",
+          "licenseBasis": "Explicit SPDX notice in independently added helper source; does not relicense modified DXMT sources",
+          "sourceNoticeKey": "dxmt:src/dxmt/NativeTiming.hpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/Report.hpp",
+          "newFile": true,
+          "license": "Apache-2.0",
+          "licenseBasis": "Explicit SPDX notice in independently added helper source; does not relicense modified DXMT sources",
+          "sourceNoticeKey": "dxmt:src/dxmt/Report.hpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.cpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.hpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.hpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/winemetal/Metal.hpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/winemetal/Metal.hpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-pipeline-task-autorelease-pool.patch",
+      "patchSHA256": "561bd48fa65caf96297b8f48dbde475d68b8d2cc3aa20b8783298a1abc1dd663",
+      "patchBytes": 608,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/d3d11/d3d11_pipeline_cache.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_pipeline_cache.cpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/fenced-blob-unmap-suspension.patch",
+      "patchSHA256": "b11eb072237530460a0f7bd22dedf2100a8fde5f84d6751befea15516fb4aa3e",
+      "patchBytes": 3658,
+      "license": "GPL-2.0-only AND GPL-2.0-or-later",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "include/hw/virtio/virtio-gpu.h",
+          "newFile": false,
+          "license": "GPL-2.0-only",
+          "licenseBasis": "Explicit GPLv2 header; accel/hvf additionally permits later versions for post-2012 contributions",
+          "sourceNoticeKey": "qemu:include/hw/virtio/virtio-gpu.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-gpu.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-gpu.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-gpu-virgl.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-gpu-virgl.c"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/gpu-control-timing.patch",
+      "patchSHA256": "c10c0883f4a309b067e63c7e4167fc4f8817e8210bc0736c58ef0c8fba1e50a5",
+      "patchBytes": 6055,
+      "license": "GPL-2.0-only AND GPL-2.0-or-later",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "include/hw/virtio/virtio-gpu.h",
+          "newFile": false,
+          "license": "GPL-2.0-only",
+          "licenseBasis": "Explicit GPLv2 header; accel/hvf additionally permits later versions for post-2012 contributions",
+          "sourceNoticeKey": "qemu:include/hw/virtio/virtio-gpu.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-gpu.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-gpu.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-gpu-virgl.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-gpu-virgl.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/mvo-gpu-timing.h",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:hw/display/mvo-gpu-timing.h"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/metal-damage-readback.patch",
+      "patchSHA256": "57de1f04e6ee6637567860111608f55986aef052c20af5c13801e7d2850dbdf9",
+      "patchBytes": 8316,
+      "license": "GPL-2.0-or-later",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/egl-headless.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:ui/egl-headless.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "qapi/ui.json",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:qapi/ui.json"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-metal-damage.h",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-metal-damage.h"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/metal-readback-swizzle.patch",
+      "patchSHA256": "110491137212a5481af317fafb93f81b4a3a7237685a595e0e040f42e86c7b5e",
+      "patchBytes": 3792,
+      "license": "GPL-2.0-or-later",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-metal-readback.m",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:ui/mvo-metal-readback.m"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-metal-readback.h",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:ui/mvo-metal-readback.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-metal-swizzle.h",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-metal-swizzle.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/egl-headless.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:ui/egl-headless.c"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/neptune-metal-headless-qemu-11.1.patch",
+      "patchSHA256": "f93331bd493e8afd4202a7e54fc215d225a9b0d500869b4df411a76d191321f3",
+      "patchBytes": 34823,
+      "license": "GPL-2.0-only AND GPL-2.0-or-later AND BSD-2-Clause AND BSD-3-Clause AND LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "accel/hvf/hvf-all.c",
+          "newFile": false,
+          "license": "GPL-2.0-only",
+          "licenseBasis": "Explicit GPLv2 header; accel/hvf additionally permits later versions for post-2012 contributions",
+          "sourceNoticeKey": "qemu:accel/hvf/hvf-all.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "include/system/hvf.h",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:include/system/hvf.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "include/system/hvf_int.h",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:include/system/hvf_int.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "target/arm/hvf/hvf.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:target/arm/hvf/hvf.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "target/i386/hvf/hvf.c",
+          "newFile": false,
+          "license": "GPL-2.0-only AND BSD-2-Clause",
+          "licenseBasis": "Explicit GPLv2-only header plus retained NetApp two-condition BSD and public-domain attribution",
+          "sourceNoticeKey": "qemu:target/i386/hvf/hvf.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "include/hw/virtio/virtio-gpu.h",
+          "newFile": false,
+          "license": "GPL-2.0-only",
+          "licenseBasis": "Explicit GPLv2 header; accel/hvf additionally permits later versions for post-2012 contributions",
+          "sourceNoticeKey": "qemu:include/hw/virtio/virtio-gpu.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "include/standard-headers/linux/virtio_gpu.h",
+          "newFile": false,
+          "license": "BSD-3-Clause",
+          "licenseBasis": "Complete three-condition BSD notice in retained source header, including its original IBM wording",
+          "sourceNoticeKey": "qemu:include/standard-headers/linux/virtio_gpu.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-gpu-gl.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-gpu-gl.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-gpu.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-gpu.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-gpu-virgl.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-gpu-virgl.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/meson.build",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/meson.build"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-ramfb.c",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-ramfb.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-ramfb-gl.c",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-ramfb-gl.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "hw/display/virtio-ramfb.h",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:hw/display/virtio-ramfb.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/egl-headless.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:ui/egl-headless.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/egl-helpers.c",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Explicit retained source header",
+          "sourceNoticeKey": "qemu:ui/egl-helpers.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/meson.build",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:ui/meson.build"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-metal-readback.h",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-metal-readback.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-metal-readback.m",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-metal-readback.m"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/neptune-native-loader-evaluation.patch",
+      "patchSHA256": "0172959202682e2cc9cfc40eee81d7601ddcccf766f278d837c13680ed5a6d8b",
+      "patchBytes": 4492,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "bf98587477fe68d07b93319ece7b40a7d0e2eabe",
+          "url": "https://github.com/utmapp/libepoxy/tree/bf98587477fe68d07b93319ece7b40a7d0e2eabe",
+          "default": "MIT",
+          "family": "epoxy"
+        },
+        {
+          "version": "451505ad0aa449290f2c0672da6877d57ee770e5",
+          "url": "https://github.com/utmapp/virglrenderer/tree/451505ad0aa449290f2c0672da6877d57ee770e5",
+          "default": "MIT",
+          "family": "renderer"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "epoxy",
+          "target": "src/dispatch_common.c",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "epoxy:src/dispatch_common.c"
+        },
+        {
+          "upstreamFamily": "epoxy",
+          "target": "src/dispatch_common.c",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "epoxy:src/dispatch_common.c"
+        },
+        {
+          "upstreamFamily": "renderer",
+          "target": "src/neptune/npt_library_names.h",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:src/neptune/npt_library_names.h"
+        },
+        {
+          "upstreamFamily": "renderer",
+          "target": "src/neptune/npt_library_names.h",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:src/neptune/npt_library_names.h"
+        },
+        {
+          "upstreamFamily": "renderer",
+          "target": "src/neptune/npt_library_names.h",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:src/neptune/npt_library_names.h"
+        },
+        {
+          "upstreamFamily": "renderer",
+          "target": "src/neptune/npt_renderer.c",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:src/neptune/npt_renderer.c"
+        },
+        {
+          "upstreamFamily": "renderer",
+          "target": "server/render_worker.c",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:server/render_worker.c"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": [
+        "Contains private developer loader paths; sanitize or omit before public export, then update the published hash.",
+        "Developer home path replaced with /Users/developer for this public source snapshot. No runtime binary is included."
+      ]
+    },
+    {
+      "path": "Backends/Qemu/patches/qemu-coreaudio-actual-capacity.patch",
+      "patchSHA256": "23041280eb49d5419c4ba18931dc8eed2cd9591e2f522fb88a59b5f1b62b9e86",
+      "patchBytes": 760,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "audio/coreaudio.m",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:audio/coreaudio.m"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/qemu-coreaudio-format-topology.patch",
+      "patchSHA256": "484ed935e1d8ac4d2ba3dc3c980a7533a5ddc6b4ea1cca2326dcd938a2f2403f",
+      "patchBytes": 5292,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "audio/coreaudio.m",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:audio/coreaudio.m"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/qemu-coreaudio-nonmixing-admission.patch",
+      "patchSHA256": "a642fe20a5bd42e124dd821534523687f493649ddb780a1cb3d0fddfae14136e",
+      "patchBytes": 650,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "audio/coreaudio.m",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:audio/coreaudio.m"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/qemu-coreaudio-playback.patch",
+      "patchSHA256": "c05dc5488a69dec5a197c10a078cbdd6cc0d7d6c4dfc1ade69fc6c646d6e773a",
+      "patchBytes": 3814,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "audio/coreaudio.m",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:audio/coreaudio.m"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/qemu-coreaudio-realtime-lock.patch",
+      "patchSHA256": "283f1481ec04d5c62558ad2a851b8450ab529ad17bff50f7ad1a23429ae8c39d",
+      "patchBytes": 1200,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "audio/coreaudio.m",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:audio/coreaudio.m"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/qemu-coreaudio-signal-stats.patch",
+      "patchSHA256": "7ee4e7e9d7bb13eb528a8c650865589dd4dfeccd7a7a954d0194a92d328e6676",
+      "patchBytes": 6883,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "audio/coreaudio.m",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:audio/coreaudio.m"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/qemu-coreaudio-stream-start.patch",
+      "patchSHA256": "c6db633a3545625079cebc750b2301ec7e8eba2e811347c26702a6f245b5b781",
+      "patchBytes": 9274,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "audio/coreaudio.m",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:audio/coreaudio.m"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/renderer-shm-scanout-cache.patch",
+      "patchSHA256": "3fe01ac3feae100ea7070356d838d58b460540ca474d38cd5de2cb0da82e7327",
+      "patchBytes": 30955,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "451505ad0aa449290f2c0672da6877d57ee770e5",
+          "url": "https://github.com/utmapp/virglrenderer/tree/451505ad0aa449290f2c0672da6877d57ee770e5",
+          "default": "MIT",
+          "family": "renderer"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "renderer",
+          "target": "src/virgl_resource.c",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:src/virgl_resource.c"
+        },
+        {
+          "upstreamFamily": "renderer",
+          "target": "src/virgl_resource.h",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:src/virgl_resource.h"
+        },
+        {
+          "upstreamFamily": "renderer",
+          "target": "src/virglrenderer.c",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:src/virglrenderer.c"
+        },
+        {
+          "upstreamFamily": "renderer",
+          "target": "src/virgl_scanout_cache.h",
+          "newFile": true,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:src/virgl_scanout_cache.h"
+        },
+        {
+          "upstreamFamily": "renderer",
+          "target": "tests/scanout_cache_test.c",
+          "newFile": true,
+          "license": "MIT",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "renderer:tests/scanout_cache_test.c"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/shared-host-frame-display.patch",
+      "patchSHA256": "bb857d823a9c70e268c9e9719a7d936310a2040acd591a713b7f9e31632bf002",
+      "patchBytes": 17835,
+      "license": "GPL-2.0-or-later AND MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/egl-headless.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:ui/egl-headless.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/vnc.c",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:ui/vnc.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/meson.build",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:ui/meson.build"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "qapi/ui.json",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:qapi/ui.json"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-shared-frame.c",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-shared-frame.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-shared-frame.h",
+          "newFile": true,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-shared-frame.h"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/vnc-active-refresh-16ms.patch",
+      "patchSHA256": "57f998d98167ac13ee06b6375ec49d9d39ebce7fd44c0d3738f19430c2579615",
+      "patchBytes": 471,
+      "license": "MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/vnc.c",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:ui/vnc.c"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    }
+  ],
+  "excludeForUnresolvedLicense": []
+}

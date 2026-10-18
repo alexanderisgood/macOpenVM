@@ -1,0 +1,628 @@
+{
+  "application": {
+    "backend": "original RFB raw decoder host component",
+    "backendVersion": "RFC6143 raw scope",
+    "configuration": {
+      "benchmarkSHA256": "01389073e71ed553c6bbc2371794dd385255d412a0cc774e6eb67b5e03c5dc46",
+      "binarySHA256": "a5eb57658ac6c40450d99736526f8a562d7bb3221bbd63aba4082d9664c65286",
+      "build": "release",
+      "cases": [
+        {
+          "chunks": 172,
+          "frameSHA256": "3031b382502ca61700f0e4e99a7add11f91fafed6dced8170e7ce1c0298b55dc",
+          "height": 720,
+          "name": "initial-full",
+          "rectangleHeight": 720,
+          "rectangleWidth": 1280,
+          "rectangles": 1,
+          "samples": [
+            {
+              "decodeMS": 3.113375,
+              "snapshotMS": 0.397083
+            },
+            {
+              "decodeMS": 2.40825,
+              "snapshotMS": 0.077625
+            },
+            {
+              "decodeMS": 2.276917,
+              "snapshotMS": 0.063084
+            },
+            {
+              "decodeMS": 2.155833,
+              "snapshotMS": 0.065792
+            },
+            {
+              "decodeMS": 1.954459,
+              "snapshotMS": 0.05775
+            }
+          ],
+          "snapshotBytes": 3686400,
+          "width": 1280,
+          "wireBytes": 3686416
+        },
+        {
+          "chunks": 172,
+          "frameSHA256": "3031b382502ca61700f0e4e99a7add11f91fafed6dced8170e7ce1c0298b55dc",
+          "height": 720,
+          "name": "steady-full",
+          "rectangleHeight": 720,
+          "rectangleWidth": 1280,
+          "rectangles": 1,
+          "samples": [
+            {
+              "decodeMS": 0.553,
+              "snapshotMS": 0.355417
+            },
+            {
+              "decodeMS": 0.403333,
+              "snapshotMS": 0.091583
+            },
+            {
+              "decodeMS": 0.400375,
+              "snapshotMS": 0.098625
+            },
+            {
+              "decodeMS": 0.394958,
+              "snapshotMS": 0.077708
+            },
+            {
+              "decodeMS": 0.31925,
+              "snapshotMS": 0.071209
+            }
+          ],
+          "snapshotBytes": 3686400,
+          "width": 1280,
+          "wireBytes": 3686416
+        },
+        {
+          "chunks": 4,
+          "frameSHA256": "835093fd88fb1eacb9a4fa243656a9a3d2423c5db95d46899b3ab8bf867ed4be",
+          "height": 720,
+          "name": "dirty",
+          "rectangleHeight": 32,
+          "rectangleWidth": 48,
+          "rectangles": 1,
+          "samples": [
+            {
+              "decodeMS": 0.007125,
+              "snapshotMS": 0.352042
+            },
+            {
+              "decodeMS": 0.002709,
+              "snapshotMS": 0.062
+            },
+            {
+              "decodeMS": 0.006,
+              "snapshotMS": 0.056708
+            },
+            {
+              "decodeMS": 0.002958,
+              "snapshotMS": 0.055958
+            },
+            {
+              "decodeMS": 0.003042,
+              "snapshotMS": 0.0555
+            }
+          ],
+          "snapshotBytes": 3686400,
+          "width": 1280,
+          "wireBytes": 6160
+        },
+        {
+          "chunks": 676,
+          "frameSHA256": "942f003f6c4b306027527cf1390a40cd3def3a9c17c4b87bcc128087fc7bada5",
+          "height": 1440,
+          "name": "initial-full",
+          "rectangleHeight": 1440,
+          "rectangleWidth": 2560,
+          "rectangles": 1,
+          "samples": [
+            {
+              "decodeMS": 8.092916,
+              "snapshotMS": 1.13775
+            },
+            {
+              "decodeMS": 7.693209,
+              "snapshotMS": 0.244459
+            },
+            {
+              "decodeMS": 7.607375,
+              "snapshotMS": 0.242291
+            },
+            {
+              "decodeMS": 7.638875,
+              "snapshotMS": 0.226916
+            },
+            {
+              "decodeMS": 7.708625,
+              "snapshotMS": 0.227792
+            }
+          ],
+          "snapshotBytes": 14745600,
+          "width": 2560,
+          "wireBytes": 14745616
+        },
+        {
+          "chunks": 676,
+          "frameSHA256": "942f003f6c4b306027527cf1390a40cd3def3a9c17c4b87bcc128087fc7bada5",
+          "height": 1440,
+          "name": "steady-full",
+          "rectangleHeight": 1440,
+          "rectangleWidth": 2560,
+          "rectangles": 1,
+          "samples": [
+            {
+              "decodeMS": 1.404875,
+              "snapshotMS": 0.857542
+            },
+            {
+              "decodeMS": 1.539625,
+              "snapshotMS": 0.53675
+            },
+            {
+              "decodeMS": 1.090625,
+              "snapshotMS": 0.22175
+            },
+            {
+              "decodeMS": 1.125125,
+              "snapshotMS": 0.223917
+            },
+            {
+              "decodeMS": 1.152125,
+              "snapshotMS": 0.24575
+            }
+          ],
+          "snapshotBytes": 14745600,
+          "width": 2560,
+          "wireBytes": 14745616
+        },
+        {
+          "chunks": 4,
+          "frameSHA256": "caf06179a5c6df821b7adb2266928f3397ae4390eee1a539c7e21222508bd309",
+          "height": 1440,
+          "name": "dirty",
+          "rectangleHeight": 32,
+          "rectangleWidth": 48,
+          "rectangles": 1,
+          "samples": [
+            {
+              "decodeMS": 0.007667,
+              "snapshotMS": 1.000083
+            },
+            {
+              "decodeMS": 0.007792,
+              "snapshotMS": 0.663333
+            },
+            {
+              "decodeMS": 0.007792,
+              "snapshotMS": 0.225583
+            },
+            {
+              "decodeMS": 0.006083,
+              "snapshotMS": 0.223458
+            },
+            {
+              "decodeMS": 0.0045,
+              "snapshotMS": 0.221875
+            }
+          ],
+          "snapshotBytes": 14745600,
+          "width": 2560,
+          "wireBytes": 6160
+        },
+        {
+          "chunks": 1522,
+          "frameSHA256": "ac58c1bf8a11ca56e4d123c30e491036dc60d3825e49a956b9d1b3d8e5ef6c29",
+          "height": 2160,
+          "name": "initial-full",
+          "rectangleHeight": 2160,
+          "rectangleWidth": 3840,
+          "rectangles": 1,
+          "samples": [
+            {
+              "decodeMS": 17.387167,
+              "snapshotMS": 2.07875
+            },
+            {
+              "decodeMS": 17.064084,
+              "snapshotMS": 0.5415
+            },
+            {
+              "decodeMS": 17.2855,
+              "snapshotMS": 0.549958
+            },
+            {
+              "decodeMS": 17.318667,
+              "snapshotMS": 0.536291
+            },
+            {
+              "decodeMS": 17.146458,
+              "snapshotMS": 0.5335
+            }
+          ],
+          "snapshotBytes": 33177600,
+          "width": 3840,
+          "wireBytes": 33177616
+        },
+        {
+          "chunks": 1522,
+          "frameSHA256": "ac58c1bf8a11ca56e4d123c30e491036dc60d3825e49a956b9d1b3d8e5ef6c29",
+          "height": 2160,
+          "name": "steady-full",
+          "rectangleHeight": 2160,
+          "rectangleWidth": 3840,
+          "rectangles": 1,
+          "samples": [
+            {
+              "decodeMS": 2.703875,
+              "snapshotMS": 1.981542
+            },
+            {
+              "decodeMS": 2.681542,
+              "snapshotMS": 0.545
+            },
+            {
+              "decodeMS": 2.679083,
+              "snapshotMS": 0.55975
+            },
+            {
+              "decodeMS": 2.818291,
+              "snapshotMS": 0.540958
+            },
+            {
+              "decodeMS": 2.682209,
+              "snapshotMS": 0.537875
+            }
+          ],
+          "snapshotBytes": 33177600,
+          "width": 3840,
+          "wireBytes": 33177616
+        },
+        {
+          "chunks": 4,
+          "frameSHA256": "02722f992032aae1371af69e3cb36d74e8ff5170bec60c0c7583073709db8225",
+          "height": 2160,
+          "name": "dirty",
+          "rectangleHeight": 32,
+          "rectangleWidth": 48,
+          "rectangles": 1,
+          "samples": [
+            {
+              "decodeMS": 0.009167,
+              "snapshotMS": 1.985042
+            },
+            {
+              "decodeMS": 0.007875,
+              "snapshotMS": 0.524625
+            },
+            {
+              "decodeMS": 0.01,
+              "snapshotMS": 0.611
+            },
+            {
+              "decodeMS": 0.010167,
+              "snapshotMS": 0.538792
+            },
+            {
+              "decodeMS": 0.008459,
+              "snapshotMS": 0.544708
+            }
+          ],
+          "snapshotBytes": 33177600,
+          "width": 3840,
+          "wireBytes": 6160
+        }
+      ],
+      "decoderSHA256": "5994dd2313d0cc61188bee616730770b49e1ebd5d9f455c6c9d54793330423ac",
+      "fragmentPattern": [
+        1,
+        3,
+        7,
+        65536,
+        65533,
+        31
+      ],
+      "harnessSHA256": "f57a5e28b296964660b685bb396150c5aa62d48fb257a17d821cab93d10c2f1e",
+      "helperInputs": {
+        "Benchmarks/result.schema.json": "1ae4c80d5c55b8bd8d07c0b3cf75a0073accbe98a3ade773205a49e6171e13f3",
+        "Benchmarks/validate_result.py": "e2cbc035c9d6747df061dd14566014cbadddbf3adf58ea14db16eb0d1fb73940",
+        "scripts/build_manifest.py": "522564b7673d4b089df0768a0836f373c2143a2a6ae7373ff5ca808b45b63259"
+      },
+      "label": "baseline",
+      "toolchain": {
+        "hostArchitecture": "arm64",
+        "sdk": "27.0",
+        "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0"
+      }
+    },
+    "entitlements": [],
+    "revision": null,
+    "sourceSHA256": "339d983b867cfbc257b9c6546b3b0ba7ad02b055d9309a32d1b78406d7655795",
+    "version": "0.1.0-dev"
+  },
+  "guest": {
+    "agentVersion": null,
+    "architecture": null,
+    "build": null,
+    "disk": null,
+    "driverVersions": null,
+    "edition": null,
+    "network": null,
+    "os": null,
+    "patchLevel": null,
+    "ramBytes": null,
+    "vCPU": null
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "displays": null,
+    "efficiencyCores": null,
+    "gpuCores": null,
+    "macOSBuild": "26A428",
+    "macOSVersion": "Version 27.0 (Build 26A428)",
+    "model": "Mac17,8",
+    "performanceCores": null,
+    "powerMode": null,
+    "ramBytes": 51539607552,
+    "storageFreeBytes": 5051559936,
+    "storageModel": null,
+    "thermalState": null
+  },
+  "limitations": [
+    "Generated public frames; no guest, network transport, AppKit drawing or display scanout.",
+    "Decoder and snapshot component timings are not frame pacing, input latency or virtualization parity.",
+    "Five sequential trials per case; cache, host background load, power and thermal state uncontrolled.",
+    "Build provenance is local and unsigned; no clean-machine release reproduction claim."
+  ],
+  "method": {
+    "backgroundWorkload": "Interactive development host; not quiesced",
+    "cache": "uncontrolled",
+    "confidenceInterval": null,
+    "outlierPolicy": "retain all; no exclusions",
+    "trialCount": 5
+  },
+  "metrics": [
+    {
+      "definition": "All production feed calls and empty-feed draining; fixture generation, handshake and correctness checks excluded",
+      "name": "initial-full_1280x720_decodeMS",
+      "samples": [
+        3.113375,
+        2.40825,
+        2.276917,
+        2.155833,
+        1.954459
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Production Data(canvas) snapshot only; hashing and pixel validation excluded",
+      "name": "initial-full_1280x720_snapshotMS",
+      "samples": [
+        0.397083,
+        0.077625,
+        0.063084,
+        0.065792,
+        0.05775
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "All production feed calls and empty-feed draining; fixture generation, handshake and correctness checks excluded",
+      "name": "steady-full_1280x720_decodeMS",
+      "samples": [
+        0.553,
+        0.403333,
+        0.400375,
+        0.394958,
+        0.31925
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Production Data(canvas) snapshot only; hashing and pixel validation excluded",
+      "name": "steady-full_1280x720_snapshotMS",
+      "samples": [
+        0.355417,
+        0.091583,
+        0.098625,
+        0.077708,
+        0.071209
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "All production feed calls and empty-feed draining; fixture generation, handshake and correctness checks excluded",
+      "name": "dirty_1280x720_decodeMS",
+      "samples": [
+        0.007125,
+        0.002709,
+        0.006,
+        0.002958,
+        0.003042
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Production Data(canvas) snapshot only; hashing and pixel validation excluded",
+      "name": "dirty_1280x720_snapshotMS",
+      "samples": [
+        0.352042,
+        0.062,
+        0.056708,
+        0.055958,
+        0.0555
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "All production feed calls and empty-feed draining; fixture generation, handshake and correctness checks excluded",
+      "name": "initial-full_2560x1440_decodeMS",
+      "samples": [
+        8.092916,
+        7.693209,
+        7.607375,
+        7.638875,
+        7.708625
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Production Data(canvas) snapshot only; hashing and pixel validation excluded",
+      "name": "initial-full_2560x1440_snapshotMS",
+      "samples": [
+        1.13775,
+        0.244459,
+        0.242291,
+        0.226916,
+        0.227792
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "All production feed calls and empty-feed draining; fixture generation, handshake and correctness checks excluded",
+      "name": "steady-full_2560x1440_decodeMS",
+      "samples": [
+        1.404875,
+        1.539625,
+        1.090625,
+        1.125125,
+        1.152125
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Production Data(canvas) snapshot only; hashing and pixel validation excluded",
+      "name": "steady-full_2560x1440_snapshotMS",
+      "samples": [
+        0.857542,
+        0.53675,
+        0.22175,
+        0.223917,
+        0.24575
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "All production feed calls and empty-feed draining; fixture generation, handshake and correctness checks excluded",
+      "name": "dirty_2560x1440_decodeMS",
+      "samples": [
+        0.007667,
+        0.007792,
+        0.007792,
+        0.006083,
+        0.0045
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Production Data(canvas) snapshot only; hashing and pixel validation excluded",
+      "name": "dirty_2560x1440_snapshotMS",
+      "samples": [
+        1.000083,
+        0.663333,
+        0.225583,
+        0.223458,
+        0.221875
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "All production feed calls and empty-feed draining; fixture generation, handshake and correctness checks excluded",
+      "name": "initial-full_3840x2160_decodeMS",
+      "samples": [
+        17.387167,
+        17.064084,
+        17.2855,
+        17.318667,
+        17.146458
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Production Data(canvas) snapshot only; hashing and pixel validation excluded",
+      "name": "initial-full_3840x2160_snapshotMS",
+      "samples": [
+        2.07875,
+        0.5415,
+        0.549958,
+        0.536291,
+        0.5335
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "All production feed calls and empty-feed draining; fixture generation, handshake and correctness checks excluded",
+      "name": "steady-full_3840x2160_decodeMS",
+      "samples": [
+        2.703875,
+        2.681542,
+        2.679083,
+        2.818291,
+        2.682209
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Production Data(canvas) snapshot only; hashing and pixel validation excluded",
+      "name": "steady-full_3840x2160_snapshotMS",
+      "samples": [
+        1.981542,
+        0.545,
+        0.55975,
+        0.540958,
+        0.537875
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "All production feed calls and empty-feed draining; fixture generation, handshake and correctness checks excluded",
+      "name": "dirty_3840x2160_decodeMS",
+      "samples": [
+        0.009167,
+        0.007875,
+        0.01,
+        0.010167,
+        0.008459
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Production Data(canvas) snapshot only; hashing and pixel validation excluded",
+      "name": "dirty_3840x2160_snapshotMS",
+      "samples": [
+        1.985042,
+        0.524625,
+        0.611,
+        0.538792,
+        0.544708
+      ],
+      "unit": "ms"
+    }
+  ],
+  "recordedAt": "2026-10-14T21:14:03.797307+00:00",
+  "schemaVersion": 1,
+  "status": "measured",
+  "unknownReasons": {
+    "application.revision": "Not collected or unavailable in this component run",
+    "guest.agentVersion": "No guest exists in this component measurement",
+    "guest.architecture": "No guest exists in this component measurement",
+    "guest.build": "No guest exists in this component measurement",
+    "guest.disk": "No guest exists in this component measurement",
+    "guest.driverVersions": "No guest exists in this component measurement",
+    "guest.edition": "No guest exists in this component measurement",
+    "guest.network": "No guest exists in this component measurement",
+    "guest.os": "No guest exists in this component measurement",
+    "guest.patchLevel": "No guest exists in this component measurement",
+    "guest.ramBytes": "No guest exists in this component measurement",
+    "guest.vCPU": "No guest exists in this component measurement",
+    "host.displays": "Not collected or unavailable in this component run",
+    "host.efficiencyCores": "Not collected or unavailable in this component run",
+    "host.gpuCores": "Not collected or unavailable in this component run",
+    "host.performanceCores": "Not collected or unavailable in this component run",
+    "host.powerMode": "Not collected or unavailable in this component run",
+    "host.storageModel": "Not collected or unavailable in this component run",
+    "host.thermalState": "Not collected or unavailable in this component run",
+    "method.confidenceInterval": "No statistical confidence interval claimed"
+  }
+}

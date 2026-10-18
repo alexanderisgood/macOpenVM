@@ -1,0 +1,414 @@
+--- a/ui/egl-headless.c
++++ b/ui/egl-headless.c
+@@ -11,6 +11,7 @@
+ #ifdef __APPLE__
+ #include "mvo-metal-readback.h"
+ #include "mvo-metal-damage.h"
++#include "mvo-shared-frame.h"
+ #endif
+ 
+ typedef struct egl_dpy {
+@@ -23,6 +24,7 @@
+     egl_fb blit_fb;
+     bool y_0_top;
+ #ifdef __APPLE__
++    MVOSharedFrameServer *shared_frame;
+     void *metal_texture;
+     uint32_t metal_x, metal_y;
+     uint32_t metal_width, metal_height;
+@@ -47,6 +49,16 @@
+ static void egl_gfx_update(DisplayChangeListener *dcl,
+                            int x, int y, int w, int h)
+ {
++#ifdef __APPLE__
++    egl_dpy *edpy = container_of(dcl, egl_dpy, dcl);
++    if (edpy->ds && (surface_format(edpy->ds) == PIXMAN_x8r8g8b8 ||
++                    surface_format(edpy->ds) == PIXMAN_a8r8g8b8)) {
++        mvo_shared_frame_update(edpy->shared_frame, edpy,
++                               qemu_console_get_index(dcl->con),
++                               surface_data(edpy->ds), surface_width(edpy->ds),
++                               surface_height(edpy->ds), surface_stride(edpy->ds));
++    }
++#endif
+ }
+ 
+ static void egl_gfx_switch(DisplayChangeListener *dcl,
+@@ -54,6 +66,9 @@
+ {
+     egl_dpy *edpy = container_of(dcl, egl_dpy, dcl);
+ 
++#ifdef __APPLE__
++    mvo_shared_frame_invalidate(edpy->shared_frame, edpy);
++#endif
+     edpy->ds = new_surface;
+ #ifdef __APPLE__
+     edpy->metal_full_readback = true;
+@@ -71,6 +86,7 @@
+     egl_dpy *edpy = container_of(dcl, egl_dpy, dcl);
+ 
+ #ifdef __APPLE__
++    mvo_shared_frame_invalidate(edpy->shared_frame, edpy);
+     mvo_metal_release(edpy->metal_texture);
+     edpy->metal_texture = NULL;
+     edpy->metal_full_readback = true;
+@@ -370,6 +386,9 @@
+     egl_dpy *edpy;
+     int idx;
+ 
++#ifdef __APPLE__
++    MVOSharedFrameServer *shared = mvo_shared_frame_new(opts->u.egl_headless.shared_frame, &error_fatal);
++#endif
+     egl_dpys = g_ptr_array_new();
+ 
+     for (idx = 0;; idx++) {
+@@ -382,6 +401,7 @@
+ 
+         edpy = g_new0(egl_dpy, 1);
+ #ifdef __APPLE__
++        edpy->shared_frame = shared;
+         edpy->metal_damage_readback = opts->u.egl_headless.has_damage_readback &&
+                                       opts->u.egl_headless.damage_readback;
+         edpy->metal_full_readback = true;
+--- a/ui/vnc.c
++++ b/ui/vnc.c
+@@ -25,6 +25,9 @@
+  */
+ 
+ #include "qemu/osdep.h"
++#ifdef __APPLE__
++#include "mvo-shared-frame.h"
++#endif
+ #include "vnc.h"
+ #include "vnc-jobs.h"
+ #include "trace.h"
+@@ -1851,6 +1854,9 @@
+             qkbd_state_modifier_get(vs->vd->kbd, QKBD_MOD_ALT)) {
+             QemuConsole *con = qemu_console_lookup_by_index(lnx - KEY_1);
+             if (con) {
++#ifdef __APPLE__
++                mvo_shared_frame_selected(qemu_console_get_index(con));
++#endif
+                 qemu_console_unregister_listener(&vs->vd->dcl);
+                 qkbd_state_switch_console(vs->vd->kbd, con);
+                 qemu_console_register_listener(con, &vs->vd->dcl, vs->vd->dcl.ops);
+@@ -4301,6 +4307,9 @@
+         con = qemu_console_lookup_default();
+     }
+ 
++#ifdef __APPLE__
++    mvo_shared_frame_selected(qemu_console_get_index(con));
++#endif
+     qemu_console_register_listener(con, &vd->dcl, &dcl_ops);
+     vd->kbd = qkbd_state_init(vd->dcl.con);
+     qkbd_state_set_delay(vd->kbd, key_delay_ms);
+--- a/ui/meson.build
++++ b/ui/meson.build
+@@ -66,6 +66,10 @@
+   system_ss.add(files('dbus-module.c'))
+ endif
+ system_ss.add(when: spice_protocol, if_true: files('vdagent.c'))
++
++if host_os == 'darwin'
++  system_ss.add(files('mvo-shared-frame.c'))
++endif
+ 
+ if host_os == 'linux'
+   system_ss.add(files('input-linux.c', 'udmabuf.c'))
+--- a/qapi/ui.json
++++ b/qapi/ui.json
+@@ -1363,13 +1363,15 @@
+ # @rendernode: Which DRM render node should be used.  Default is the
+ #     first available node on the host.
+ #
++# @shared-frame: Optional private host snapshot socket.
++#
+ # @damage-readback: Private macOpenVM Metal experiment for partial
+ #     resource readback after full initialization (default: false).
+ #
+ # Since: 3.1
+ ##
+ { 'struct'  : 'DisplayEGLHeadless',
+-  'data'    : { '*rendernode' : 'str', '*damage-readback' : 'bool' } }
++  'data'    : { '*rendernode' : 'str', '*damage-readback' : 'bool', '*shared-frame' : 'str' } }
+ 
+ ##
+ # @DisplayDBus:
+--- /dev/null
++++ b/ui/mvo-shared-frame.c
+@@ -0,0 +1,261 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/* Optional dedicated host snapshots. No guest-memory or global-surface export. */
++#include "qemu/osdep.h"
++#include "qemu/bswap.h"
++#include "qemu/main-loop.h"
++#include "qemu/sockets.h"
++#include "qemu/timer.h"
++#include "qemu/error-report.h"
++#include "qemu/cutils.h"
++#include "mvo-shared-frame.h"
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <sys/un.h>
++
++enum { PACKET=80, READY=1, ATTACH=2, FRAME=3, ACK=4, REQUEST=5 };
++struct MVOSharedFrameServer {
++    int listener, peer, output_fd[2], input_fd[2];
++    uint8_t *maps[2];
++    size_t length;
++    uint32_t width, height, stride;
++    void *source_owner;
++    int source_console;
++    const uint8_t *source;
++    uint32_t source_width, source_height, source_stride;
++    uint64_t generation, last_generation, sequence;
++    uint8_t epoch[16], rx[PACKET], tx[PACKET], expected_ack[PACKET];
++    size_t rx_used, tx_used;
++    bool attached, waiting_ack, request, descriptor_sent, tx_descriptors;
++    QEMUTimer *deadline;
++    uint64_t copy_count, copy_ns;
++    unsigned reports;
++};
++static MVOSharedFrameServer *singleton;
++static int selected_console;
++static void read_peer(void *opaque);
++static void write_peer(void *opaque);
++static void advance(MVOSharedFrameServer *s);
++
++static void clear_pool(MVOSharedFrameServer *s)
++{
++    for (unsigned i=0;i<2;i++) {
++        if (s->maps[i]) { munmap(s->maps[i],s->length); s->maps[i]=NULL; }
++        if (s->output_fd[i]>=0) { close(s->output_fd[i]);s->output_fd[i]=-1; }
++        if (s->input_fd[i]>=0) { close(s->input_fd[i]);s->input_fd[i]=-1; }
++    }
++    s->length=0;s->width=s->height=s->stride=0;s->attached=false;
++}
++static void close_peer(MVOSharedFrameServer *s)
++{
++    timer_del(s->deadline);
++    if (s->peer>=0) { qemu_set_fd_handler(s->peer,NULL,NULL,NULL);close(s->peer);s->peer=-1; }
++    /* The consumer's own mappings/FDs keep any in-flight GPU pages alive.
++     * Retired memory is never overwritten or repurposed after disconnect. */
++    clear_pool(s);s->rx_used=0;s->tx_used=PACKET;
++    s->waiting_ack=false;s->request=false;s->sequence=0;s->last_generation=0;
++}
++static void expired(void *opaque) { close_peer(opaque); }
++static void arm(MVOSharedFrameServer *s)
++{
++    timer_mod_ns(s->deadline,qemu_clock_get_ns(QEMU_CLOCK_REALTIME)+3000000000LL);
++}
++static void header(MVOSharedFrameServer *s,uint8_t b[PACKET],unsigned kind)
++{
++    memset(b,0,PACKET);stl_le_p(b,0x534f564d);stw_le_p(b+4,1);stw_le_p(b+6,kind);
++    memcpy(b+8,s->epoch,16);
++}
++static void geometry(MVOSharedFrameServer *s,uint8_t b[PACKET])
++{
++    stl_le_p(b+40,s->width);stl_le_p(b+44,s->height);stl_le_p(b+48,s->stride);
++    stl_le_p(b+52,s->length);stl_le_p(b+60,1);
++}
++static void start_tx(MVOSharedFrameServer *s,const uint8_t bytes[PACKET],bool fds,bool ack)
++{
++    if (s->peer<0 || s->tx_used!=PACKET) { close_peer(s);return; }
++    memcpy(s->tx,bytes,PACKET);s->tx_used=0;s->tx_descriptors=fds;s->descriptor_sent=false;
++    if (ack) {
++        memcpy(s->expected_ack,bytes,PACKET);stw_le_p(s->expected_ack+6,ACK);
++        s->waiting_ack=true;
++    }
++    arm(s);write_peer(s);
++}
++static void write_peer(void *opaque)
++{
++    MVOSharedFrameServer *s=opaque;
++    if (s->peer<0 || s->tx_used>=PACKET) return;
++    struct iovec io={s->tx+s->tx_used,PACKET-s->tx_used};
++    struct msghdr msg={0};msg.msg_iov=&io;msg.msg_iovlen=1;
++    union { struct cmsghdr align; char bytes[CMSG_SPACE(2*sizeof(int))]; } control;
++    if (s->tx_descriptors && !s->descriptor_sent) {
++        memset(&control,0,sizeof control);msg.msg_control=control.bytes;msg.msg_controllen=sizeof control;
++        struct cmsghdr *c=CMSG_FIRSTHDR(&msg);c->cmsg_level=SOL_SOCKET;c->cmsg_type=SCM_RIGHTS;
++        c->cmsg_len=CMSG_LEN(2*sizeof(int));memcpy(CMSG_DATA(c),s->input_fd,2*sizeof(int));
++    }
++    ssize_t n=sendmsg(s->peer,&msg,0);
++    if (n<0 && (errno==EINTR || errno==EAGAIN || errno==EWOULDBLOCK)) {
++        qemu_set_fd_handler(s->peer,read_peer,write_peer,s);return;
++    }
++    if (n<=0) { close_peer(s);return; }
++    s->descriptor_sent=true;s->tx_used+=(size_t)n;
++    qemu_set_fd_handler(s->peer,read_peer,s->tx_used<PACKET?write_peer:NULL,s);
++    if (s->tx_used==PACKET && !s->waiting_ack && !s->rx_used) timer_del(s->deadline);
++}
++static bool allocate_pool(MVOSharedFrameServer *s)
++{
++    clear_pool(s);
++    uint64_t row=((uint64_t)s->source_width*4+255)&~255ULL;
++    uint64_t page=getpagesize();
++    uint64_t size=(row*s->source_height+page-1)/page*page;
++    if (!size || size>67108864) return false;
++    s->length=size;s->stride=row;s->width=s->source_width;s->height=s->source_height;
++    for (unsigned i=0;i<2;i++) {
++        char name[32];snprintf(name,sizeof name,"/mvo-%08x%08x%08x",arc4random(),arc4random(),arc4random());
++        int write_fd=shm_open(name,O_RDWR|O_CREAT|O_EXCL,0600);
++        if (write_fd<0) return false;
++        int read_fd=shm_open(name,O_RDONLY,0);
++        int unlinked=shm_unlink(name);
++        s->output_fd[i]=write_fd;s->input_fd[i]=read_fd;
++        /* Darwin POSIX shm rejects fchmod(EINVAL). Creation requested0600;
++         * inspect the actual object rather than trying a file-only mutation. */
++        struct stat actual;
++        if (read_fd<0 || unlinked || fstat(write_fd,&actual) ||
++            (actual.st_mode&0777)!=0600 || actual.st_uid!=geteuid() || actual.st_nlink!=0 ||
++            fcntl(write_fd,F_SETFD,FD_CLOEXEC) || fcntl(read_fd,F_SETFD,FD_CLOEXEC) ||
++            ftruncate(write_fd,(off_t)size)) return false;
++        void *mapped=mmap(NULL,size,PROT_READ|PROT_WRITE,MAP_SHARED,write_fd,0);
++        if (mapped==MAP_FAILED) return false;
++        s->maps[i]=mapped;
++    }
++    return true;
++}
++static void advance(MVOSharedFrameServer *s)
++{
++    if (s->peer<0 || !s->request || s->waiting_ack || s->tx_used<PACKET ||
++        !s->source || s->source_console!=selected_console ||
++        s->generation<=s->last_generation) return;
++    if (!s->length || s->width!=s->source_width || s->height!=s->source_height) {
++        bool replacement=s->length!=0;
++        if (!allocate_pool(s)) { close_peer(s);return; }
++        if (replacement) arc4random_buf(s->epoch,sizeof s->epoch);
++        s->sequence=0;s->last_generation=0;
++        uint8_t b[PACKET];header(s,b,ATTACH);geometry(s,b);stl_le_p(b+56,2);
++        start_tx(s,b,true,true);return;
++    }
++    if (!s->attached || s->sequence==UINT64_MAX) { close_peer(s);return; }
++    uint64_t started=qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
++    unsigned slot=(unsigned)(s->sequence%2);
++    for (uint32_t y=0;y<s->height;y++) {
++        memcpy(s->maps[slot]+(size_t)y*s->stride,
++               s->source+(size_t)y*s->source_stride,(size_t)s->width*4);
++    }
++    s->copy_ns+=qemu_clock_get_ns(QEMU_CLOCK_REALTIME)-started;
++    if (++s->copy_count==120) {
++        if (s->reports++<64) error_report("macOpenVM shared host copy: frame=%ux%u copies=120 total_ns=%" PRIu64,s->width,s->height,s->copy_ns);
++        s->copy_count=s->copy_ns=0;
++    }
++    s->sequence++;s->last_generation=s->generation;s->request=false;
++    uint8_t b[PACKET];header(s,b,FRAME);geometry(s,b);
++    stq_le_p(b+24,s->sequence);stq_le_p(b+32,s->generation);stl_le_p(b+56,slot);
++    stq_le_p(b+64,qemu_clock_get_ns(QEMU_CLOCK_REALTIME));start_tx(s,b,false,true);
++}
++static void read_peer(void *opaque)
++{
++    MVOSharedFrameServer *s=opaque;
++    for (unsigned limit=0;limit<8 && s->peer>=0;limit++) {
++        struct iovec io={s->rx+s->rx_used,PACKET-s->rx_used};
++        union { struct cmsghdr align; char bytes[CMSG_SPACE(16*sizeof(int))]; } control;
++        struct msghdr msg={0};memset(&control,0,sizeof control);
++        msg.msg_iov=&io;msg.msg_iovlen=1;msg.msg_control=control.bytes;msg.msg_controllen=sizeof control;
++        ssize_t n=recvmsg(s->peer,&msg,0);bool unexpected=false;
++        if (n<0 && (errno==EINTR || errno==EAGAIN || errno==EWOULDBLOCK)) return;
++        if (n<=0) { close_peer(s);return; }
++        for (struct cmsghdr *c=CMSG_FIRSTHDR(&msg);c;c=CMSG_NXTHDR(&msg,c)) {
++            unexpected=true;
++            if ((char *)c<control.bytes || (char *)c>control.bytes+msg.msg_controllen ||
++                (size_t)(control.bytes+msg.msg_controllen-(char *)c)<sizeof *c ||
++                c->cmsg_len>(size_t)(control.bytes+msg.msg_controllen-(char *)c)) break;
++            if (c->cmsg_level==SOL_SOCKET && c->cmsg_type==SCM_RIGHTS && c->cmsg_len>=CMSG_LEN(0)) {
++                size_t count=(c->cmsg_len-CMSG_LEN(0))/sizeof(int);
++                for (size_t i=0;i<count;i++) { int fd;memcpy(&fd,(char *)CMSG_DATA(c)+i*sizeof(int),sizeof fd);close(fd); }
++            }
++        }
++        if (unexpected || msg.msg_flags&(MSG_TRUNC|MSG_CTRUNC)) { close_peer(s);return; }
++        if (!s->rx_used) arm(s);
++        s->rx_used+=(size_t)n;
++        if (s->rx_used<PACKET) return;
++        uint8_t *b=s->rx;s->rx_used=0;
++        if (ldl_le_p(b)!=0x534f564d || lduw_le_p(b+4)!=1 || ldq_le_p(b+72)!=0 ||
++            memcmp(b+8,s->epoch,16) || s->tx_used!=PACKET) { close_peer(s);return; }
++        unsigned kind=lduw_le_p(b+6);
++        if (kind==ACK) {
++            if (!s->waiting_ack || memcmp(b,s->expected_ack,PACKET)) { close_peer(s);return; }
++            s->waiting_ack=false;
++            if (lduw_le_p(s->tx+6)==ATTACH) s->attached=true;
++        } else if (kind==REQUEST) {
++            uint8_t expected[PACKET];header(s,expected,REQUEST);
++            if (s->waiting_ack || s->request || memcmp(b,expected,PACKET)) { close_peer(s);return; }
++            s->request=true;
++        } else { close_peer(s);return; }
++        timer_del(s->deadline);advance(s);
++    }
++}
++static void accept_peer(void *opaque)
++{
++    MVOSharedFrameServer *s=opaque;
++    int fd=accept(s->listener,NULL,NULL);
++    if (fd<0) return;
++    uid_t user=0;gid_t group=0;int no_signal=1;
++    if (s->peer>=0 || getpeereid(fd,&user,&group) || user!=geteuid() ||
++        fcntl(fd,F_SETFL,O_NONBLOCK) || fcntl(fd,F_SETFD,FD_CLOEXEC) ||
++        setsockopt(fd,SOL_SOCKET,SO_NOSIGPIPE,&no_signal,sizeof no_signal)) { close(fd);return; }
++    s->peer=fd;s->tx_used=PACKET;s->sequence=s->last_generation=0;
++    arc4random_buf(s->epoch,sizeof s->epoch);qemu_set_fd_handler(fd,read_peer,NULL,s);
++    uint8_t b[PACKET];header(s,b,READY);start_tx(s,b,false,false);
++}
++MVOSharedFrameServer *mvo_shared_frame_new(const char *path,Error **errp)
++{
++    if (!path) return NULL;
++    struct sockaddr_un addr={0};
++    if (singleton || path[0]!='/' || strlen(path)>=sizeof addr.sun_path) {
++        error_setg(errp,"Invalid shared host-frame endpoint");return NULL;
++    }
++    struct stat parent,existing;char *directory=g_path_get_dirname(path);
++    bool valid=!lstat(directory,&parent) && S_ISDIR(parent.st_mode) &&
++        parent.st_uid==geteuid() && (parent.st_mode&0777)==0700 &&
++        lstat(path,&existing)<0 && errno==ENOENT;
++    g_free(directory);
++    if (!valid) { error_setg(errp,"Shared host-frame endpoint is not private and absent");return NULL; }
++    MVOSharedFrameServer *s=g_new0(MVOSharedFrameServer,1);s->listener=s->peer=-1;
++    for (unsigned i=0;i<2;i++) s->input_fd[i]=s->output_fd[i]=-1;
++    s->deadline=timer_new_ns(QEMU_CLOCK_REALTIME,expired,s);s->tx_used=PACKET;
++    int fd=socket(AF_UNIX,SOCK_STREAM,0);
++    addr.sun_len=sizeof addr;addr.sun_family=AF_UNIX;pstrcpy(addr.sun_path,sizeof addr.sun_path,path);
++    mode_t mask=umask(0077);int result=fd<0?-1:bind(fd,(struct sockaddr *)&addr,sizeof addr);umask(mask);
++    if (fd<0 || result || chmod(path,0600) || fcntl(fd,F_SETFL,O_NONBLOCK) ||
++        fcntl(fd,F_SETFD,FD_CLOEXEC) || listen(fd,1)) {
++        if (fd>=0) close(fd);timer_free(s->deadline);g_free(s);
++        error_setg(errp,"Could not create shared host-frame endpoint");return NULL;
++    }
++    s->listener=fd;singleton=s;qemu_set_fd_handler(fd,accept_peer,NULL,s);return s;
++}
++void mvo_shared_frame_update(MVOSharedFrameServer *s,void *owner,int console,
++                            const uint8_t *pixels,uint32_t width,uint32_t height,uint32_t stride)
++{
++    if (!s || console!=selected_console || !pixels || !width || !height || width>8192 || height>8192 ||
++        (uint64_t)width*height>16777216 || (uint64_t)width*4>stride || stride>width*4+4096) return;
++    if (s->generation==UINT64_MAX) { close_peer(s);return; }
++    s->source_owner=owner;s->source_console=console;s->source=pixels;
++    s->source_width=width;s->source_height=height;s->source_stride=stride;s->generation++;
++    advance(s);
++}
++void mvo_shared_frame_invalidate(MVOSharedFrameServer *s,void *owner)
++{
++    if (s && s->source_owner==owner) { s->source=NULL;s->source_owner=NULL;close_peer(s); }
++}
++void mvo_shared_frame_selected(int console)
++{
++    if (selected_console!=console) {
++        selected_console=console;
++        if (singleton) close_peer(singleton);
++    }
++}
+--- /dev/null
++++ b/ui/mvo-shared-frame.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef MVO_SHARED_FRAME_H
++#define MVO_SHARED_FRAME_H
++#include "qapi/error.h"
++typedef struct MVOSharedFrameServer MVOSharedFrameServer;
++MVOSharedFrameServer *mvo_shared_frame_new(const char *path, Error **errp);
++void mvo_shared_frame_update(MVOSharedFrameServer *s, void *owner, int console,
++                            const uint8_t *pixels, uint32_t width, uint32_t height,
++                            uint32_t stride);
++void mvo_shared_frame_invalidate(MVOSharedFrameServer *s, void *owner);
++void mvo_shared_frame_selected(int console);
++#endif

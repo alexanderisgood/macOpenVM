@@ -1,0 +1,12 @@
+--- a/ui/vnc.c
++++ b/ui/vnc.c
+@@ -58,7 +58,8 @@
+ #include "io/dns-resolver.h"
+ #include "monitor/monitor.h"
+ 
+-#define VNC_REFRESH_INTERVAL_BASE GUI_REFRESH_INTERVAL_DEFAULT
++/* macOpenVM private display experiment: retain idle backoff, permit ~60 Hz active polling. */
++#define VNC_REFRESH_INTERVAL_BASE 16
+ #define VNC_REFRESH_INTERVAL_INC  50
+ #define VNC_REFRESH_INTERVAL_MAX  GUI_REFRESH_INTERVAL_IDLE
+ static const struct timeval VNC_REFRESH_STATS = { 0, 500000 };

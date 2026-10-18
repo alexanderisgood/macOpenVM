@@ -1,0 +1,682 @@
+{
+  "application": {
+    "revision": null,
+    "sourceSHA256": "5a612f41837d9918e2e5caf0776337f11f88fd24084d9a108756d35f480f7304",
+    "version": "0.1.0-dev",
+    "backend": "Generated RFB receive materialization component",
+    "backendVersion": "App48 private graphics trial",
+    "entitlements": [],
+    "configuration": {
+      "component": {
+        "cases": [
+          {
+            "chunks": 1373,
+            "frameSHA256": "a93c197152fe7526eb668b366b2031fca0a0c45e430fd4935e20f1d5f5924e6e",
+            "height": 2168,
+            "samples": [
+              {
+                "feedMS": 3.7555,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 0,
+                "snapshotMS": 0.494917
+              },
+              {
+                "feedMS": 3.212709,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 0,
+                "snapshotMS": 0.446958
+              },
+              {
+                "feedMS": 3.177333,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 1,
+                "snapshotMS": 0.452125
+              },
+              {
+                "feedMS": 3.497875,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 1,
+                "snapshotMS": 0.459416
+              },
+              {
+                "feedMS": 3.442833,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 2,
+                "snapshotMS": 0.447875
+              },
+              {
+                "feedMS": 3.242708,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 2,
+                "snapshotMS": 0.460833
+              },
+              {
+                "feedMS": 3.104167,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 3,
+                "snapshotMS": 0.445542
+              },
+              {
+                "feedMS": 3.516583,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 3,
+                "snapshotMS": 0.455959
+              },
+              {
+                "feedMS": 3.618792,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 4,
+                "snapshotMS": 0.461708
+              },
+              {
+                "feedMS": 3.108958,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 4,
+                "snapshotMS": 0.447625
+              },
+              {
+                "feedMS": 3.182958,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 5,
+                "snapshotMS": 0.451042
+              },
+              {
+                "feedMS": 3.4595,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 5,
+                "snapshotMS": 0.445667
+              },
+              {
+                "feedMS": 3.349709,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 6,
+                "snapshotMS": 0.471791
+              },
+              {
+                "feedMS": 3.30475,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 6,
+                "snapshotMS": 0.463125
+              },
+              {
+                "feedMS": 3.102958,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 7,
+                "snapshotMS": 0.449083
+              },
+              {
+                "feedMS": 3.393125,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 7,
+                "snapshotMS": 0.448667
+              },
+              {
+                "feedMS": 3.407333,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 8,
+                "snapshotMS": 0.459709
+              },
+              {
+                "feedMS": 3.130833,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 8,
+                "snapshotMS": 0.451375
+              },
+              {
+                "feedMS": 3.217334,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 9,
+                "snapshotMS": 0.447583
+              },
+              {
+                "feedMS": 3.308416,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 9,
+                "snapshotMS": 0.474334
+              }
+            ],
+            "warmups": [
+              {
+                "feedMS": 3.818459,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": -2,
+                "snapshotMS": 1.653208
+              },
+              {
+                "feedMS": 3.168667,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": -2,
+                "snapshotMS": 0.453417
+              },
+              {
+                "feedMS": 3.18125,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": -1,
+                "snapshotMS": 0.472208
+              },
+              {
+                "feedMS": 3.40525,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": -1,
+                "snapshotMS": 0.458875
+              }
+            ],
+            "width": 3456
+          },
+          {
+            "chunks": 1522,
+            "frameSHA256": "16d958441b220d1481344078d26941446faffbe089d4339626d3381936263f5f",
+            "height": 2160,
+            "samples": [
+              {
+                "feedMS": 3.972541,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 0,
+                "snapshotMS": 0.497042
+              },
+              {
+                "feedMS": 3.271416,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 0,
+                "snapshotMS": 0.501959
+              },
+              {
+                "feedMS": 3.569625,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 1,
+                "snapshotMS": 0.49725
+              },
+              {
+                "feedMS": 3.738917,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 1,
+                "snapshotMS": 0.495
+              },
+              {
+                "feedMS": 3.819416,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 2,
+                "snapshotMS": 0.494459
+              },
+              {
+                "feedMS": 3.339375,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 2,
+                "snapshotMS": 0.499125
+              },
+              {
+                "feedMS": 3.497084,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 3,
+                "snapshotMS": 0.502041
+              },
+              {
+                "feedMS": 3.905459,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 3,
+                "snapshotMS": 0.49175
+              },
+              {
+                "feedMS": 3.761375,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 4,
+                "snapshotMS": 0.519708
+              },
+              {
+                "feedMS": 3.470958,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 4,
+                "snapshotMS": 0.49475
+              },
+              {
+                "feedMS": 3.4725,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 5,
+                "snapshotMS": 0.499416
+              },
+              {
+                "feedMS": 3.96075,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 5,
+                "snapshotMS": 0.496
+              },
+              {
+                "feedMS": 3.778083,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 6,
+                "snapshotMS": 0.494375
+              },
+              {
+                "feedMS": 3.449917,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 6,
+                "snapshotMS": 0.537917
+              },
+              {
+                "feedMS": 3.479084,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 7,
+                "snapshotMS": 0.507
+              },
+              {
+                "feedMS": 3.714666,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 7,
+                "snapshotMS": 0.505125
+              },
+              {
+                "feedMS": 3.971,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": 8,
+                "snapshotMS": 0.500167
+              },
+              {
+                "feedMS": 3.432834,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": 8,
+                "snapshotMS": 0.49675
+              },
+              {
+                "feedMS": 3.560833,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": 9,
+                "snapshotMS": 0.501125
+              },
+              {
+                "feedMS": 3.737375,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": 9,
+                "snapshotMS": 0.494959
+              }
+            ],
+            "warmups": [
+              {
+                "feedMS": 4.05275,
+                "mode": "materialized-receive",
+                "order": 0,
+                "pair": -2,
+                "snapshotMS": 1.892834
+              },
+              {
+                "feedMS": 3.569167,
+                "mode": "borrowed-receive",
+                "order": 1,
+                "pair": -2,
+                "snapshotMS": 0.501375
+              },
+              {
+                "feedMS": 3.715792,
+                "mode": "borrowed-receive",
+                "order": 0,
+                "pair": -1,
+                "snapshotMS": 0.520958
+              },
+              {
+                "feedMS": 3.751,
+                "mode": "materialized-receive",
+                "order": 1,
+                "pair": -1,
+                "snapshotMS": 0.527125
+              }
+            ],
+            "width": 3840
+          }
+        ],
+        "fragmentPattern": [
+          1,
+          3,
+          7,
+          65536,
+          65533,
+          31
+        ],
+        "guestPerformanceVerified": false,
+        "hostOS": "Version 27.0 (Build 26A428)",
+        "maximumFeedBytes": 65536,
+        "measuredAlternatingPairs": 10,
+        "oracleOutsideTiming": true,
+        "schemaVersion": 1,
+        "scope": "generated-receive-materialization-component",
+        "snapshotMeasuredSeparately": true,
+        "warmupPairs": 2
+      },
+      "releaseBinarySHA256": "16c5bc17f257fa7beb66eae62240fd9e2a6f21bb8d0c60c13d4b706e773f02ac",
+      "asan": {
+        "actualExit": 0,
+        "actualParentReaped": true,
+        "binarySHA256": "fe4228db6e03872dea0a2ade4fb2ad44ccc9f37d1078ec817b7cc8aa4a4a7083",
+        "buildExit": 0,
+        "addressSanitizerLinked": true
+      },
+      "inputPins": {
+        "Backends/Qemu/RfbDecoder.swift": "3f6d4970f7e3fc6bc4c09c4d2450297358f25261247bf119b69b736993680399",
+        "Backends/Qemu/RfbTransport.swift": "02a597f35bf04b8be2f7f4271e630a5eff9dea6db5ec6163631ec5ad3feb8474",
+        "Benchmarks/RfbReceive/main.swift": "c34bfe58bf86fb582c2c99f3532929b055d7a814ea193447ad08ae40501eccb9",
+        "Benchmarks/build_rfb_receive.py": "423364a66ed3a5427caec9adbe31a800e775446ef175b24df14d6d76982b58c7"
+      },
+      "beforeInputPins": {
+        "Backends/Qemu/RfbDecoder.swift": "f12201aefb59a158205e336be1b76d85723448cf53852ed3263cd1d90e1b961d",
+        "Backends/Qemu/RfbTransport.swift": "9108641a7479e415fe64110d1e8ac912a00351e61ad55222bf093b1490205783",
+        "Benchmarks/RfbDecode/main.swift": "01389073e71ed553c6bbc2371794dd385255d412a0cc774e6eb67b5e03c5dc46"
+      },
+      "liveApp48": {
+        "appBuild": 48,
+        "qemuRuntime": 28,
+        "profilingEnabled": false,
+        "nativeViewport": [
+          3456,
+          2168
+        ],
+        "nativeFullscreen": {
+          "requested": 1029,
+          "effective": 1024,
+          "menuReportedVisible": true,
+          "exitOnly": true
+        },
+        "startMenu": {
+          "cycles": 32,
+          "inputMS": 23081,
+          "receivedPerSecond": 43.4,
+          "drawnPerSecond": 43.4,
+          "medianGapMS": 17.72,
+          "p95GapMS": 34.66,
+          "worstGapMS": 234.2,
+          "medianReceiveToDrawMS": 0.19,
+          "p95ReceiveToDrawMS": 2.99
+        },
+        "shaderTrials": [
+          {
+            "receivedPerSecond": 53.7,
+            "drawnPerSecond": 53.7,
+            "medianGapMS": 18.49,
+            "p95GapMS": 31.35,
+            "worstGapMS": 61.26,
+            "medianReceiveToDrawMS": 0.2,
+            "p95ReceiveToDrawMS": 1.93
+          },
+          {
+            "receivedPerSecond": 51.5,
+            "drawnPerSecond": 51.5,
+            "medianGapMS": 18.61,
+            "p95GapMS": 35.44,
+            "worstGapMS": 50.06,
+            "medianReceiveToDrawMS": 0.2,
+            "p95ReceiveToDrawMS": 1.91
+          }
+        ],
+        "guestShaderAfterSecond": {
+          "fps": 53.6,
+          "intervals": 1073,
+          "drawingBuffer": [
+            3440,
+            1904
+          ],
+          "cssViewport": [
+            1720,
+            952
+          ],
+          "dpr": 2,
+          "medianMS": 17.4,
+          "p95MS": 35.2,
+          "p99MS": 36.4,
+          "worstMS": 36.8
+        },
+        "pointerClickSucceeded": true,
+        "firstWinRAfterAppSwitchObserved": true,
+        "normalShutdownAndAppReap47": true,
+        "screenFilesSaved": false,
+        "isolatedGuestSpeedupQualified": false,
+        "physicalScanoutCursorAnd120HzQualified": false,
+        "scope": "No observer/build/profiler during each20s scope; Measure first then CtrlR same CUA call; all results retained, uncontrolled caches/load/power/thermal/order. Start workload23.081s covers20s scope."
+      }
+    }
+  },
+  "guest": {
+    "agentVersion": null,
+    "architecture": null,
+    "build": null,
+    "disk": null,
+    "driverVersions": null,
+    "edition": null,
+    "network": null,
+    "os": null,
+    "patchLevel": null,
+    "ramBytes": null,
+    "vCPU": null
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "displays": null,
+    "efficiencyCores": null,
+    "gpuCores": null,
+    "macOSBuild": "26A428",
+    "macOSVersion": "27.0",
+    "model": "Mac17,8",
+    "performanceCores": null,
+    "powerMode": null,
+    "ramBytes": 51539607552,
+    "storageFreeBytes": 6389760000,
+    "storageModel": null,
+    "thermalState": null
+  },
+  "limitations": [
+    "Generated component, no VM/socket/window. A live Windows VM was present on the host.",
+    "Same release binary/parser, alternating owned-copy and borrowed-receive calls. Not an isolated old-source binary comparison.",
+    "All warmups/samples retained. Host caches, load, power, thermal state uncontrolled; no CI or guest FPS inference.",
+    "AddressSanitizer fixture passes separately with empty stderr; sanitizer timings excluded."
+  ],
+  "method": {
+    "cache": "uncontrolled",
+    "trialCount": 10,
+    "outlierPolicy": "Two retained warmup pairs; all ten alternating measured pairs retained.",
+    "confidenceInterval": null,
+    "backgroundWorkload": "Interactive development host; no build or screen observer during live20s scopes. Explicit bounded GPU hook active in47 only."
+  },
+  "metrics": [
+    {
+      "name": "materialized-receive_3456x2168_feedMS",
+      "unit": "ms",
+      "samples": [
+        3.7555,
+        3.497875,
+        3.442833,
+        3.516583,
+        3.618792,
+        3.4595,
+        3.349709,
+        3.393125,
+        3.407333,
+        3.308416
+      ],
+      "definition": "Generated steady full frames. Feed includes materialization in copy mode; snapshot separate. Ten alternating pairs after two retained warmup pairs. Pixel and immutable snapshot checks outside timing. Not VM FPS."
+    },
+    {
+      "name": "materialized-receive_3456x2168_snapshotMS",
+      "unit": "ms",
+      "samples": [
+        0.494917,
+        0.459416,
+        0.447875,
+        0.455959,
+        0.461708,
+        0.445667,
+        0.471791,
+        0.448667,
+        0.459709,
+        0.474334
+      ],
+      "definition": "Generated steady full frames. Feed includes materialization in copy mode; snapshot separate. Ten alternating pairs after two retained warmup pairs. Pixel and immutable snapshot checks outside timing. Not VM FPS."
+    },
+    {
+      "name": "borrowed-receive_3456x2168_feedMS",
+      "unit": "ms",
+      "samples": [
+        3.212709,
+        3.177333,
+        3.242708,
+        3.104167,
+        3.108958,
+        3.182958,
+        3.30475,
+        3.102958,
+        3.130833,
+        3.217334
+      ],
+      "definition": "Generated steady full frames. Feed includes materialization in copy mode; snapshot separate. Ten alternating pairs after two retained warmup pairs. Pixel and immutable snapshot checks outside timing. Not VM FPS."
+    },
+    {
+      "name": "borrowed-receive_3456x2168_snapshotMS",
+      "unit": "ms",
+      "samples": [
+        0.446958,
+        0.452125,
+        0.460833,
+        0.445542,
+        0.447625,
+        0.451042,
+        0.463125,
+        0.449083,
+        0.451375,
+        0.447583
+      ],
+      "definition": "Generated steady full frames. Feed includes materialization in copy mode; snapshot separate. Ten alternating pairs after two retained warmup pairs. Pixel and immutable snapshot checks outside timing. Not VM FPS."
+    },
+    {
+      "name": "materialized-receive_3840x2160_feedMS",
+      "unit": "ms",
+      "samples": [
+        3.972541,
+        3.738917,
+        3.819416,
+        3.905459,
+        3.761375,
+        3.96075,
+        3.778083,
+        3.714666,
+        3.971,
+        3.737375
+      ],
+      "definition": "Generated steady full frames. Feed includes materialization in copy mode; snapshot separate. Ten alternating pairs after two retained warmup pairs. Pixel and immutable snapshot checks outside timing. Not VM FPS."
+    },
+    {
+      "name": "materialized-receive_3840x2160_snapshotMS",
+      "unit": "ms",
+      "samples": [
+        0.497042,
+        0.495,
+        0.494459,
+        0.49175,
+        0.519708,
+        0.496,
+        0.494375,
+        0.505125,
+        0.500167,
+        0.494959
+      ],
+      "definition": "Generated steady full frames. Feed includes materialization in copy mode; snapshot separate. Ten alternating pairs after two retained warmup pairs. Pixel and immutable snapshot checks outside timing. Not VM FPS."
+    },
+    {
+      "name": "borrowed-receive_3840x2160_feedMS",
+      "unit": "ms",
+      "samples": [
+        3.271416,
+        3.569625,
+        3.339375,
+        3.497084,
+        3.470958,
+        3.4725,
+        3.449917,
+        3.479084,
+        3.432834,
+        3.560833
+      ],
+      "definition": "Generated steady full frames. Feed includes materialization in copy mode; snapshot separate. Ten alternating pairs after two retained warmup pairs. Pixel and immutable snapshot checks outside timing. Not VM FPS."
+    },
+    {
+      "name": "borrowed-receive_3840x2160_snapshotMS",
+      "unit": "ms",
+      "samples": [
+        0.501959,
+        0.49725,
+        0.499125,
+        0.502041,
+        0.49475,
+        0.499416,
+        0.537917,
+        0.507,
+        0.49675,
+        0.501125
+      ],
+      "definition": "Generated steady full frames. Feed includes materialization in copy mode; snapshot separate. Ten alternating pairs after two retained warmup pairs. Pixel and immutable snapshot checks outside timing. Not VM FPS."
+    }
+  ],
+  "recordedAt": "2026-10-15T06:40:00.384388+00:00",
+  "schemaVersion": 1,
+  "status": "measured",
+  "unknownReasons": {
+    "host.displays": "Not collected or no statistical claim",
+    "host.efficiencyCores": "Not collected or no statistical claim",
+    "host.gpuCores": "Not collected or no statistical claim",
+    "host.performanceCores": "Not collected or no statistical claim",
+    "host.powerMode": "Not collected or no statistical claim",
+    "host.storageModel": "Not collected or no statistical claim",
+    "host.thermalState": "Not collected or no statistical claim",
+    "guest.agentVersion": "No guest in this generated component",
+    "guest.architecture": "No guest in this generated component",
+    "guest.build": "No guest in this generated component",
+    "guest.disk": "No guest in this generated component",
+    "guest.driverVersions": "No guest in this generated component",
+    "guest.edition": "No guest in this generated component",
+    "guest.network": "No guest in this generated component",
+    "guest.os": "No guest in this generated component",
+    "guest.patchLevel": "No guest in this generated component",
+    "guest.ramBytes": "No guest in this generated component",
+    "guest.vCPU": "No guest in this generated component",
+    "application.revision": "Not collected or no statistical claim",
+    "method.confidenceInterval": "Not collected or no statistical claim"
+  }
+}

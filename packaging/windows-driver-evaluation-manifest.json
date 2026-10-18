@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "scope": "private-combined-2d-driver-evaluation-only",
+  "volumeLabel": "MVO_DRIVERS",
+  "isoBasename": "macopenvm-driver-evaluation-complete.iso",
+  "entryPoint": "macOpenVM Setup.cmd",
+  "packages": [
+    {
+      "id": "display",
+      "inf": "drivers/display/viogpudo.inf",
+      "catalog": "viogpudo.cat",
+      "sourceFiles": [
+        "viogpudo.sys"
+      ],
+      "copySections": {
+        "VioGpuDod_Files_Driver": [
+          "viogpudo.sys"
+        ]
+      },
+      "inboxIncludes": [
+        "msdv.inf"
+      ]
+    },
+    {
+      "id": "netkvm",
+      "inf": "drivers/netkvm/netkvm.inf",
+      "catalog": "netkvm.cat",
+      "sourceFiles": [
+        "netkvm.sys",
+        "netkvmp.exe"
+      ],
+      "copySections": {
+        "kvmnet6.CopyFiles": [
+          "netkvm.sys"
+        ],
+        "netkvmp.CopyFiles": [
+          "netkvmp.exe"
+        ]
+      },
+      "inboxIncludes": []
+    },
+    {
+      "id": "vioser",
+      "inf": "drivers/vioser/vioser.inf",
+      "catalog": "vioser.cat",
+      "sourceFiles": [
+        "vioser.sys"
+      ],
+      "copySections": {
+        "Drivers_Dir": [
+          "vioser.sys"
+        ]
+      },
+      "inboxIncludes": []
+    }
+  ],
+  "files": [
+    {
+      "path": "README.txt",
+      "bytes": 382,
+      "sha256": "c34c9d1f39821ed0e9cf49a05378233dc9cd979cbbaf66f21e3de09d7cc9fb85",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/README.txt"
+    },
+    {
+      "path": "drivers/display/viogpudo.cat",
+      "bytes": 11882,
+      "sha256": "15a9b4664470602ab20efe1d665dc98d5fe0337e32038bc51369ecc0ca4826d2",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/display/viogpudo.cat"
+    },
+    {
+      "path": "drivers/display/viogpudo.inf",
+      "bytes": 2889,
+      "sha256": "849cfefa9364b4a3e80dd44ce898e3b4766af5c4a475ea0a95ddb4c9f1cb2e4b",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/display/viogpudo.inf"
+    },
+    {
+      "path": "drivers/display/viogpudo.sys",
+      "bytes": 118936,
+      "sha256": "78bf0afc614a19c365a050e96e0d0274def2ac860e842cc0964795bf431a14b7",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/display/viogpudo.sys"
+    },
+    {
+      "path": "drivers/display/virtio-win_license.txt",
+      "bytes": 1598,
+      "sha256": "accd84cb35eff899d619ff40e6fea8074305cdf0e7191db71a5d9c3a015e3b02",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/display/virtio-win_license.txt"
+    },
+    {
+      "path": "drivers/netkvm/netkvm.cat",
+      "bytes": 12496,
+      "sha256": "c5fa8b6790e9c0dac8fd8848c617292230ecaba29a03cf1ad25bdf243970a722",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/netkvm/netkvm.cat"
+    },
+    {
+      "path": "drivers/netkvm/netkvm.inf",
+      "bytes": 18828,
+      "sha256": "4b56c2e399c5b1943a1e8bae5b4907ca06ebc76053df5cfdc628bcf68fa371fd",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/netkvm/netkvm.inf"
+    },
+    {
+      "path": "drivers/netkvm/netkvm.sys",
+      "bytes": 200344,
+      "sha256": "118e6c7cad6f09b406f2b58dc9592ccbe1e803e751e5577b66ac180dbeacaabb",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/netkvm/netkvm.sys"
+    },
+    {
+      "path": "drivers/netkvm/netkvmp.exe",
+      "bytes": 266904,
+      "sha256": "6abd66a785e0edd00ce91c09b207d3e67f5567d32cadd44c7d3363a9b1381a37",
+      "source": ".lab/windows-network-support-aeb3fb95ab7d42f3b0ef8437b6edbb09/staging/drivers/netkvm/netkvmp.exe"
+    },
+    {
+      "path": "drivers/netkvm/virtio-win_license.txt",
+      "bytes": 1598,
+      "sha256": "accd84cb35eff899d619ff40e6fea8074305cdf0e7191db71a5d9c3a015e3b02",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/netkvm/virtio-win_license.txt"
+    },
+    {
+      "path": "drivers/vioser/vioser.cat",
+      "bytes": 12074,
+      "sha256": "51df407a0f6906f4bf40fbf507e4c30fefdc5c37f1811ff7e4c5e43bdb515357",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/vioser/vioser.cat"
+    },
+    {
+      "path": "drivers/vioser/vioser.inf",
+      "bytes": 2623,
+      "sha256": "77403d33b3aec78dc3f9306c9efab1ef60329b532abcf94163c660a615763db2",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/vioser/vioser.inf"
+    },
+    {
+      "path": "drivers/vioser/vioser.sys",
+      "bytes": 97944,
+      "sha256": "7c651d1da18485d00f62669d546d52c02ea03b8fe299de96c5992915d6d126d0",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/vioser/vioser.sys"
+    },
+    {
+      "path": "drivers/vioser/virtio-win_license.txt",
+      "bytes": 1598,
+      "sha256": "accd84cb35eff899d619ff40e6fea8074305cdf0e7191db71a5d9c3a015e3b02",
+      "source": ".lab/windows-display-support-3ff9bac089d546578527603a56909818/staging/drivers/vioser/virtio-win_license.txt"
+    },
+    {
+      "path": "macOpenVM Setup.cmd",
+      "source": "packaging/windows-driver-evaluation-setup.cmd",
+      "bytes": 3777,
+      "sha256": "c344d210360441812483fc0a3e5a9f502153acd5531e6610900c1be0306ae5ea"
+    }
+  ]
+}

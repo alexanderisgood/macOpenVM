@@ -1,0 +1,1319 @@
+{
+  "schemaVersion": 1,
+  "scope": "Original source build plus explicit external evaluation tools. Not a complete release dependency inventory.",
+  "releaseReady": false,
+  "components": [
+    {
+      "name": "macOpenVM",
+      "version": "0.1.0-dev",
+      "sourceURL": "https://github.com/alexanderisgood/macOpenVM",
+      "license": "Apache-2.0",
+      "modifications": "Original project code",
+      "scope": "project",
+      "redistributed": true,
+      "obligations": "Include Apache-2.0 license and NOTICE; source-only contributor alpha. Upstream patch licenses remain file-specific."
+    },
+    {
+      "name": "Swift",
+      "version": "6.4.0.34.1",
+      "sourceURL": "https://github.com/swiftlang/swift",
+      "license": "Apache-2.0 WITH Swift-exception",
+      "modifications": "None by this project",
+      "scope": "build-toolchain",
+      "redistributed": false,
+      "obligations": "Use host toolchain/runtime; review runtime redistribution if later bundled."
+    },
+    {
+      "name": "Python",
+      "version": "3.14.6",
+      "sourceURL": "https://github.com/python/cpython/tree/v3.14.6",
+      "license": "PSF-2.0",
+      "modifications": "None by this project; installed Homebrew toolchain used for verification",
+      "scope": "verification-toolchain",
+      "redistributed": false,
+      "obligations": "Upstream main license documented at https://docs.python.org/3.14/license.html. Historical and incorporated-software licenses and Homebrew transitive build dependencies need review before any runtime redistribution. No Python runtime is bundled."
+    },
+    {
+      "name": "Apple macOS frameworks",
+      "version": "27.0 SDK; deployment 14.0",
+      "sourceURL": "https://developer.apple.com/documentation/virtualization",
+      "license": "LicenseRef-Apple-SDK",
+      "modifications": "None; Virtualization/SwiftUI/AppKit/Foundation/Darwin/Security and CryptoKit public system APIs used. CryptoKit SHA256 verifies pinned private runtime fixtures; no framework binary is copied.",
+      "scope": "system",
+      "redistributed": false,
+      "obligations": "System-provided; Apple SDK/developer agreements and entitlement distribution need review."
+    },
+    {
+      "name": "QEMU",
+      "version": "11.1.0",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-only",
+      "modifications": "None by this project; installed Homebrew build inspected",
+      "scope": "evaluation",
+      "redistributed": false,
+      "obligations": "Review component licenses, combined distribution/linking and corresponding source/build scripts/notices. Full installed transitive inventory not adopted or release-cleared. Installed formula declares GPL-2.0-only; component review still required.",
+      "sourceSHA256": "6ee1d1a61f68212476b27108c26da5f449dc09b626d42f8279ba0dc2e08fa858"
+    },
+    {
+      "name": "EDK2 bundled with installed QEMU",
+      "version": "NOASSERTION",
+      "sourceURL": "https://github.com/tianocore/edk2",
+      "license": "NOASSERTION",
+      "modifications": "None by this project; upstream/bottle firmware source revision unresolved",
+      "scope": "evaluation",
+      "redistributed": false,
+      "obligations": "Installed notices include BSD-2-Clause-Patent, MIT, historical BSD, SoftFloat, OpenSSL/SSLeay. Exact source/build, every embedded license and signing provenance required before adoption."
+    },
+    {
+      "name": "swtpm",
+      "version": "0.10.2",
+      "sourceURL": "https://github.com/stefanberger/swtpm",
+      "license": "NOASSERTION",
+      "modifications": "None by this project",
+      "scope": "evaluation",
+      "redistributed": false,
+      "obligations": "Inspect pinned license and libtpms transitive tree before adoption. TPM security/identity persistence not verified."
+    },
+    {
+      "name": "Alpine Linux test media",
+      "version": "3.24.2-aarch64",
+      "sourceURL": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-virt-3.24.2-aarch64.iso",
+      "license": "NOASSERTION",
+      "modifications": "None; local test only",
+      "scope": "test-media",
+      "redistributed": false,
+      "sha256": "a57ba668b5f6b17a670fcf8e799d5d7fe43766ed086d6ce2927b0625bf43dbf6",
+      "obligations": "Do not bundle. Distro contains separately licensed packages; HTTPS checksum checked, detached signature not verified."
+    },
+    {
+      "name": "actions/checkout",
+      "version": "4.2.2 (11bd71901bbe5b1630ceea73d27597364c9af683)",
+      "sourceURL": "https://github.com/actions/checkout/tree/11bd71901bbe5b1630ceea73d27597364c9af683",
+      "license": "MIT",
+      "modifications": "None",
+      "scope": "ci",
+      "redistributed": false,
+      "obligations": "Pinned source; transitive CI action dependencies remain externally managed, not bundled."
+    },
+    {
+      "name": "LLVM/LLD private firmware toolchain",
+      "version": "22.1.8",
+      "sourceURL": "https://github.com/llvm/llvm-project/tree/llvmorg-22.1.8",
+      "license": "Apache-2.0 WITH LLVM-exception",
+      "modifications": "Compiler installed; matching LLD bottle extracted privately without binary changes. Process-local loader wrapper for private LLD and installed LLVM/Zstd.",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "sourceSHA256": "922f1817a0df7b1489272d18134ee0087a8b068828f87ac63b9861b1a9965888",
+      "obligations": "Retain LLVM notices/exception and exact source/build before distribution. Bottle SHA and actual tool hashes retained privately; source-to-bottle reproduction not verified. No tool bundled with app."
+    },
+    {
+      "name": "ACPICA private IASL tool",
+      "version": "20260408",
+      "sourceURL": "https://github.com/acpica/acpica/releases/download/20260408/acpica-unix2-20260408.tar.gz",
+      "license": "Intel-ACPI OR GPL-2.0-only OR BSD-3-Clause",
+      "modifications": "None; private verified source and ARM64 Homebrew bottle.",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "obligations": "Preserve selected license, source and incorporated notices before distribution. Local ASL/AML contract passed; no global installation/app bundling.",
+      "sourceSHA256": "5fcef9f0d00ffaffaaa82aa49c5ea9687986e8a7bd60929e298cc99a6741ae24"
+    },
+    {
+      "name": "EDK2 ARM protected-variable candidate",
+      "version": "edk2-stable202608 (2970e5699ba6267f3384ffab20f96647578aebc8)",
+      "sourceURL": "https://github.com/tianocore/edk2/tree/2970e5699ba6267f3384ffab20f96647578aebc8",
+      "license": "BSD-2-Clause-Patent",
+      "modifications": "One host GenericShellWrapper line changes negative array indexing to equivalent nonnegative final index for Apple Bash3.2; patch/original/modified hashes retained. Firmware security source is unchanged. A documented PcdShadowPeimOnBoot=TRUE build override relocates eligible PEIMs into RAM before constructors; QEMU_PV_VARS, SECURE_BOOT_ENABLE, TPM2_ENABLE and TPM2_CONFIG_ENABLE remain enabled, networking disabled and flash read-only. Original and override firmware/symbols/recipes preserved. Separate original NVMe prepare/verify EFI modules were built with the retained EDK2 library/toolchain, with firmware byte hash unchanged. Their scoped native orderly-persistence trial passed; they are not Windows driver or power-loss qualification and are not redistributed.",
+      "scope": "evaluation",
+      "redistributed": false,
+      "obligations": "Top-level license is not the entire embedded tree. Seven exact submodules and 19511 source files inventoried privately; Apache/BSD/MIT/OpenSSL and host-PCCTS/LZMA notices retained. Require complete resolved firmware notices/provenance/security/runtime/redistribution review before bundling. Current 3145728-byte firmware SHA-256 c29ba1fa0d27148ab96a2805c1ec576777024c6e4412647e16911790c1a1c851; original 631caaacbeda9d105248570fb8c07f25f0b76aaa56dd59aea36b195e463be6b4 preserved. Observed RAM load and TPM startup, then boot-countdown stall; no accepted EFI probe or Windows compatibility."
+    },
+    {
+      "name": "sequoia-sqv private signature verifier",
+      "version": "1.5.0 (e0dbf9133a1bf605eb2ead3869d9722d8dfc8252)",
+      "sourceURL": "https://gitlab.com/sequoia-pgp/sequoia-sqv/-/tree/e0dbf9133a1bf605eb2ead3869d9722d8dfc8252",
+      "license": "LGPL-2.0-or-later",
+      "modifications": "No source changes; ordinary supported OpenSSL crypto backend selected, locked source/cache/target/temp private.",
+      "scope": "verification-toolchain",
+      "redistributed": false,
+      "obligations": "166 resolved host build/test packages and 165 registry archive hashes/licenses inventoried privately, with installed native dependencies; no app linkage or bundling/global install/user keyring change. Upstream verifier tag signature not verified; transitive inventory is not legal/security release approval."
+    },
+    {
+      "name": "QEMU private source-built HVF candidate",
+      "version": "11.1.0 (two source corrections)",
+      "sourceURL": "https://download.qemu.org/qemu-11.1.0.tar.xz",
+      "license": "GPL-2.0-only",
+      "sourceSHA256": "6ee1d1a61f68212476b27108c26da5f449dc09b626d42f8279ba0dc2e08fa858",
+      "binarySHA256": "66890037b2f45f2c7801717829ee012d6b427585a82188c2b94e79019d8fde78",
+      "unsignedBinarySHA256": "05896b0c96ca9e285a1df43769fa0b4884a4309e506340b93f9595fc40e95931",
+      "modifications": "Separate from installed Homebrew QEMU. Exactly two corrections in the immutable candidate: accel/hvf/hvf-all.c unaligned-region add=false becomes return (modified SHA-256 31e1ac2ba4b77ba282cd119a65ac204e5a9db44a906a7c6d92a769ba666960c2), plus hw/intc/Kconfig ARM_GICV3 selection for TCG || HVF || WHPX from upstream a0c093900d84f6668c27eaeab4ca74935b5857b2 (modified SHA-256 1e0b95b19a306c3360a7a506dd59f41d3dcb3c7c02312f2cf58c539a92630098). Extraction omits only unused absolute roms/edk2/EmulatorPkg/Unix/Host/X11IncludeHack -> /opt/X11/include; original archive/metadata preserved, no external write. Headless AArch64, HVF enabled, TCG disabled, TPM/GnuTLS/read-only vvfat enabled; macOS27 minimum. A copied candidate has only an ad hoc hypervisor entitlement.",
+      "scope": "evaluation",
+      "redistributed": false,
+      "obligations": "Not linked into or bundled with macOpenVM. Preserve corresponding source, exact two patches, build scripts/configuration and incorporated notices; separate process is not distribution clearance. Archive signature and upstream commit signature unverified; 78755 source entries rechecked against archive. Signed binary SHA-256 66890037b2f45f2c7801717829ee012d6b427585a82188c2b94e79019d8fde78, unsigned 05896b0c96ca9e285a1df43769fa0b4884a4309e506340b93f9595fc40e95931. Exact direct dylib hashes/receipts and configure features retained privately. GLib/GnuTLS/pixman/libfdt/system-zlib dependency closure, their incorporated licenses, host pip26.1.2/wheel0.47.0 bootstrap tooling, source-to-bottle reproduction, vulnerability review and combined redistribution remain incomplete. slirp/zstd disabled in this candidate. No release signing/notarization, macOS14, accepted EFI probe or Windows support claim."
+    },
+    {
+      "name": "QEMU private timer/GIC diagnostic instrumentation",
+      "version": "11.1.0-derived (two retained diagnostic variants executed)",
+      "sourceURL": "https://download.qemu.org/qemu-11.1.0.tar.xz",
+      "license": "GPL-2.0-only",
+      "sourceSHA256": "6ee1d1a61f68212476b27108c26da5f449dc09b626d42f8279ba0dc2e08fa858",
+      "modifications": "Original read-only native timer/GIC instrumentation and later PFR0/SRE/Group0 getter extension; source/build/signature and two actual diagnostic runs retained. No guest memory, interrupt-acknowledgement reads, timer/IRQ writes or new assertions. Both binaries are diagnostic-only and cannot establish acceptance.",
+      "scope": "evaluation-diagnostic",
+      "redistributed": false,
+      "obligations": "Retain original QEMU GPL/attribution, source patches, build/signing artifacts and all incorporated/direct/transitive obligations. Current signed diagnostic SHA f634feb12498691e37e7d0017639dc7dcdae397bfb337103978ed38d0b4947e6; target source82bec4345ec080be0b5684f40b0721dc29736ade3797cf3661ea6958e0be0bc1; earlier variant preserved. Actual observations identified missing initial native GIC advertisement, not Windows compatibility, timer acceptance or benchmarks. No app bundling, redistribution clearance or private API use.",
+      "binarySHA256": "f634feb12498691e37e7d0017639dc7dcdae397bfb337103978ed38d0b4947e6",
+      "diagnosticSourceSHA256": "82bec4345ec080be0b5684f40b0721dc29736ade3797cf3661ea6958e0be0bc1"
+    },
+    {
+      "name": "Ninja private QEMU build tool",
+      "version": "1.13.2",
+      "sourceURL": "https://github.com/ninja-build/ninja/archive/refs/tags/v1.13.2.tar.gz",
+      "license": "Apache-2.0",
+      "sourceSHA256": "974d6b2f4eeefa25625d34da3cb36bdcebe7fbce40f4c16ac0835fd1c0cbae17",
+      "bottleSHA256": "efc5badad160831eb4bbdfd252a9cc9184e0fa901968b72e6e4f93f67a4c2057",
+      "modifications": "None; pinned ARM64 Homebrew bottle extracted privately and matching source retained. Actual 1.13.2 executable used by QEMU configure/build; system libc++/libSystem only.",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "obligations": "Retain Apache license and incorporated emhash/rapidhash notices. Source archive SHA-256 974d6b2f4eeefa25625d34da3cb36bdcebe7fbce40f4c16ac0835fd1c0cbae17, bottle efc5badad160831eb4bbdfd252a9cc9184e0fa901968b72e6e4f93f67a4c2057. License/source inventory retained; source-to-bottle reproduction and full incorporated-license/security review unverified. No global installation or app bundling."
+    },
+    {
+      "name": "Meson private QEMU build requirement",
+      "version": "1.11.1",
+      "sourceURL": "https://github.com/mesonbuild/meson",
+      "license": "Apache-2.0",
+      "wheelSHA256": "9b3a023657e393dbc5335b95c561337d49b7a458f5541e47ec44f2cc566e0d80",
+      "modifications": "None; wheel included in the verified QEMU11.1.0 source archive and installed offline into the private build venv. Actual Meson1.11.1 used for configure/build.",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "obligations": "Wheel SHA-256 9b3a023657e393dbc5335b95c561337d49b7a458f5541e47ec44f2cc566e0d80; wheel metadata and Apache COPYING retained. Provenance is verified QEMU source-archive inclusion, not an independently verified Meson source/release signature or wheel reproduction. Resolve source closure/incorporated notices before redistribution; no global installation or app bundling."
+    },
+    {
+      "name": "Setuptools private QEMU build requirement",
+      "version": "80.9.0",
+      "sourceURL": "https://files.pythonhosted.org/packages/18/5d/3bf57dcd21979b887f014ea83c24ae194cfcd12b9e0fda66b957c69d1fca/setuptools-80.9.0.tar.gz",
+      "license": "MIT",
+      "sourceSHA256": "f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c",
+      "wheelSHA256": "062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922",
+      "modifications": "None; fixed PyPI source/wheel hashes matched official metadata, installed prebuilt wheel offline/no-deps into private QEMU venv. QEMU configure checked its presence and imported bdist_egg; no source distribution publication occurred.",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "obligations": "Source SHA-256 f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c; wheel 062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922. Main MIT license and 24 vendored license/NOTICE files retained; full source/wheel/vendored closure and reproduction remain unreviewed. Retained acquisition metadata reports CVE-2026-59890/GHSA-h35f-9h28-mq5c concerning Unicode MANIFEST.in exclusions during sdist creation, fixed83.0.0; applicability/remediation remains a vulnerability review gate. No app bundling/global installation or release-security approval."
+    },
+    {
+      "name": "qemu.qmp private QEMU build/test requirement",
+      "version": "0.0.6",
+      "sourceURL": "https://gitlab.com/qemu-project/python-qemu-qmp",
+      "license": "LGPL-2.0-or-later AND GPL-2.0-only",
+      "wheelSHA256": "5d7c5af0e9de427696e3bf72e333965c3a697929f77f6b7ddc30c989fc7b539b",
+      "modifications": "None; QEMU source-archive wheel installed offline in private build venv; version observed and QEMU configure checked requirement. This records build/test tooling, not production host-runtime adoption or a passed QEMU test campaign.",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "obligations": "Wheel SHA-256 5d7c5af0e9de427696e3bf72e333965c3a697929f77f6b7ddc30c989fc7b539b. LGPLv2-or-later module headers and GPLv2 legacy.py with both license files retained; per-file/source/signature/wheel reproduction and combined distribution review remain open. No app linkage/bundling/global installation."
+    },
+    {
+      "name": "pycotap private QEMU build/test requirement",
+      "version": "1.3.1",
+      "sourceURL": "https://github.com/remko/pycotap",
+      "license": "MIT",
+      "wheelSHA256": "1c3a25b3ff89e48f4e00f1f71dbbc1642b4f65c65d416524d07e73492fff25ea",
+      "modifications": "None; QEMU source-archive wheel installed offline in private build venv; version observed and QEMU configure checked requirement. No QEMU TAP test campaign is claimed merely from installation.",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "obligations": "Wheel SHA-256 1c3a25b3ff89e48f4e00f1f71dbbc1642b4f65c65d416524d07e73492fff25ea; MIT COPYING retained. Separate pinned source/release-signature and wheel reproduction remain unverified. No app bundling/global installation."
+    },
+    {
+      "name": "GLib installed private-QEMU runtime dependency",
+      "version": "2.88.3",
+      "sourceURL": "NOASSERTION",
+      "license": "NOASSERTION",
+      "binarySHA256": "629b656720b26f44814cc1dbb34864f724f36e35f1909a2d008e9a435b7086e5",
+      "modifications": "None by project; installed Homebrew libglib-2.0.0.dylib dynamically linked by private candidate, receipt/hash retained.",
+      "scope": "evaluation-runtime",
+      "redistributed": false,
+      "obligations": "Observed dylib SHA-256 629b656720b26f44814cc1dbb34864f724f36e35f1909a2d008e9a435b7086e5. Receipt alone does not establish matching source, bottle reproduction, incorporated licenses or full runtime tree. PCRE2/gettext and other declared transitive dependencies need exact resolution/license/security review. Not bundled."
+    },
+    {
+      "name": "GnuTLS installed private-QEMU runtime dependency",
+      "version": "3.8.13 (Homebrew revision2)",
+      "sourceURL": "NOASSERTION",
+      "license": "NOASSERTION",
+      "binarySHA256": "20aab8f12c487059f8805ffe6c830d44b7c32c6e2b66e01014b6c51550868770",
+      "modifications": "None by project; installed Homebrew libgnutls.30.dylib dynamically linked for real PKCS7 verification, receipt/hash and installed COPYING retained.",
+      "scope": "evaluation-runtime",
+      "redistributed": false,
+      "obligations": "Observed dylib SHA-256 20aab8f12c487059f8805ffe6c830d44b7c32c6e2b66e01014b6c51550868770. An installed top-level COPYING does not resolve the exact library/utility/incorporated-license scope. Matching source/bottle reproduction and Nettle/GMP/libtasn1/libidn2/libunistring/p11-kit/gettext/certificate/runtime closure and vulnerability review remain open. No app bundling or PKCS7 runtime acceptance claim."
+    },
+    {
+      "name": "pixman installed private-QEMU runtime dependency",
+      "version": "0.46.4",
+      "sourceURL": "NOASSERTION",
+      "license": "NOASSERTION",
+      "binarySHA256": "a72debaf354c1bb7da04496217821364655276921f7d3980efcdcd699021b936",
+      "modifications": "None by project; installed Homebrew libpixman-1.0.dylib dynamically linked, receipt/hash/COPYING retained.",
+      "scope": "evaluation-runtime",
+      "redistributed": false,
+      "obligations": "Observed dylib SHA-256 a72debaf354c1bb7da04496217821364655276921f7d3980efcdcd699021b936. Matching source, source-to-bottle reproduction and complete incorporated-license/security review remain open; no app bundling or graphics compatibility claim."
+    },
+    {
+      "name": "libfdt installed private-QEMU runtime dependency",
+      "version": "1.8.1",
+      "sourceURL": "NOASSERTION",
+      "license": "NOASSERTION",
+      "binarySHA256": "0cc649c873e0c480f634540afcd5e37de983c3a0c5c087713e947e8bffa2659e",
+      "modifications": "None by project; installed Homebrew dtc libfdt.1.dylib dynamically linked, receipt/hash retained; distinct from EDK2's pinned libfdt submodule.",
+      "scope": "evaluation-runtime",
+      "redistributed": false,
+      "obligations": "Observed dylib SHA-256 0cc649c873e0c480f634540afcd5e37de983c3a0c5c087713e947e8bffa2659e. Resolve exact library source/license branch, incorporated notices, dtc/libyaml receipt closure versus actual loaded tree, reproduction and vulnerability review before adoption. No app bundling."
+    },
+    {
+      "name": "Apple system zlib private-QEMU runtime dependency",
+      "version": "1.2.12 (configure observation)",
+      "sourceURL": "NOASSERTION",
+      "license": "NOASSERTION",
+      "modifications": "None; QEMU configure observed system zlib1.2.12 and Mach-O links system libz.1.dylib.",
+      "scope": "system-evaluation",
+      "redistributed": false,
+      "obligations": "System library provided by host, not copied or bundled. Exact Apple source/patch/license mapping and security review remain unresolved; no dylib hash asserted for the shared-cache system component."
+    },
+    {
+      "name": "Windows ARM64 selected-English acquisition (unaccepted)",
+      "version": "26H2 advertised; downloaded language association unresolved",
+      "sourceURL": "https://www.microsoft.com/en-gb/software-download/windows11arm64",
+      "license": "NOASSERTION",
+      "modifications": "None; exact8,528,523,264-byte anonymous official download retained as unaccepted partial. Streamed and independent hash match Arabic checksum row despite generated en-us filename; selected English checksum differs. No mount, boot, installation or license/account acceptance. Separate reviewed bounded UDF inspection found sources/lang.ini declaring en-us and idwbinfo declaring arm64/fre/ge_release; no PE/WIM content or runtime authenticity was verified, and acceptance remains false. Subsequent bounded WIM header/plain-XML diagnostic observed two boot-image declarations at10.0.26100.9457 and three install-image declarations at10.0.26300.9457, all ARCH12 with the selected English language. Original image identity/permissions/links/size/all timestamps were preserved. These declarations do not authenticate WIM/file-data/whole-ISO contents or change media acceptance; no file-data resource, decompression, mount or execution occurred.",
+      "scope": "test-media-unaccepted",
+      "redistributed": false,
+      "sha256": "8992f2d2cfd2fa647e579e9eb31fc21f34da8333c29b6170fde17d2ed6623e9c",
+      "expectedEnglishSHA256": "dbf606ceb4ce1390f9f21ad1d96331848bc6b701cbab0012785881a1a1c0ec63",
+      "obligations": "Do not use as accepted English media or bundle/redistribute. Windows installation/license rights and language/source association remain unresolved. Actual SHA2568992f2d2cfd2fa647e579e9eb31fc21f34da8333c29b6170fde17d2ed6623e9c; expected Englishdbf606ceb4ce1390f9f21ad1d96331848bc6b701cbab0012785881a1a1c0ec63. Preserve failure/source/header/hash evidence without publishing expiring URL queries or local paths; human license/account steps remain separate."
+    },
+    {
+      "name": "QEMU private native-GIC feature-corrected candidate",
+      "version": "11.1.0 with three reviewed source corrections",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-only",
+      "sourceSHA256": "6ee1d1a61f68212476b27108c26da5f449dc09b626d42f8279ba0dc2e08fa858",
+      "binarySHA256": "5084212a682087ab08cec89cacbae7043d00047bb74ad8a88f6221601b69f64c",
+      "targetHvfSHA256": "63fcea950f2a1b2025e4d0a79bf6d50b29e86ba564ec3c5b7107d79df455265e",
+      "modifications": "Exactly three source changes: unaligned HVF/PPI listener return, upstream native-GIC Kconfig backport, independent proposed native-GIC PFR0 advertisement. Diagnostic instrumentation removed; no VHE/EL3/private-API or firmware timer/IRQ/security policy changes. Full original archive content audit retained.",
+      "scope": "evaluation",
+      "redistributed": false,
+      "obligations": "Preserve QEMU and incorporated notices/corresponding source/build/signing/reproduction and direct/transitive license/security closure before adoption or redistribution. Exact public feature patch SHA8a9cccee0277857652ad4f1ba78c0c23e7eaccb058bdd2b5f4a163b2c8895a1a, source https://patchew.org/QEMU/20260904043742.96613-1-mohamed@unpredictable.fr/20260904043742.96613-2-mohamed@unpredictable.fr/. Original initial EFI probe passed under HVF/GICv3, unprovisioned SecureBoot0; no Windows compatibility/persistence/secured platform or performance claim. Minimum host27; headless/ad-hoc signed, no app bundling or release clearance."
+    },
+    {
+      "name": "osslsigncode private original-EFI signer",
+      "version": "2.14 (beec94e308d1a1e03ca17b05fe089d93c6303e90)",
+      "sourceURL": "https://github.com/mtrojnar/osslsigncode/tree/beec94e308d1a1e03ca17b05fe089d93c6303e90",
+      "license": "GPL-3.0-or-later",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "sourceSHA256": "0f033fd6069387d2e489fbd2187e62f624764eb8c2758ee94e3e793e5150b5c5",
+      "binarySHA256": "a31b3bbd167c6721d0c480d28f0f51d3569c40dfdad75584f51a70d9f4b201d9",
+      "modifications": "Pristine source; separately recorded CMake configuration skips signing-test/documentation setup, builds only signer. Positive offline sign/verify of copied original ARM64 EFI passed; local signingTime only, no network timestamp/trust/enrollment.",
+      "obligations": "GPL-3.0-or-later license includes an explicit OpenSSL linking exception; retain exact text, notices, corresponding source/build/reproduction and incorporated/runtime closure before distribution. Private CMake/Ninja and installed OpenSSL/system-zlib used. No app bundling/global installation/release clearance or firmware/Windows trust claim."
+    },
+    {
+      "name": "CMake private signer build tool",
+      "version": "4.4.4",
+      "sourceURL": "https://github.com/Kitware/CMake/releases/tag/v4.4.4",
+      "license": "BSD-3-Clause",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "sourceSHA256": "bd24c30d80a7744ae84b845ff080cc8453b06c622ef01066564108e9cefc44cf",
+      "bottleSHA256": "6614033037dd78df8ef4fea463235b7a463f92caba61fc9fc93214fcd948cbe4",
+      "modifications": "None; pinned source/ARM64 Golden Gate bottle safely extracted privately, used for signer configure/build.",
+      "obligations": "Top-level BSD is not full incorporated tree. Preserve CMake/KWSys and all embedded notices, exact source/bottle/build/link metadata; source-to-bottle reproduction and complete transitive/security review remain open. No global installation; transient Homebrew developer-mode metadata-query side effect restored and recorded."
+    },
+    {
+      "name": "OpenSSL installed positive-fixture/signing dependency",
+      "version": "3.6.4",
+      "sourceURL": "https://github.com/openssl/openssl/tree/openssl-3.6.4",
+      "license": "Apache-2.0",
+      "scope": "evaluation-toolchain",
+      "redistributed": false,
+      "modifications": "None by project; installed native tool/library used for ordinary AUTH2/PE verification and transient per-VM TLS test certificate issuance. No host trust-store or Keychain changes.",
+      "obligations": "Retain source/license/incorporated notices and exact installed provenance/runtime closure before adoption. Current host bottle requires macOS26 and is not a macOS14 release library. Native agent host TLS uses public Apple frameworks instead. Source-to-installed-binary reproduction and full review incomplete; no OpenSSL host library bundled with app."
+    },
+    {
+      "name": "EDK2 published certificate fixture copied into original positive probe",
+      "version": "2970e5699ba6267f3384ffab20f96647578aebc8",
+      "sourceURL": "https://github.com/tianocore/edk2/tree/2970e5699ba6267f3384ffab20f96647578aebc8/SecurityPkg/Library/DxeImageVerificationLib/GoogleTest/binfiles",
+      "license": "BSD-2-Clause-Patent",
+      "scope": "test-fixture-source",
+      "redistributed": true,
+      "sha256": "07cb27304ef1a779e25644b3e0fe5078cd3ef3b072468f68b3a8eea5ce8f3907",
+      "modifications": "Public779-byte certificate DER represented as an array in fixture-only EFI probe; Git-object/certificate/key agreement verified. No private key embedded or guest-attached.",
+      "obligations": "Preserve Yandex2026 and TianoCore/contributor attribution, repository BSD-2-Clause-Patent text and exact certificate provenance in FixtureCertificate.LICENSE.txt. Published private test key used only in private host fixture; never production trust, user credentials or release media. Positive bootstrap is not full authentication/Windows acceptance."
+    },
+    {
+      "name": "QEMU private normal-PKCS7-envelope corrected candidate",
+      "version": "11.1.0 with four reviewed source corrections",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-only",
+      "scope": "evaluation",
+      "redistributed": false,
+      "sourceSHA256": "6ee1d1a61f68212476b27108c26da5f449dc09b626d42f8279ba0dc2e08fa858",
+      "binarySHA256": "ed753107501522f937d6293e7119a6a3ee2c5c9b0294e13e1fc0c5671ff0528c",
+      "modifications": "Retains three prior corrections; exactly one new0x0a-to0xa0 tag recognition in hw/uefi/var-service-pkcs7.c. Original valid full envelope failure reproduced; full and bare legitimate PK bootstrap/readback/mode positives passed after fix. No authentication/time/replay policy or verification skip.",
+      "obligations": "Preserve original licenses/notices, source patch/audit, build/configuration/link/signing/dependency/reproduction evidence. Full78755-entry audit finds four source changes; original config and real PKCS7 linkage unchanged. Public disposable test trust and positive bootstrap are not rejection/runtime/image/Microsoft/Windows acceptance. No app bundling/global install/release clearance; source/direct/transitive/security closure remains incomplete."
+    },
+    {
+      "name": "Windows ARM64 selected-English-International acquisition (unaccepted)",
+      "version": "26H2 advertised; payload language and build unverified",
+      "sourceURL": "https://www.microsoft.com/en-gb/software-download/windows11arm64",
+      "license": "NOASSERTION",
+      "modifications": "None. Fresh normal English International selection generated en-gb filename. First transfer timed out; separate exact-entity Range continuation preserved the original prefix and completed 8,543,594,496 bytes. Full stream and independent hash match the published Dutch row, not selected English International. Read-only ISO9660 volume label advertises EN-GB but payload language remains unverified. No mount, boot, license/account acceptance or relabeling. Separate reviewed bounded UDF inspection found sources/lang.ini declaring en-gb (fallback en-us) and idwbinfo declaring arm64/fre/ge_release; no PE/WIM content or runtime authenticity was verified, and acceptance remains false. Subsequent bounded WIM header/plain-XML diagnostic observed two boot-image declarations at10.0.26100.9457 and three install-image declarations at10.0.26300.9457, all ARCH12 with the selected English language. Original image identity/permissions/links/size/all timestamps were preserved. These declarations do not authenticate WIM/file-data/whole-ISO contents or change media acceptance; no file-data resource, decompression, mount or execution occurred.",
+      "scope": "test-media-unaccepted",
+      "redistributed": false,
+      "sha256": "500bcb6f272b7c455156470ea06816f558f13b885723f84ee9eab7534c7dee61",
+      "expectedEnglishInternationalSHA256": "23d5d42e8cd37fe1bacc37920eaa1ab0bb044aae0d41eeeb6a77e82a8ca9a483",
+      "obligations": "Do not accept for English installation or bundle/redistribute. Resolve source/checksum and actual payload language plus applicable Windows installation rights. Preserve original failed transfer, exact range entity, full independent hash and bounded metadata evidence. Keep signed URL queries and local paths private. License/account and elevation remain human-controlled."
+    },
+    {
+      "name": "Microsoft Root Certificate Authority 2010 public evaluation certificate",
+      "version": "2010 certificate; DER captured 2026-10-07",
+      "sourceURL": "https://www.microsoft.com/pki/certs/MicRooCerAut_2010-06-23.crt",
+      "license": "NOASSERTION",
+      "modifications": "None. Exact 1,521-byte public DER retained privately; SHA1 matches published Microsoft PKI fingerprint 3B1EFD3A66EA28B16697394703A72CA340A05BD5. Converted private PEM used only as explicit offline diagnostic root for bootloader and timestamp verification.",
+      "scope": "evaluation-trust-data",
+      "redistributed": false,
+      "sha256": "df545bf919a2439c36983b54cdfc903dfa4f37d3996d8d84b4c31eec6f3c163e",
+      "publishedDER_SHA1": "3b1efd3a66ea28b16697394703a72ca340a05bd5",
+      "obligations": "Microsoft PKI repository https://www.microsoft.com/pkiops/docs/repository.htm; Corporate CPS https://www.microsoft.com/pkiops/Docs/Content/policy/Microsoft_PKI_Services_Corporate_CPS_v3.2.0.pdf and Relying Party Agreement https://www.microsoft.com/pkiops/Docs/Content/policy/MSRelyingPartyAgreement2018.pdf retained for rights review. No open-source or redistribution rights asserted, no agreement/account acceptance or host trust-store/Keychain import. Private diagnostic input only; not bundled. Preserve exact bytes, publisher source, fingerprint, dates and verification provenance. This root selection is not Windows/dbx policy, whole-ISO authenticity or installation acceptance."
+    },
+    {
+      "name": "Microsoft Windows Production PCA 2011 public evaluation CRL",
+      "version": "thisUpdate 2026-07-22T21:35:54Z; nextUpdate 2026-10-21T09:55:54Z",
+      "sourceURL": "https://www.microsoft.com/pkiops/crl/MicWinProPCA2011_2011-10-19.crl%20",
+      "license": "NOASSERTION",
+      "modifications": "None. Exact 564-byte DER snapshot; published encoded-space CDP path preserved, only transport scheme upgraded to HTTPS. Issuer signature and current validity window verified before private PEM conversion and offline local CRL use.",
+      "scope": "evaluation-trust-data",
+      "redistributed": false,
+      "sha256": "5b9dc7c5171735ad7b5d7bd6c9dc872d5a645ce8eab4a557c9c844e0a8fb3b54",
+      "thisUpdateUTC": "2026-07-22T21:35:54Z",
+      "nextUpdateUTC": "2026-10-21T09:55:54Z",
+      "obligations": "Microsoft PKI repository https://www.microsoft.com/pkiops/docs/repository.htm; Corporate CPS https://www.microsoft.com/pkiops/Docs/Content/policy/Microsoft_PKI_Services_Corporate_CPS_v3.2.0.pdf and Relying Party Agreement https://www.microsoft.com/pkiops/Docs/Content/policy/MSRelyingPartyAgreement2018.pdf retained for rights review. No open-source or redistribution rights asserted, no agreement/account acceptance or host trust-store/Keychain import. Private diagnostic input only; not bundled. Preserve exact bytes, publisher source, fingerprint, dates and verification provenance. Finite snapshot; revalidate issuer/current dates for later use. Audited -ignore-cdp disables fetching only; local CRL validation remains enabled. No -ignore-crl or clock override."
+    },
+    {
+      "name": "Microsoft Root Certificate Authority 2010 public evaluation CRL",
+      "version": "thisUpdate 2026-09-01T20:38:50Z; nextUpdate 2026-12-01T08:58:50Z",
+      "sourceURL": "https://crl.microsoft.com/pki/crl/products/MicRooCerAut_2010-06-23.crl",
+      "license": "NOASSERTION",
+      "modifications": "None. Exact 824-byte DER snapshot from primary Microsoft PKI endpoint; issuer signature and current validity window verified. Private PEM included in supplied signing/timestamp CRL bundles and separate current-time CRL_CHECK_ALL checks.",
+      "scope": "evaluation-trust-data",
+      "redistributed": false,
+      "sha256": "54a5ec6205c8e24ca57013f57ffc10f374ddfc91b2187eff643be92f5e7fd602",
+      "thisUpdateUTC": "2026-09-01T20:38:50Z",
+      "nextUpdateUTC": "2026-12-01T08:58:50Z",
+      "obligations": "Microsoft PKI repository https://www.microsoft.com/pkiops/docs/repository.htm; Corporate CPS https://www.microsoft.com/pkiops/Docs/Content/policy/Microsoft_PKI_Services_Corporate_CPS_v3.2.0.pdf and Relying Party Agreement https://www.microsoft.com/pkiops/Docs/Content/policy/MSRelyingPartyAgreement2018.pdf retained for rights review. No open-source or redistribution rights asserted, no agreement/account acceptance or host trust-store/Keychain import. Private diagnostic input only; not bundled. Preserve exact bytes, publisher source, fingerprint, dates and verification provenance. Finite supplied-chain CRL result on 7 October 2026 is not a current dbx or Windows policy result. Revalidate source/hash/issuer/dates before later use."
+    },
+    {
+      "name": "Microsoft Time-Stamp PCA 2010 public evaluation CRL",
+      "version": "thisUpdate 2026-08-11T19:33:09Z; nextUpdate 2026-11-10T07:53:09Z",
+      "sourceURL": "https://www.microsoft.com/pkiops/crl/Microsoft%20Time-Stamp%20PCA%202010(1).crl",
+      "license": "NOASSERTION",
+      "modifications": "None. Exact 814-byte DER snapshot from the embedded TSA certificate primary Microsoft CDP; exact encoded path preserved, only transport scheme upgraded to HTTPS. Issuer signature and current validity window verified before private PEM conversion and local timestamp CRL use.",
+      "scope": "evaluation-trust-data",
+      "redistributed": false,
+      "sha256": "0e24672ae24a06f2c30bfeaa1c72bdd0916285097115fb105ef00b7c926375a7",
+      "thisUpdateUTC": "2026-08-11T19:33:09Z",
+      "nextUpdateUTC": "2026-11-10T07:53:09Z",
+      "obligations": "Microsoft PKI repository https://www.microsoft.com/pkiops/docs/repository.htm; Corporate CPS https://www.microsoft.com/pkiops/Docs/Content/policy/Microsoft_PKI_Services_Corporate_CPS_v3.2.0.pdf and Relying Party Agreement https://www.microsoft.com/pkiops/Docs/Content/policy/MSRelyingPartyAgreement2018.pdf retained for rights review. No open-source or redistribution rights asserted, no agreement/account acceptance or host trust-store/Keychain import. Private diagnostic input only; not bundled. Preserve exact bytes, publisher source, fingerprint, dates and verification provenance. No timestamp service request occurred. Actual embedded timestamp and local leaf/all-chain CRL results are recorded separately from tool exit status; this does not establish whole-ISO or Windows acceptance."
+    },
+    {
+      "name": "QEMU private VNC-enabled candidate",
+      "version": "11.1.0 with four unchanged reviewed source corrections and public VNC enabled",
+      "sourceURL": "https://download.qemu.org/qemu-11.1.0.tar.xz",
+      "license": "GPL-2.0-only",
+      "sourceSHA256": "6ee1d1a61f68212476b27108c26da5f449dc09b626d42f8279ba0dc2e08fa858",
+      "binarySHA256": "26674b130d910136b31c7c576277639e8b4c5bc2bc499165acb8f39919e58529",
+      "unsignedBinarySHA256": "19781d3f6bc261b76209dae119015c500a66360e474e37934d2d01a1f78b136c",
+      "modifications": "Separate private source snapshot/build; exactly the four previously reviewed HVF listener, GIC Kconfig, native-GIC advertisement and normal PKCS7 envelope recognition corrections are unchanged. Enable only normal public VNC; optional JPEG/SASL/PNG disabled, GnuTLS retained for PKCS7. Original internal links, notices and documented unused external X11-link omission preserved; no authentication/verification/replay policy edits. Runtime requires the copied original keymaps through an explicit private -L data directory. No global installation.",
+      "scope": "evaluation",
+      "redistributed": false,
+      "obligations": "Preserve full source, exact four corrections, original per-file/keymap notices, complete configuration/tool/link/signing records and corresponding build scripts. Candidate archive and upstream signatures unverified; full source/dependency license/security/reproduction and combined redistribution review remain open. ARM64 executable minimum27.0 and thirteen resolved non-system dylib minima26.0 do not satisfy the macOS14 product floor. Ad-hoc host signature/hypervisor entitlement and a private Unix RFB3.8/None/shared no-machine zero-CPU handshake are evaluation evidence only. No guest, visible app display, Windows, Retina, accepted installation media, app bundling or release clearance. Qualification recorded in docs/evidence/qemu-vnc-candidate.md."
+    },
+    {
+      "name": "GnuPG verification toolchain: gnupg",
+      "version": "2.5.22",
+      "sourceURL": "https://gnupg.org/ftp/gcrypt/gnupg/gnupg-2.5.22.tar.bz2",
+      "license": "GPL-3.0-or-later",
+      "scope": "development-verification-tool",
+      "redistributed": false,
+      "modifications": "None by this project. Installed from Homebrew for isolated public-key validation of official Linux installation media. Not linked into or bundled with macOpenVM.",
+      "obligations": "Retain upstream notices and source obligations if later redistributed. Formula-declared licenses recorded; complete transitive distribution review remains separate. No user keyring, agent startup, host trust change or secret-key use in this verification."
+    },
+    {
+      "name": "GnuPG verification toolchain: libgpg-error",
+      "version": "1.61",
+      "sourceURL": "https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.61.tar.bz2",
+      "license": "LGPL-2.1-or-later",
+      "scope": "development-verification-tool",
+      "redistributed": false,
+      "modifications": "None by this project. Installed from Homebrew for isolated public-key validation of official Linux installation media. Not linked into or bundled with macOpenVM.",
+      "obligations": "Retain upstream notices and source obligations if later redistributed. Formula-declared licenses recorded; complete transitive distribution review remains separate. No user keyring, agent startup, host trust change or secret-key use in this verification."
+    },
+    {
+      "name": "GnuPG verification toolchain: libassuan",
+      "version": "3.0.2",
+      "sourceURL": "https://gnupg.org/ftp/gcrypt/libassuan/libassuan-3.0.2.tar.bz2",
+      "license": "LGPL-2.1-or-later AND GPL-3.0-or-later AND FSFULLR",
+      "scope": "development-verification-tool",
+      "redistributed": false,
+      "modifications": "None by this project. Installed from Homebrew for isolated public-key validation of official Linux installation media. Not linked into or bundled with macOpenVM.",
+      "obligations": "Retain upstream notices and source obligations if later redistributed. Formula-declared licenses recorded; complete transitive distribution review remains separate. No user keyring, agent startup, host trust change or secret-key use in this verification."
+    },
+    {
+      "name": "GnuPG verification toolchain: libgcrypt",
+      "version": "1.12.4",
+      "sourceURL": "https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.12.4.tar.bz2",
+      "license": "LGPL-2.1-or-later AND GPL-2.0-or-later",
+      "scope": "development-verification-tool",
+      "redistributed": false,
+      "modifications": "None by this project. Installed from Homebrew for isolated public-key validation of official Linux installation media. Not linked into or bundled with macOpenVM.",
+      "obligations": "Retain upstream notices and source obligations if later redistributed. Formula-declared licenses recorded; complete transitive distribution review remains separate. No user keyring, agent startup, host trust change or secret-key use in this verification."
+    },
+    {
+      "name": "GnuPG verification toolchain: libksba",
+      "version": "1.8.1",
+      "sourceURL": "https://gnupg.org/ftp/gcrypt/libksba/libksba-1.8.1.tar.bz2",
+      "license": "LGPL-3.0-or-later OR GPL-2.0-or-later",
+      "scope": "development-verification-tool",
+      "redistributed": false,
+      "modifications": "None by this project. Installed from Homebrew for isolated public-key validation of official Linux installation media. Not linked into or bundled with macOpenVM.",
+      "obligations": "Retain upstream notices and source obligations if later redistributed. Formula-declared licenses recorded; complete transitive distribution review remains separate. No user keyring, agent startup, host trust change or secret-key use in this verification."
+    },
+    {
+      "name": "GnuPG verification toolchain: npth",
+      "version": "1.8",
+      "sourceURL": "https://gnupg.org/ftp/gcrypt/npth/npth-1.8.tar.bz2",
+      "license": "LGPL-2.1-or-later",
+      "scope": "development-verification-tool",
+      "redistributed": false,
+      "modifications": "None by this project. Installed from Homebrew for isolated public-key validation of official Linux installation media. Not linked into or bundled with macOpenVM.",
+      "obligations": "Retain upstream notices and source obligations if later redistributed. Formula-declared licenses recorded; complete transitive distribution review remains separate. No user keyring, agent startup, host trust change or secret-key use in this verification."
+    },
+    {
+      "name": "GnuPG verification toolchain: pinentry",
+      "version": "1.3.3",
+      "sourceURL": "https://www.gnupg.org/ftp/gcrypt/pinentry/pinentry-1.3.3.tar.bz2",
+      "license": "GPL-2.0-or-later",
+      "scope": "development-verification-tool",
+      "redistributed": false,
+      "modifications": "None by this project. Installed from Homebrew for isolated public-key validation of official Linux installation media. Not linked into or bundled with macOpenVM.",
+      "obligations": "Retain upstream notices and source obligations if later redistributed. Formula-declared licenses recorded; complete transitive distribution review remains separate. No user keyring, agent startup, host trust change or secret-key use in this verification."
+    },
+    {
+      "name": "Ubuntu Desktop ARM64 private installation media",
+      "version": "26.04.1",
+      "sourceURL": "https://cdimage.ubuntu.com/ubuntu/releases/26.04.1/release/ubuntu-26.04.1-desktop-arm64.iso",
+      "license": "NOASSERTION",
+      "scope": "test-media",
+      "redistributed": false,
+      "sha256": "c54d196489d3c867975fb3bbb72ca52ec2e137456e305481f81096304e4d2517",
+      "modifications": "None. Whole 4,154,798,080-byte image matches the signed SHA256SUMS row. Signature validated using documented full Ubuntu CD-image key fingerprint 843938DF228D22F7B3742BC0D94AA3F0EFE21092 in an isolated public-key home. Mounted only read-only by the VM backend for the private offline graphical boot test.",
+      "obligations": "Distribution comprises separately licensed packages; no blanket redistribution clearance is asserted. Keep installer outside app and release artifacts. Preserve primary source, checksum/signature/key provenance. Installation and native UI evidence remain separately scoped."
+    },
+    {
+      "name": "QEMU private AUTH2 strict-timestamp candidate",
+      "version": "11.1.0 with five source corrections",
+      "sourceURL": "https://download.qemu.org/qemu-11.1.0.tar.xz",
+      "license": "GPL-2.0-only",
+      "sourceSHA256": "6ee1d1a61f68212476b27108c26da5f449dc09b626d42f8279ba0dc2e08fa858",
+      "binarySHA256": "abc60310b8bdb218fd13ce81c1709edb39be547b792fdc18cada1775c7513352",
+      "modifications": "Retains four earlier source corrections and changes the non-append AUTH2 timestamp comparison from > to >= in hw/uefi/var-service-vars.c (GPL-2.0-or-later). Patch Backends/Qemu/patches/auth2-strict-timestamp.patch SHA256 5f5036b56ab412521de1d760d1e2d6e5e85de76d495410ffedb67b26c6ff57f1. Native old build accepts equal replay and replacement; separate corrected headless build passes eleven boot-services KEK cases. Existing source/apps/VNC candidate preserved.",
+      "scope": "evaluation",
+      "redistributed": false,
+      "obligations": "Preserve QEMU/component licenses, exact source/patch/build/signature and dependency records. Matching source, full dependency/license/security/redistribution and reproducibility review remain incomplete. Public test trust is not Microsoft trust, runtime/revocation or Windows acceptance. Host minimum27, HVF only, ad-hoc signature; not bundled or production-adopted. See docs/evidence/authenticated-variable-rejection-2026-10-07.md."
+    },
+    {
+      "name": "Alpine openssl-dev guest-agent evaluation headers",
+      "version": "3.5.9-r0",
+      "sourceURL": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/openssl-dev-3.5.9-r0.apk",
+      "license": "Apache-2.0",
+      "modifications": "Stock signed APK; only required header/startup-object dependency closure extracted for a private evaluation sysroot. No package scripts or host installation.",
+      "scope": "guest-agent-evaluation-build",
+      "redistributed": false,
+      "sha256": "9d9c83f93181eb781f76ee451a5f096d7faecd5bec1187dc00ed39453cc2cc09",
+      "sourceCommit": "29b9ec24b1b5b39aeef51fa2a044210e2ec5258e",
+      "obligations": "Retain upstream sources, license and incorporated notices before redistribution. Review startup objects and runtime linking separately. Per-file extraction and corresponding-source/reproducible clean-machine release remain open; private evaluation only."
+    },
+    {
+      "name": "Alpine musl-dev guest-agent evaluation sysroot",
+      "version": "1.2.6-r2",
+      "sourceURL": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/musl-dev-1.2.6-r2.apk",
+      "license": "MIT",
+      "modifications": "Stock signed APK; only required header/startup-object dependency closure extracted for a private evaluation sysroot. No package scripts or host installation.",
+      "scope": "guest-agent-evaluation-build",
+      "redistributed": false,
+      "sha256": "ca72b84f4eb3c36bbbec04d919eb10159d414c7a43413cc2253841d301fa9486",
+      "sourceCommit": "f5640d3a10f664c9119720c60515265d3d6f6d01",
+      "obligations": "Retain upstream sources, license and incorporated notices before redistribution. Review startup objects and runtime linking separately. Per-file extraction and corresponding-source/reproducible clean-machine release remain open; private evaluation only."
+    },
+    {
+      "name": "Alpine Linux headers guest-agent evaluation",
+      "version": "7.0.0-r1",
+      "sourceURL": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/linux-headers-7.0.0-r1.apk",
+      "license": "GPL-2.0-only",
+      "modifications": "Stock signed APK; only required header/startup-object dependency closure extracted for a private evaluation sysroot. No package scripts or host installation. Selected vsock UAPI carries GPL-2.0 WITH Linux-syscall-note.",
+      "scope": "guest-agent-evaluation-build",
+      "redistributed": false,
+      "sha256": "d61656e81116040ebac0bc8d9046a3ba97f01a00ee085809103576e8a437468f",
+      "sourceCommit": "4568bf119fd5a67f5d895a2a68a1dcf8b7bfa606",
+      "obligations": "Retain upstream sources, license and incorporated notices before redistribution. Review startup objects and runtime linking separately. Per-file extraction and corresponding-source/reproducible clean-machine release remain open; private evaluation only."
+    },
+    {
+      "name": "Alpine OpenSSL guest-agent evaluation runtime",
+      "version": "3.5.9-r0",
+      "sourceURL": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/29b9ec24b1b5b39aeef51fa2a044210e2ec5258e/main/openssl",
+      "license": "Apache-2.0",
+      "modifications": "Stock runtime inputs from verified private Alpine offline kit; guest ELF dynamically requires libssl.so.3, libcrypto.so.3 and libc.musl-aarch64.so.1. Historical live trial patch version was not collected; the installed restricted OpenRC trial now observes actual loaded OpenSSL 3.5.9 through its bounded startup event. See docs/evidence/linux-agent-installation-2026-10-08.md.",
+      "scope": "guest-agent-private-runtime-evaluation",
+      "redistributed": false,
+      "sourceCommit": "29b9ec24b1b5b39aeef51fa2a044210e2ec5258e",
+      "obligations": "Retain stock runtime sources/licenses/incorporated notices and verify exact runtime closure and distro ABI before any distribution or supported installation. No guest runtime library bundled with the host app."
+    },
+    {
+      "name": "Alpine musl guest-agent evaluation runtime",
+      "version": "1.2.6-r2",
+      "sourceURL": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/f5640d3a10f664c9119720c60515265d3d6f6d01/main/musl",
+      "license": "MIT",
+      "modifications": "Stock runtime inputs from verified private Alpine offline kit; guest ELF dynamically requires libssl.so.3, libcrypto.so.3 and libc.musl-aarch64.so.1. Native live trial uses the retained named Alpine image; exact live runtime patch version not collected.",
+      "scope": "guest-agent-private-runtime-evaluation",
+      "redistributed": false,
+      "sourceCommit": "f5640d3a10f664c9119720c60515265d3d6f6d01",
+      "obligations": "Retain stock runtime sources/licenses/incorporated notices and verify exact runtime closure and distro ABI before any distribution or supported installation. No guest runtime library bundled with the host app."
+    },
+    {
+      "name": "VirtIO Windows ARM64 serial driver private candidate",
+      "version": "100.103.104.30200; distribution 0.1.302-1",
+      "sourceURL": "https://fedorapeople.org/groups/virt/virtio-win/repo/stable/virtio-win-0.1.302-1.noarch.rpm",
+      "license": "BSD-3-Clause",
+      "modifications": "No binary modifications. Extracted only released Windows11 ARM64 vioser SYS/INF/CAT and package BSD notice into private ordinary single-link files. Exact RPM length/hash and member digests verified; offline Microsoft catalog/embedded signatures and timestamp chains plus catalog member binding pass. No driver or trust-store installation.",
+      "scope": "windows-guest-transport-private-evaluation",
+      "redistributed": false,
+      "obligations": "Preserve the BSD notice and exact source/build/provenance. Aggregate RPM also declares Apache and GPLv2; those components are not adopted. Actual corresponding source RPM, per-file/redistribution closure, revocation and ordinary Windows driver-policy/loading remain unverified. Upstream mm322 release is marked prerelease with an untested attestation asset; offline signature proof is not support or WHQL. No binary bundled with app. See docs/evidence/windows-vioser-candidate-2026-10-08.md. Exact immutable interface/handler source and Git object hashes now retained with BSD notices; publisher association remains distinct from source-RPM/binary reproducibility. See docs/evidence/windows-vioser-source-2026-10-08.md.",
+      "packageBytes": 297008245,
+      "packageSHA256": "2f58eea024e0221a873032761dc3ed3262409cd80860b7b27d3d5a0f206616c9",
+      "binarySHA256": "7c651d1da18485d00f62669d546d52c02ea03b8fe299de96c5992915d6d126d0",
+      "noticeSHA256": "accd84cb35eff899d619ff40e6fea8074305cdf0e7191db71a5d9c3a015e3b02",
+      "declaredSourceRPM": "virtio-win-0.1.302-1.src.rpm",
+      "publisherSourceURL": "https://github.com/virtio-win/kvm-guest-drivers-windows/tree/mm322",
+      "publisherSourceCommit": "abb444cab4ea2284e844e78c0efe76355936a741",
+      "actualCorrespondingSourcePackageInspected": false,
+      "sourceInterfaceInspection": {
+        "commit": "abb444cab4ea2284e844e78c0efe76355936a741",
+        "files": [
+          "public.h",
+          "Port.c",
+          "vioser.h",
+          "PnPControl.cpp",
+          "LICENSE"
+        ],
+        "exactGitObjectsVerified": true,
+        "qualificationSHA256": "96b5b19cf2a557979e08500130536cf87f9d68138ffea3bc7e24ad6ea69e01eb",
+        "publisherBuildAssociation": "b302 <--> mm322",
+        "binaryReproducibilityProven": false,
+        "correspondingSourceRPMInspected": false
+      }
+    },
+    {
+      "name": "mingw-w64 private Windows ARM64 headers and import definitions",
+      "version": "14.0.0",
+      "sourceURL": "https://downloads.sourceforge.net/project/mingw-w64/mingw-w64/mingw-w64-release/mingw-w64-v14.0.0.tar.bz2",
+      "license": "LicenseRef-mingw-w64-mixed",
+      "modifications": "Official pinned source archive; privately configured headers and generated only ARM64 kernel32/secur32/crypt32 import libraries using existing LLVM tools. No compiler/CRT/runtime/global installation. Original smoke PE imports only native Windows system DLLs. Two local strict builds are byte-identical; no Windows execution. A separate original vioser metadata diagnostic also generates a private ARM64 SetupAPI import archive from the retained definition, importing only Kernel32/SetupAPI; two identical strict static builds and portable contracts pass. No Windows execution. The original Schannel credential evaluator uses the same qualified headers and three regenerated native import libraries, passes two identical strict ARM64 static builds with exactly 34 Kernel32/Secur32/Crypt32 imports, and executes no PE or credential operation. See docs/evidence/windows-schannel-build-2026-10-11.md. Its fixed-record extension passes two identical strict ARM64 static builds with 36 native imports including EncryptMessage/DecryptMessage; native Windows crypto remains unexecuted. See docs/evidence/windows-schannel-record-build-2026-10-11.md.",
+      "scope": "windows-agent-private-build-evaluation",
+      "redistributed": false,
+      "obligations": "Retain exact archive, COPYING/DISCLAIMER and per-file notices. Default ZPL2.1 plus separately marked Public Domain/BSD/LGPL and other source components must not be treated as one license; 14 notice files retained. Per-file release/link/redistribution closure and clean-machine reproduction remain open. No SDK/compiler/runtime bundled with app. See docs/evidence/windows-native-build-2026-10-08.md.",
+      "sourceSHA256": "6eaf921d9eb987d3820b364ea9775bc19b965ec81490b6fdd716526c28e1995c",
+      "sourceBytes": 11163292,
+      "sourceQualifier": "Official release archive plus SourceForge-published SHA256; signed tag/publisher signature not verified. Header release macro14.0.0 verified; historical configure AC_INIT4.0b is not version provenance.",
+      "setupAPIImportSHA256": "c44613e2ae6d95d87bd70ea314f27fbb07a1543eed7ec6a89a435ad262c6f6d1"
+    },
+    {
+      "name": "VirtIO Windows ARM64 network driver private candidate",
+      "version": "100.103.104.30200; distribution 0.1.302-1",
+      "sourceURL": "https://fedorapeople.org/groups/virt/virtio-win/repo/stable/virtio-win-0.1.302-1.noarch.rpm",
+      "license": "BSD-3-Clause",
+      "modifications": "No binary modifications. Private prepared NetKVM SYS/INF/CAT plus INF-required netkvmp.exe and BSD notice; exact RPM/member digests, ARM64 declarations and offline Microsoft signatures/timestamp chains/catalog bindings verified. No driver/NIC/host trust or software installation, network exposure or guest action.",
+      "scope": "windows-network-private-evaluation",
+      "redistributed": false,
+      "obligations": "Retain notices and exact source/build/provenance. Whole RPM also declares Apache/GPLv2 components not adopted. Actual source RPM, per-file/redistribution closure, revocation, Windows policy loading and adapter health remain open. Candidate is not bundled with app. Helper has native Windows/UCRT imports not a separately packaged runtime. See docs/evidence/windows-netkvm-candidate-2026-10-08.md.",
+      "packageSHA256": "2f58eea024e0221a873032761dc3ed3262409cd80860b7b27d3d5a0f206616c9",
+      "binarySHA256": "118e6c7cad6f09b406f2b58dc9592ccbe1e803e751e5577b66ac180dbeacaabb",
+      "helperSHA256": "6abd66a785e0edd00ce91c09b207d3e67f5567d32cadd44c7d3363a9b1381a37",
+      "declaredSourceRPM": "virtio-win-0.1.302-1.src.rpm",
+      "publisherSourceCommit": "abb444cab4ea2284e844e78c0efe76355936a741",
+      "actualCorrespondingSourcePackageInspected": false
+    },
+    {
+      "name": "libslirp private Windows NAT evaluation input",
+      "version": "4.9.3",
+      "sourceURL": "https://gitlab.freedesktop.org/slirp/libslirp/-/archive/v4.9.3/libslirp-v4.9.3.tar.gz",
+      "license": "BSD-3-Clause",
+      "scope": "private-network-evaluation",
+      "redistributed": false,
+      "modifications": "Existing Homebrew bottle headers/library/receipt/notices copied privately. Only private install name and ad-hoc signature changed; global bytes unchanged. No source build or guest/network backend instantiated.",
+      "obligations": "Retain source/notices/incorporated licenses and bottle provenance. Installed formula declares upstream source hash but it was not newly acquired or source-reproduced here. Runtime networking/loopback policy, full per-file/link/distribution and clean-machine reproduction remain unverified. Not bundled with app.",
+      "providedBinarySHA256": "dd7975f5674c598ef0084f32b5b685d92b07119b61701471211e32f46dbf6e76",
+      "privateBinarySHA256": "10d404d8a693f2d37401ce0ff54e71d9ffb4a5fe42335a360dea39e6d083a5ab",
+      "declaredSourceSHA256": "ee698ca4ce05217ca7d520c7f0b1b1228fd7d32922dd32d1051c347152588417",
+      "sourceBuiltHere": false
+    },
+    {
+      "name": "QEMU private SLIRP loopback-blocked candidate",
+      "version": "11.1.0 private evaluation",
+      "sourceURL": "https://download.qemu.org/qemu-11.1.0.tar.xz",
+      "license": "GPL-2.0-only",
+      "scope": "private-windows-network-evaluation",
+      "redistributed": false,
+      "modifications": "Preserved exact qualified baseline source and live binary; separate copied tree enables SLIRP and adds one public libslirp config field disable_host_loopback=true. Fresh ad-hoc HVF executable statically/capability inspected; no VM/network backend/guest/exposure and no netdev-help used.",
+      "obligations": "Keep corresponding modified source/patch/build notices and full dependencies. Separate process does not itself settle licensing. No runtime/connectivity/Windows/redistribution claim; before adoption require user networking approval and normal guest stop/terminal ownership, preserving disk/UEFI/TPM identities. See docs/evidence/windows-netkvm-candidate-2026-10-08.md.",
+      "sourceSHA256": "6ee1d1a61f68212476b27108c26da5f449dc09b626d42f8279ba0dc2e08fa858",
+      "binarySHA256": "e2e40cce3cd0b394bb45190ec759bd33c7882bf65e186f4cdf2b5c4d9a7a3745",
+      "patchSHA256": "2ca3b092671261509aac3554c595aca4e87572e0f1be5920f9ecd502d5663392"
+    },
+    {
+      "name": "virtio-win ARM64 viogpudo display-only evaluation candidate",
+      "version": "100.103.104.30200 (virtio-win0.1.302-1)",
+      "sourceURL": "https://fedorapeople.org/groups/virt/virtio-win/repo/stable/virtio-win-0.1.302-1.noarch.rpm",
+      "license": "BSD-3-Clause",
+      "modifications": "Unmodified selected Windows11 ARM64 SYS/INF/CAT; original bounded private inspector selects only these and notice",
+      "scope": "private-display-driver-evaluation",
+      "redistributed": false,
+      "obligations": "Preserve upstream notices and exact source/version/hash/signature provenance. Whole RPM also contains Apache/GPL components not adopted. Corresponding source and per-file distribution review remain open. Offline catalog/SYS checks with revocation disabled are not actual Windows loading, hardware compatibility, native resolution, acceleration or FPS proof. No guest or host installation. See docs/evidence/windows-display-candidate-2026-10-13.md."
+    },
+    {
+      "name": "virtio-win ARM64 display resize helper evaluation candidates",
+      "version": "virtio-win0.1.302-1 Windows11 ARM64",
+      "sourceURL": "https://fedorapeople.org/groups/virt/virtio-win/repo/stable/virtio-win-0.1.302-1.noarch.rpm",
+      "license": "NOASSERTION",
+      "modifications": "Unmodified vgpusrv.exe, viogpuap.exe, viogpures.exe inspected privately from exact RPM member hashes; none executed or installed",
+      "scope": "private-display-resize-helper-evaluation",
+      "redistributed": false,
+      "obligations": "Per-file source/license/notices and redistribution closure remain unqualified. Exact ARM64 PE and offline signatures: vgpusrv/viogpuap success under pinned Microsoft2010 root; viogpures fails self-signed development chain and is unqualified. No trust import or bypass. Revocation disabled; no actual Windows loading/service/session/resize proof. See docs/adr/0042-windows-native-display-evaluation.md."
+    },
+    {
+      "name": "DXMT native Metal GPU candidate",
+      "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Original staging upload fix retained. App47 bounded native completion timing trial now exercised Windows Start and shader workloads; no120Hz or hardware utilization claim. Source48 restores the original timing-disabled library and removes receive-buffer materialization in original host code. Timing candidate and all source/build records remain preserved. App68 forces literal interface GUID initialization at compile time, eliminating parser work observed in the O3 shader-binding profile. Exact public-header probes preserve known bits; native exports/imports match. No driver/timing change; live Windows gain remains pending. App69 adds a per-retired-chunk autorelease pool to the long-lived native D3D11 completion thread. GPU completion, readback, fence publication and allocator retirement retain their ordering. Native exports/imports match. No guest-driver/timing change; live memory/FPS benefit remains unqualified. Protocol2 pair16October: update five upstream commits, retain completion-thread pool and constant GUID initialization; upstream replaces local staging uploads. Use pinned directx-native ABI1. Actual paired loader/capset2 check and191 native offscreen D3D11 cases pass. Isolated candidate only; Windows/native120Hz qualification pending. ADR55 pipeline-task pool remains separate.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Independent native source build; explicit zstd link option. Source notices, modifications, relinking rights and complete incorporated-source inventory required before distribution. Original Apache-2.0 helper integration, combined-license compatibility and relinking/source arrangements require review before distribution.",
+      "privateBinarySHA256": "2967b3869e6223a436f054380af29d0077c89d4d61736647857e732a04fbc2df",
+      "patchSHA256": "41bf8739c9f388542a50db52b1f0a377a85a76f57307580943c95481e139a01e",
+      "priorStablePrivateBinarySHA256": "c6ec27b5ec818e8d13e5a3f09419f524c6990f500af7c4e1e870b966302f6b80",
+      "incrementalTimingPatchSHA256": "3d42daacc990108851d58b76014a255631a927338ad4cfb4950c16ad7a2f625b",
+      "evaluatedTiming47": {
+        "binarySHA256": "c77e2f463a763f1543689d4092b55694870810f58b722ffa700a86c89708eb1d",
+        "incrementalTimingPatchSHA256": "3d42daacc990108851d58b76014a255631a927338ad4cfb4950c16ad7a2f625b",
+        "liveGainQualified": false
+      },
+      "incrementalConstantGUIDPatchSHA256": "6bac67898b6f9f070dd1e8f11dc3c04ba56618237caae450762ca702ea2e8ddc",
+      "evaluatedConstantGUID68": {
+        "priorBinarySHA256": "c6ec27b5ec818e8d13e5a3f09419f524c6990f500af7c4e1e870b966302f6b80",
+        "binarySHA256": "fcd6a719aed2bac2f53af9c926b41575744b19748512496f411e6658756bc782",
+        "sourceInventorySHA256": "994de67cca2ad2550bc7817109ba835bcbbec20d9738ea3539a61a30c82acb66",
+        "knownGuidBitsVerified": true,
+        "exportedABIPreserved": true,
+        "liveGainQualified": false
+      },
+      "completionAutoreleasePatchSHA256": "807e75cde651005f615734d42e5dec43e96b5588d15de59e66788148fe2f5852",
+      "evaluatedCompletionPool69": {
+        "priorBinarySHA256": "fcd6a719aed2bac2f53af9c926b41575744b19748512496f411e6658756bc782",
+        "binarySHA256": "3ceb842fb1d192a79152d4e47b1d622722f71562f701abf089c5233699f38cce",
+        "sourceInventorySHA256": "46138579abbe8c4c1bdd9018bb50a114056aee48b3e5f4f575dfb429d0539368",
+        "exportedABIPreserved": true,
+        "liveGainQualified": false
+      },
+      "pendingPipelineTaskPoolCandidate": {
+        "binarySHA256": "473b00fa2c12feafd8d21b40d1a66f3f6fffc5eca9a78cdd656d7ce596533e7e",
+        "sourceInventorySHA256": "99f9a15bc14c9dbe5e433d2b51558385dd0e7d69254a30942aa71f872d4e2013",
+        "incrementalPatchSHA256": "561bd48fa65caf96297b8f48dbde475d68b8d2cc3aa20b8783298a1abc1dd663",
+        "nativeProbeBuildSignatureAndABIQualified": true,
+        "admittedToInstalledApp": false,
+        "livePerformanceGainProven": false
+      },
+      "priorWorkingProtocol1": {
+        "version": "bcdcf6da89af6c9fedeb2fc92b4367b23d5d6ed6",
+        "binarySHA256": "3ceb842fb1d192a79152d4e47b1d622722f71562f701abf089c5233699f38cce"
+      }
+    },
+    {
+      "name": "virglrenderer Neptune GPU candidate",
+      "version": "451505ad0aa449290f2c0672da6877d57ee770e5",
+      "sourceURL": "https://github.com/utmapp/virglrenderer/tree/451505ad0aa449290f2c0672da6877d57ee770e5",
+      "license": "MIT",
+      "modifications": "Independent native Neptune process-worker build; Source48 restores the stable loader and library after actual bounded App47 Windows GPU timing. Separate profile loader, explicit frozen library path and complete records preserved. No runtime environment override or distribution clearance. Protocol2 pair16October:36 matching upstream commits, complete generated wire2 transport/object replies and directx-native ABI1 contract. Fixed isolated native loader and ARM64 default retained. Actual native ABI1/public capset2/supported-feature checks pass. Old runtime remains preserved; Windows comparison pending. Local R3 caches resource-owned Metal import views (three entries, 96 MiB page-rounded charges), with independent caller ownership and LRU/unref/reset cleanup. It reuses mappings and GPU view objects; pixel copies, readback, producer fences, guest driver, wire2 and backendABI1 remain unchanged. Actual Metal integration passes 11 cases/38 GPU reads. Native import-only comparison is separate from game FPS.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Independent native Neptune process-worker build. Include notices and review incorporated Mesa/Gallium/generated protocol licenses.",
+      "privateBinarySHA256": "bcbf40ec2c2521a5a53730fa994fa778fb0efe5f05a8019af28e802ce2195f6e",
+      "privateServerSHA256": "d568dd3ddf475962569628a2a90fb97cc978a7bae4cd3a356894275e2d9ed264",
+      "evaluatedTiming47": {
+        "binarySHA256": "55e6b6fae7312309932dea7c2cb7bc70bcddad8fee6f77396d5f72485b1b731d",
+        "serverSHA256": "6523f9bcb57944b4a59c5cf687e5b8f0fbee37a205b74b65862b1d03ad80ff77"
+      },
+      "priorWorkingProtocol1": {
+        "version": "482f9d8b8c2d2288efa10a027116216909d2c226",
+        "binarySHA256": "75ee7d9203d548e15090a8f73a66c7cafaf0b6d61bd33b68e0cd58ec2b61b4b2",
+        "serverSHA256": "276da427c23bbfab5ab3e0e27b5b11ecdcc0b0c13ff2c7e441a446b246c9e762"
+      },
+      "priorWorkingProtocol2BinarySHA256": "7cf2e931de7f94a869afb6fc43d1f5b21114d30e1f7d844dc59699c5ce8ba9cc",
+      "scanoutImportCachePatch": "Backends/Qemu/patches/renderer-shm-scanout-cache.patch",
+      "scanoutImportCacheBuildEvidence": ".lab/unified-graphics-20261018/renderer-signed.json"
+    },
+    {
+      "name": "QEMU Neptune GPU candidate",
+      "version": "10.0.12-utm",
+      "sourceURL": "https://github.com/utmapp/qemu/releases/tag/v10.0.12-utm",
+      "license": "GPL-2.0-only",
+      "modifications": "Matching GPL source built/signature/properties pass locally. Supports virt-10.0 and cannot replace saved VM virt-11.1 contract; graphics port to current runtime required.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Matching source acquired; build and component/linking/source obligations remain unqualified."
+    },
+    {
+      "name": "Windows ARM64 Neptune rendering-driver candidate",
+      "version": "100.6.101.58000",
+      "sourceURL": "https://github.com/osy/kvm-guest-drivers-windows/releases/tag/v0.3",
+      "license": "NOASSERTION",
+      "modifications": "Unmodified eleven files match publisher-hash verified v0.3 signed ARM64X ZIP; KMD source pinned769e75cd645fc48f4aaae716ca8a74795fe5e241. Microsoft CAT and eight PE catalog bindings pass offline; INF/JSON names and raw hashes occur in the catalog. Device Manager confirms version100.6.101.58000 and Microsoft Hardware Compatibility Publisher in the preserved test VM. UMD corresponding source and revocation remain pending.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Not release-cleared. Bind exact UMD corresponding source and per-file licenses; retain complete Microsoft catalog/provenance/revocation evidence before distribution."
+    },
+    {
+      "name": "LLVM native GPU shader build libraries",
+      "version": "15.0.7",
+      "sourceURL": "https://github.com/llvm/llvm-project/releases/tag/llvmorg-15.0.7",
+      "license": "Apache-2.0 WITH LLVM-exception",
+      "modifications": "Hash-verified Homebrew ARM64 bottle headers/static libraries used locally; transitive zstd and LLVM component notices need release closure.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Hash-verified Homebrew ARM64 bottle headers/static libraries used locally; transitive zstd and LLVM component notices need release closure."
+    },
+    {
+      "name": "libepoxy Neptune build candidate",
+      "version": "bf98587477fe68d07b93319ece7b40a7d0e2eabe",
+      "sourceURL": "https://github.com/utmapp/libepoxy/tree/bf98587477fe68d07b93319ece7b40a7d0e2eabe",
+      "license": "MIT",
+      "modifications": "Pinned source built privately with EGL dispatch enabled, GLX and X11 disabled; include notices before redistribution.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Pinned source built privately without EGL/GLX for Neptune qualification; include notices before redistribution."
+    },
+    {
+      "name": "PyYAML GPU build dependency",
+      "version": "6.0.3",
+      "sourceURL": "https://pypi.org/project/PyYAML/6.0.3/",
+      "license": "MIT",
+      "modifications": "Published-hash verified ARM64 wheel unpacked into private build dependencies; no global installation.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Published-hash verified ARM64 wheel unpacked into private build dependencies; no global installation."
+    },
+    {
+      "name": "ANGLE Metal display candidate",
+      "version": "ed78ab6e1a37f4f11583a0bd038f22ec91f3ff10",
+      "sourceURL": "https://github.com/utmapp/WebKit/tree/ed78ab6e1a37f4f11583a0bd038f22ec91f3ff10/Source/ThirdParty/ANGLE",
+      "license": "BSD-3-Clause",
+      "modifications": "Pinned sparse source, 33 explicit compact-record storage casts, redundant virtual final-class destructor removed, two blit base copies replaced with typed assignment. Current libc++ extensive hardening build option; full patch retained. Standalone native source build passed0; configurable public client list and relocatable IDs. Original Metal adapter/pixel probe passed0: Apple M5 Pro/EGL1.5, known red pixel correct. Exact patches retained.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Pinned sparse source acquired with hooks disabled; original upstream native Xcode build. Include BSD notices and complete incorporated third-party license/source inventory before redistribution."
+    },
+    {
+      "name": "MinGW native DirectX headers",
+      "version": "9df86f2341616ef1888ae59919feaa6d4fad693d",
+      "sourceURL": "https://github.com/misyltoad/mingw-directx-headers/tree/9df86f2341616ef1888ae59919feaa6d4fad693d",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Unmodified pinned DXMT submodule headers; retain COPYING.MinGW-w64 and header notices, review applicable exceptions and incorporated licenses.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Unmodified pinned DXMT submodule headers; retain COPYING.MinGW-w64 and header notices, review applicable exceptions and incorporated licenses."
+    },
+    {
+      "name": "Khronos EGL platform build headers",
+      "version": "db3425b8246136faccb5e2782b5694960bd6edf1",
+      "sourceURL": "https://github.com/KhronosGroup/EGL-Registry/tree/db3425b8246136faccb5e2782b5694960bd6edf1",
+      "license": "MIT",
+      "modifications": "Pinned EGL/eglplatform.h and KHR/khrplatform.h used in private GPU build; retain header notices.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Pinned EGL/eglplatform.h and KHR/khrplatform.h used in private GPU build; retain header notices."
+    },
+    {
+      "name": "QEMU 11.1 Neptune Metal focused port",
+      "version": "11.1.0-private-candidate39-protocol2-20261016",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-only",
+      "modifications": "Source49 adds an optional private read-only host-frame snapshot connection and original Metal host presentation. Two immediately unlinked shared-memory slots are acknowledged only after consumer GPU completion; a private GPU cache supports redraws after ACK. Ordinary RFB remains input/fallback. CPU readback, guest driver, guest error/completion policy and timing-disabled DXMT remain unchanged. Generated native/4K exact-pixel and descriptor validation passed; live Windows qualification is pending. Signed driver remains60Hz; no120FPS or physical-scanout claim. Source50 checks shm creation permissions with fstat instead of Darwin-unsupported fchmod, found by actual Windows49; manual display reconnect can retry a failed shared attempt. Prior source49 preserved. Source51 separates private-cache upload/ACK from drawable acquisition, coalesces presentation to the latest cache on the same ordered GPU queue, and drains autoreleased Metal resources per work item. Boot-time shared disconnects can resume the existing RFB reader for at most three admitted attempts during45seconds. Source50 live CS2 reported periodic stalls; source51 pacing gain unqualified pending live comparison. Source52 adds a host-process activity token scoped to actual preparing/running runtime notifications, released on pause/settlement and final ownership teardown. Public live proc_bsdinfo flags found App51 suppressed while QEMU31 and its graphics worker were not; both host display paths recorded roughly10-second gaps. No global power or lock setting changes and no new renderer/driver binary. QEMU32 replaces startup-only command logging with monotonic numeric command-gap/reply/oldest-pending timing, bounded to256 records plus exhaustion marker under BQL. No payload/pixels, extra timer, queue walk, synchronization or completion-policy change. Separate candidate built/signed; live classification pending under ADR47. App57 applied4GiB host-visible capacity, which Windows reports, but its CS2 menu still has a10097.66ms delivery gap. No FPS gain claimed. QEMU32 diagnostic output is unqualified because virtqueue_pop command storage was not zero-initialized. QEMU33 explicitly initializes only the original timing fields at admission; actual-header poisoned-field and boundary checks pass. No32 timing inference is retained. QEMU34 adapts Odaki GPL patch6/9 to track command suspension independently of guest fencing, retaining suspended unmap/unref at the queue head until cleanup and real fence creation. Corrected33 live trace records10.019-10.022s unmap replies. Actual old/new queue-function regression reproduces the premature transition and passes the corrected delayed-cleanup ordering. Live benefit pending ADR48. QEMU35 explicitly enables the existing CoreAudio playback backend in the minimal build. Original output callback correction silences early returns, plays available partial frames, clamps to actual host-buffer capacity and emits at most eight numeric teardown summaries per process. Fixed HDA output-only codec and zero input voices; no microphone, recording or new guest kernel driver. Actual extracted callback old/new regression passes; CoreAudio is present in the signed native help/import closure. Live Windows playback remains unqualified. QEMU36 tracks the specific output IOProc start/stop state instead of inferring callback startup from device-running state. Unknown/default-device and property/callback initialization failures retain their errors rather than returning success. Initialization/control status is bounded to16 numeric records, and up to8 counter summaries include zero callbacks and snapshot under the buffer lock before logging outside it. Exact-function start/control and initialization regressions pass. Actual App69 Windows driver/endpoint checks passed, but user hearing failed and playback remains unqualified pending App70. Candidate37 adds bounded actual-format readback and PCM peak/RMS/invalid/out-of-range/callback-layout statistics without altering copied samples or retaining audio. Actual App70 non-silent callbacks pass but user hearing still fails. Source signal probe passes ASAN/UBSAN; clean Windows sound remains unqualified. Candidate38 fills the actual callback byte capacity rather than capping it at an earlier frame setting. Actual old/new callback probe reproduces a silent tail/under-consumption (43) and passes the correction (0) with ASAN/UBSAN. Actual Windows hearing still requires qualification. QEMU39 is a preserved QEMU38 copy with only its Mach-O renderer dependency rebound to the isolated protocol2 library, then re-signed with the same virtualization entitlements. No QEMU source/command, disk, platform identity or security policy change. Loader closure and Windows comparison remain required. Distinct accelerated/capture executable copies rebind only their renderer load request to the signed R3 cache renderer and are re-signed with the same Hypervisor entitlement. Original source, machine contract and runtime executables are preserved. The verified original renderer helper path is retained. No guest driver reinstall or new graphics protocol.",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "obligations": "Preserve upstream authors, QEMU/component GPL notices, complete corresponding source, patches and build/signing/relink records. Public IPA source https://patchew.org/QEMU/20260424000544.9617-1-lucaaamaral%40gmail.com/. No production or distribution clearance.",
+      "privateBinarySHA256": "b3f6e87446c6967eb2efefd529f9b757de08b51caa6a225c5fb0831d15070955",
+      "patchSHA256": "289fa2d9f9d7b31e2b14157dde8426ab848ca6197774ff32b270e04b6016d4f2",
+      "incrementalPatchSHA256": "bb857d823a9c70e268c9e9719a7d936310a2040acd591a713b7f9e31632bf002",
+      "evaluatedRuntime29": {
+        "binarySHA256": "e25d87379dabf443eceb00e57dfb6669484adf915012d367ae0c126d487c5249",
+        "aggregateGPLPatchSHA256": "c118e07479620a5e369763a2494e94c0e92e1134dcb465bc188bb0948ac6d9fb",
+        "incrementalGPLPatchSHA256": "110491137212a5481af317fafb93f81b4a3a7237685a595e0e040f42e86c7b5e",
+        "liveGainQualified": false
+      },
+      "priorStablePrivateBinarySHA256": "8fa100d4e5692c844e696ec8edfa8f9b864b55f9758af3ad79a4423a92a67c9a",
+      "evaluatedTiming47": {
+        "binarySHA256": "955ece46add8be0d4354a3c8bee56c5a7e3027305c9812f1f283002c108f9047",
+        "aggregateGPLPatchSHA256": "3e1c70c77c25b84b5325dc221f18a9cedf26cb9370851b423de29218cc0c7f18",
+        "liveGainQualified": false
+      },
+      "evaluatedSharedFrame49": {
+        "binarySHA256": "913e45e889bbcd85f512beaaba764d79dc6c24012194564d73167dcb5cd3b012",
+        "aggregateGPLPatchSHA256": "35d2069947aa11bd6bf87650c3f40f3d51ba085d1f5b3aa118e4d5778ae2c90c",
+        "incrementalGPLPatchSHA256": "49b01beb3b2746c8ba7f562e2b90e1de620a4f421576cf5edfea6e1cc2a386c6",
+        "liveGainQualified": false
+      },
+      "evaluatedSharedFrame50": {
+        "binarySHA256": "3f4b3ecb3a9aadb9b6ff23a81b68054c5df67f9610b1ecc0d22996cae6d34084",
+        "aggregateGPLPatchSHA256": "970db573c54f08fdf2d9674c634818d5964eac794e28d35da8521328100fe4c4",
+        "incrementalGPLPatchSHA256": "bb857d823a9c70e268c9e9719a7d936310a2040acd591a713b7f9e31632bf002",
+        "liveGainQualified": false
+      },
+      "gpuTimingIncrementalPatchSHA256": "c10c0883f4a309b067e63c7e4167fc4f8817e8210bc0736c58ef0c8fba1e50a5",
+      "fencedUnmapPatchSHA256": "b11eb072237530460a0f7bd22dedf2100a8fde5f84d6751befea15516fb4aa3e",
+      "fencedUnmapUpstream": {
+        "author": "Akihiko Odaki",
+        "reviewer": "Marc-Andr\u00e9 Lureau",
+        "date": "2026-09-08",
+        "source": "https://patchew.org/QEMU/20260908-gpu-v3-0-25332a85f909@rsg.ci.i.u-tokyo.ac.jp/",
+        "patch": "v3 6/9"
+      },
+      "priorAudioAbsentBinarySHA256": "7df353a5611da0b2c757d7e1add9750ddaeae73ef57047c2efbe59a9dfcfbc0e",
+      "coreAudioPlaybackPatchSHA256": "c05dc5488a69dec5a197c10a078cbdd6cc0d7d6c4dfc1ade69fc6c646d6e773a",
+      "audioBuildRecipeSHA256": "bda5087b09f9a8ff6cc2851c434198640f227e0b209955ae599daa4ad0c4fefb",
+      "coreAudioSourceBeforeSHA256": "c110fc03d298dc71f3d5b846131b6046a92cefaa5f519c8e1870ee43d896b009",
+      "coreAudioSourceAfterSHA256": "e9ec7b43840ec7c42e555df71bb86203685e9d2edc3cebed218022dcafeae63a",
+      "priorStreamCandidateBinarySHA256": "def8507338df3f9b21e3a88b92e4f859790f9eefbbea6a1624fdbad3c3bd0978",
+      "coreAudioStreamStartPatchSHA256": "c6db633a3545625079cebc750b2301ec7e8eba2e811347c26702a6f245b5b781",
+      "priorSignalCandidateBinarySHA256": "f09e97fa1c21745db8d72114a0ad0b9ff7cfd66c16bda970a953d0c176de3472",
+      "coreAudioSignalStatsPatchSHA256": "7ee4e7e9d7bb13eb528a8c650865589dd4dfeccd7a7a954d0194a92d328e6676",
+      "coreAudioActualCapacityPatchSHA256": "23041280eb49d5419c4ba18931dc8eed2cd9591e2f522fb88a59b5f1b62b9e86",
+      "priorWorkingProtocol1": {
+        "version": "11.1.0-private-candidate38-20261015",
+        "binarySHA256": "0a00636fb5da2370cd57b69c2d8ea1df8d0c7c1c0878ab8b4c8420aa5d114656"
+      },
+      "priorWorkingProtocol2BinarySHA256": "bbf4c508130acf3fc25c128bd7ca65528280021cdbdf6c19f91324e64398922d",
+      "privateCaptureBinarySHA256": "3975e5d2199bafb5ee82b40e5d79507a0a4b7adbdee7b570f2b06be0e492ed0e",
+      "scanoutImportCacheRebindEvidence": ".lab/unified-graphics-20261018/runtimes.json"
+    },
+    {
+      "name": "Windows ARM64 Neptune v0.4 refresh trial candidate",
+      "version": "v0.4 / 100.6.101.58000 (2026-10-15)",
+      "sourceURL": "https://github.com/osy/kvm-guest-drivers-windows/releases/tag/v0.4",
+      "license": "NOASSERTION",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "modifications": "Unmodified eleven-file official ARM64X ZIP, publisher digest verified. Microsoft catalog and eight PE catalog bindings, timestamps and public CRL checks pass. Source comparison adds host EDID/DisplayID refresh timing and an exact high-resolution display timer. The16October live60Hz trial fails against the current host. Windows confirms the signed candidate SYS hash and restoration of both original unset recovery values; scoped rollback restores the native3456x2168 desktop. Static ARM64 inspection confirms guest wire2 while the host advertises1. Candidate remains private. Source admission now pairs it only with the isolated native-qualified host wire2/backend ABI1 candidate; Windows migration is pending and installed guest remains restored v0.3. No120Hz or FPS claim.",
+      "archiveSHA256": "512da8ef87eaf4f65282e2535bf1dc2b32b0b0f825508093532fbb1ab0b09116",
+      "kernelSourceCommit": "a3422e7bd946b5295ec646bc1e60fde1bc48ce53",
+      "catalogSHA256": "a2060c06f56d06431c71c1c3e4aac06401d70d0c86be76e76ef38727e7e243b0",
+      "obligations": "Not release-cleared. Bind exact UMD corresponding source and per-file licenses; preserve full source, notices, signing, revocation and rollback evidence. Signed upstream INF writes TDR/preemption overrides; retain and verify the prior settings around installation. No enforcement change is authorized by this candidate."
+    },
+    {
+      "name": "directx-native graphics backend contract",
+      "version": "7258be1c56cdbf1e55c56b1bc4a866169c8ca0da",
+      "sourceURL": "https://github.com/osy/directx-native/tree/7258be1c56cdbf1e55c56b1bc4a866169c8ca0da",
+      "license": "Apache-2.0",
+      "scope": "gpu-evaluation",
+      "redistributed": false,
+      "archiveSHA256": "da4517d5c31465a5ec03d4c679371da178ef010cb38655dac5e1d7e71d201630",
+      "modifications": "Unmodified pinned contract/event/shared-memory source. Header ABI1 shared by the isolated Neptune host and statically linked Metal backend; actual loader ABI1/capset2 and191 native D3D11 cases pass. Windows qualification remains pending.",
+      "obligations": "Preserve Apache-2.0 license/copyright and any upstream notices; retain complete source and archive/build inventory. Private evaluation only; distribution review remains open.",
+      "copyrightText": "Copyright 2026 Turing Software LLC"
+    },
+    {
+      "name": "Redistributed source patch: auth2-strict-timestamp.patch",
+      "version": "2026-10-18 snapshot (5f5036b56ab4)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/auth2-strict-timestamp.patch",
+      "patchSHA256": "5f5036b56ab412521de1d760d1e2d6e5e85de76d495410ffedb67b26c6ff57f1",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-completion-autorelease-pool.patch",
+      "version": "2026-10-18 snapshot (807e75cde651)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-completion-autorelease-pool.patch",
+      "patchSHA256": "807e75cde651005f615734d42e5dec43e96b5588d15de59e66788148fe2f5852",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-constant-interface-identifiers.patch",
+      "version": "2026-10-18 snapshot (6bac67898b6f)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later AND MIT AND Zlib",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-constant-interface-identifiers.patch",
+      "patchSHA256": "6bac67898b6f9f070dd1e8f11dc3c04ba56618237caae450762ca702ea2e8ddc",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-native-gpu-timing-evaluation.patch",
+      "version": "2026-10-18 snapshot (3d42daacc990)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later AND Apache-2.0",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-native-gpu-timing-evaluation.patch",
+      "patchSHA256": "3d42daacc990108851d58b76014a255631a927338ad4cfb4950c16ad7a2f625b",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-pipeline-task-autorelease-pool.patch",
+      "version": "2026-10-18 snapshot (561bd48fa65c)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-pipeline-task-autorelease-pool.patch",
+      "patchSHA256": "561bd48fa65caf96297b8f48dbde475d68b8d2cc3aa20b8783298a1abc1dd663",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: fenced-blob-unmap-suspension.patch",
+      "version": "2026-10-18 snapshot (b11eb0722375)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-only AND GPL-2.0-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/fenced-blob-unmap-suspension.patch",
+      "patchSHA256": "b11eb072237530460a0f7bd22dedf2100a8fde5f84d6751befea15516fb4aa3e",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: gpu-control-timing.patch",
+      "version": "2026-10-18 snapshot (c10c0883f4a3)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-only AND GPL-2.0-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/gpu-control-timing.patch",
+      "patchSHA256": "c10c0883f4a309b067e63c7e4167fc4f8817e8210bc0736c58ef0c8fba1e50a5",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: metal-damage-readback.patch",
+      "version": "2026-10-18 snapshot (57de1f04e6ee)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/metal-damage-readback.patch",
+      "patchSHA256": "57de1f04e6ee6637567860111608f55986aef052c20af5c13801e7d2850dbdf9",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: metal-readback-swizzle.patch",
+      "version": "2026-10-18 snapshot (110491137212)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/metal-readback-swizzle.patch",
+      "patchSHA256": "110491137212a5481af317fafb93f81b4a3a7237685a595e0e040f42e86c7b5e",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: neptune-metal-headless-qemu-11.1.patch",
+      "version": "2026-10-18 snapshot (f93331bd493e)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-only AND GPL-2.0-or-later AND BSD-2-Clause AND BSD-3-Clause AND LGPL-2.1-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/neptune-metal-headless-qemu-11.1.patch",
+      "patchSHA256": "f93331bd493e8afd4202a7e54fc215d225a9b0d500869b4df411a76d191321f3",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: neptune-native-loader-evaluation.patch",
+      "version": "2026-10-18 snapshot (017295920268)",
+      "sourceURL": "https://github.com/utmapp/libepoxy/tree/bf98587477fe68d07b93319ece7b40a7d0e2eabe",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/neptune-native-loader-evaluation.patch",
+      "patchSHA256": "0172959202682e2cc9cfc40eee81d7601ddcccf766f278d837c13680ed5a6d8b",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/libepoxy/tree/bf98587477fe68d07b93319ece7b40a7d0e2eabe",
+          "version": "bf98587477fe68d07b93319ece7b40a7d0e2eabe"
+        },
+        {
+          "url": "https://github.com/utmapp/virglrenderer/tree/451505ad0aa449290f2c0672da6877d57ee770e5",
+          "version": "451505ad0aa449290f2c0672da6877d57ee770e5"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: qemu-coreaudio-actual-capacity.patch",
+      "version": "2026-10-18 snapshot (23041280eb49)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/qemu-coreaudio-actual-capacity.patch",
+      "patchSHA256": "23041280eb49d5419c4ba18931dc8eed2cd9591e2f522fb88a59b5f1b62b9e86",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: qemu-coreaudio-format-topology.patch",
+      "version": "2026-10-18 snapshot (484ed935e1d8)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/qemu-coreaudio-format-topology.patch",
+      "patchSHA256": "484ed935e1d8ac4d2ba3dc3c980a7533a5ddc6b4ea1cca2326dcd938a2f2403f",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: qemu-coreaudio-nonmixing-admission.patch",
+      "version": "2026-10-18 snapshot (a642fe20a5bd)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/qemu-coreaudio-nonmixing-admission.patch",
+      "patchSHA256": "a642fe20a5bd42e124dd821534523687f493649ddb780a1cb3d0fddfae14136e",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: qemu-coreaudio-playback.patch",
+      "version": "2026-10-18 snapshot (c05dc5488a69)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/qemu-coreaudio-playback.patch",
+      "patchSHA256": "c05dc5488a69dec5a197c10a078cbdd6cc0d7d6c4dfc1ade69fc6c646d6e773a",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: qemu-coreaudio-realtime-lock.patch",
+      "version": "2026-10-18 snapshot (283f1481ec04)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/qemu-coreaudio-realtime-lock.patch",
+      "patchSHA256": "283f1481ec04d5c62558ad2a851b8450ab529ad17bff50f7ad1a23429ae8c39d",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: qemu-coreaudio-signal-stats.patch",
+      "version": "2026-10-18 snapshot (7ee4e7e9d7bb)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/qemu-coreaudio-signal-stats.patch",
+      "patchSHA256": "7ee4e7e9d7bb13eb528a8c650865589dd4dfeccd7a7a954d0194a92d328e6676",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: qemu-coreaudio-stream-start.patch",
+      "version": "2026-10-18 snapshot (c6db633a3545)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/qemu-coreaudio-stream-start.patch",
+      "patchSHA256": "c6db633a3545625079cebc750b2301ec7e8eba2e811347c26702a6f245b5b781",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: renderer-shm-scanout-cache.patch",
+      "version": "2026-10-18 snapshot (3fe01ac3feae)",
+      "sourceURL": "https://github.com/utmapp/virglrenderer/tree/451505ad0aa449290f2c0672da6877d57ee770e5",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/renderer-shm-scanout-cache.patch",
+      "patchSHA256": "3fe01ac3feae100ea7070356d838d58b460540ca474d38cd5de2cb0da82e7327",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/virglrenderer/tree/451505ad0aa449290f2c0672da6877d57ee770e5",
+          "version": "451505ad0aa449290f2c0672da6877d57ee770e5"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: shared-host-frame-display.patch",
+      "version": "2026-10-18 snapshot (bb857d823a9c)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-or-later AND MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/shared-host-frame-display.patch",
+      "patchSHA256": "bb857d823a9c70e268c9e9719a7d936310a2040acd591a713b7f9e31632bf002",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: vnc-active-refresh-16ms.patch",
+      "version": "2026-10-18 snapshot (57f998d98167)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/vnc-active-refresh-16ms.patch",
+      "patchSHA256": "57f998d98167ac13ee06b6375ec49d9d39ebce7fd44c0d3738f19430c2579615",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    }
+  ]
+}

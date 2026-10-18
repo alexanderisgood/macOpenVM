@@ -1,0 +1,139 @@
+dxmt — retained source copyright and license notices
+These are exact leading notices from the retained source copies identified below.
+The retained files can contain downstream modifications; no pristine-tree or binary reproducibility claim is made.
+
+========================================================================
+Target: meson.build
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 0e9a6f95ee75b6f10d5b8f8d984567a50f32d5c3618e164eccc7f17460defba8
+License basis: Upstream project license
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: meson.options
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 2bfe36dfc2e96d065497e44b5ba4a1926ac7387bcf25cdcc24e2bd25a0f207a2
+License basis: Upstream project license
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: src/d3d11/d3d11_pipeline_cache.cpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 265e3b7155d8281387ca90d486d92e0b8482ba61111c64794d68b8916cf947e4
+License basis: Upstream project license
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: src/dxmt/GpuTimings.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 3d5f117c2769070d05447606b011194b331134329e5535ba52133e4f13b6de60
+License basis: Explicit SPDX notice in independently added helper source; does not relicense modified DXMT sources
+
+// SPDX-License-Identifier: Apache-2.0
+// Numeric completion records only; no Metal resource, label, guest data or I/O.
+
+========================================================================
+Target: src/dxmt/NativeTiming.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 9a3cd42a7c3bbd7e1e4d33ae88ea74e996aa81fba6e01e00118b1b738ac3d2f2
+License basis: Explicit SPDX notice in independently added helper source; does not relicense modified DXMT sources
+
+// SPDX-License-Identifier: Apache-2.0
+// Local native experiment only. Default-off dependency hook; no trace capture.
+
+========================================================================
+Target: src/dxmt/Report.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 795fc898f57346184a9a56cc7ad6e7084e1ce3a6f3baf1b7f66802aa71deba47
+License basis: Explicit SPDX notice in independently added helper source; does not relicense modified DXMT sources
+
+// SPDX-License-Identifier: Apache-2.0
+// Closed numeric JSON, bounded storage. Never accepts names, labels or pixels.
+
+========================================================================
+Target: src/dxmt/dxmt_command_queue.cpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 0db09d21288e154a1d22fc3962965fd72b09925d71d513489db7f263fb476956
+License basis: Upstream project license
+
+/*
+ * Copyright 2026 Feifan He for CodeWeavers
+ * Copyright 2026 Marc-Aurel Zent for CodeWeavers
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+ */
+
+
+========================================================================
+Target: src/dxmt/dxmt_command_queue.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 965ab33d83903a6f3f7d04baa55615c861c6de899fcdd03d41e2cbfa7006378d
+License basis: Upstream project license
+
+/*
+ * Copyright 2026 Feifan He for CodeWeavers
+ * Copyright 2026 Marc-Aurel Zent for CodeWeavers
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+ */
+
+
+========================================================================
+Target: src/util/com/com_guid.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 1bb5ff0724e75d38eb1f623b7788e63eeed49b2d2ba5767db05ee8b8d19c12c0
+License basis: Current DXMT LICENSE plus file attribution to DXVK zlib and Alexander Bessonov MIT parser; complete retained DXVK notice copied
+
+/*
+ * This file is part of DXMT, Copyright (c) 2023 Feifan He
+ *
+ * Derived from a part of DXVK (originally under zlib License),
+ * Copyright (c) 2017 Philip Rebohle
+ * Copyright (c) 2019 Joshua Ashton
+ *
+ * See <https://github.com/doitsujin/dxvk/blob/master/LICENSE>
+ */
+
+
+//-------------------------------------------------------------------------------------------------------
+// constexpr GUID parsing
+// Original version is written by Alexander Bessonov
+// \see https://gist.github.com/AlexBAV/b58e92d7632bae5d6f5947be455f796f
+// Licensed under the MIT license.
+//-------------------------------------------------------------------------------------------------------
+
+
+========================================================================
+Target: src/winemetal/Metal.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 4f273fc3e18bfd75f7de60833d74361bdb40615d1c0dbd470d33878946359233
+License basis: Upstream project license
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]

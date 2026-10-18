@@ -1,0 +1,519 @@
+{
+  "application": {
+    "backend": "production RFBClient and RfbGuestView with generated private Unix fixture",
+    "backendVersion": null,
+    "configuration": {
+      "actualAppExit": 0,
+      "actualClientEOF": true,
+      "appSHA256": "3a986b5ea365a542c6db952a321624788ac70c1c6dc63b06b9e44cd58af1224f",
+      "build": "release",
+      "buildRecordSHA256": "e175989eb3655280d7dd536b61eda8c0da7c6fef8c04343d688fb03636339e0c",
+      "coalescedFrames": 0,
+      "drawn": [
+        {
+          "drawMS": 30.337916,
+          "marker": 1,
+          "publishToDrawMS": 0.9627079999999992,
+          "sequence": 1
+        },
+        {
+          "drawMS": 136.632625,
+          "marker": 2,
+          "publishToDrawMS": 0.524124999999998,
+          "sequence": 2
+        },
+        {
+          "drawMS": 243.74025,
+          "marker": 3,
+          "publishToDrawMS": 0.44670899999999847,
+          "sequence": 3
+        },
+        {
+          "drawMS": 350.16225,
+          "marker": 4,
+          "publishToDrawMS": 1.300374999999974,
+          "sequence": 4
+        },
+        {
+          "drawMS": 454.380375,
+          "marker": 5,
+          "publishToDrawMS": 0.47766699999999673,
+          "sequence": 5
+        },
+        {
+          "drawMS": 559.179291,
+          "marker": 6,
+          "publishToDrawMS": 0.3772910000000138,
+          "sequence": 6
+        },
+        {
+          "drawMS": 675.175291,
+          "marker": 7,
+          "publishToDrawMS": 0.8524999999999636,
+          "sequence": 7
+        },
+        {
+          "drawMS": 783.498541,
+          "marker": 8,
+          "publishToDrawMS": 0.6490410000000111,
+          "sequence": 8
+        },
+        {
+          "drawMS": 894.451041,
+          "marker": 9,
+          "publishToDrawMS": 0.4166660000000775,
+          "sequence": 9
+        },
+        {
+          "drawMS": 1008.523041,
+          "marker": 10,
+          "publishToDrawMS": 1.1289580000000115,
+          "sequence": 10
+        },
+        {
+          "drawMS": 1120.810291,
+          "marker": 11,
+          "publishToDrawMS": 0.49337500000001455,
+          "sequence": 11
+        },
+        {
+          "drawMS": 1234.693958,
+          "marker": 12,
+          "publishToDrawMS": 0.42058300000007875,
+          "sequence": 12
+        },
+        {
+          "drawMS": 1372.957791,
+          "marker": 13,
+          "publishToDrawMS": 0.40479100000015933,
+          "sequence": 13
+        },
+        {
+          "drawMS": 1513.5145830000001,
+          "marker": 14,
+          "publishToDrawMS": 0.4102080000002388,
+          "sequence": 14
+        },
+        {
+          "drawMS": 1667.538666,
+          "marker": 15,
+          "publishToDrawMS": 0.4808330000000751,
+          "sequence": 15
+        },
+        {
+          "drawMS": 1805.598458,
+          "marker": 16,
+          "publishToDrawMS": 0.4016670000000886,
+          "sequence": 16
+        },
+        {
+          "drawMS": 1943.79375,
+          "marker": 17,
+          "publishToDrawMS": 0.4021250000000691,
+          "sequence": 17
+        },
+        {
+          "drawMS": 2083.793458,
+          "marker": 18,
+          "publishToDrawMS": 0.4137500000001637,
+          "sequence": 18
+        }
+      ],
+      "fixture": "original uniform public BGRX, six full frames per geometry, Raw/DesktopSize",
+      "nativeResultSHA256": "1e8837bd1869b4b29b85090c4b74788706fed112047db537984189207ef5835e",
+      "noGuestStarted": true,
+      "received": [
+        {
+          "allPixelsMatched": true,
+          "height": 600,
+          "marker": 1,
+          "publishMS": 29.375208,
+          "receiveMS": 28.921041,
+          "requestMS": 26.303583,
+          "sequence": 1,
+          "width": 800
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 600,
+          "marker": 2,
+          "publishMS": 136.1085,
+          "receiveMS": 135.721625,
+          "requestMS": 29.443208,
+          "sequence": 2,
+          "width": 800
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 600,
+          "marker": 3,
+          "publishMS": 243.293541,
+          "receiveMS": 242.840083,
+          "requestMS": 136.168041,
+          "sequence": 3,
+          "width": 800
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 600,
+          "marker": 4,
+          "publishMS": 348.861875,
+          "receiveMS": 348.398541,
+          "requestMS": 243.345083,
+          "sequence": 4,
+          "width": 800
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 600,
+          "marker": 5,
+          "publishMS": 453.902708,
+          "receiveMS": 453.507541,
+          "requestMS": 348.911208,
+          "sequence": 5,
+          "width": 800
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 600,
+          "marker": 6,
+          "publishMS": 558.802,
+          "receiveMS": 558.40675,
+          "requestMS": 453.956708,
+          "sequence": 6,
+          "width": 800
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 1080,
+          "marker": 7,
+          "publishMS": 674.322791,
+          "receiveMS": 672.332166,
+          "requestMS": 558.847458,
+          "sequence": 7,
+          "width": 1920
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 1080,
+          "marker": 8,
+          "publishMS": 782.8495,
+          "receiveMS": 781.333708,
+          "requestMS": 674.3745,
+          "sequence": 8,
+          "width": 1920
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 1080,
+          "marker": 9,
+          "publishMS": 894.034375,
+          "receiveMS": 892.45,
+          "requestMS": 782.899583,
+          "sequence": 9,
+          "width": 1920
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 1080,
+          "marker": 10,
+          "publishMS": 1007.394083,
+          "receiveMS": 1005.763416,
+          "requestMS": 894.086458,
+          "sequence": 10,
+          "width": 1920
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 1080,
+          "marker": 11,
+          "publishMS": 1120.316916,
+          "receiveMS": 1118.355291,
+          "requestMS": 1007.447375,
+          "sequence": 11,
+          "width": 1920
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 1080,
+          "marker": 12,
+          "publishMS": 1234.273375,
+          "receiveMS": 1232.444833,
+          "requestMS": 1120.381583,
+          "sequence": 12,
+          "width": 1920
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 2160,
+          "marker": 13,
+          "publishMS": 1372.5529999999999,
+          "receiveMS": 1364.713666,
+          "requestMS": 1234.321125,
+          "sequence": 13,
+          "width": 3840
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 2160,
+          "marker": 14,
+          "publishMS": 1513.104375,
+          "receiveMS": 1503.934708,
+          "requestMS": 1372.605666,
+          "sequence": 14,
+          "width": 3840
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 2160,
+          "marker": 15,
+          "publishMS": 1667.0578329999998,
+          "receiveMS": 1659.666291,
+          "requestMS": 1513.15275,
+          "sequence": 15,
+          "width": 3840
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 2160,
+          "marker": 16,
+          "publishMS": 1805.1967909999998,
+          "receiveMS": 1798.7995409999999,
+          "requestMS": 1667.1190000000001,
+          "sequence": 16,
+          "width": 3840
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 2160,
+          "marker": 17,
+          "publishMS": 1943.391625,
+          "receiveMS": 1937.0709160000001,
+          "requestMS": 1805.244416,
+          "sequence": 17,
+          "width": 3840
+        },
+        {
+          "allPixelsMatched": true,
+          "height": 2160,
+          "marker": 18,
+          "publishMS": 2083.379708,
+          "receiveMS": 2076.36325,
+          "requestMS": 1943.441125,
+          "sequence": 18,
+          "width": 3840
+        }
+      ],
+      "responseMinimumPauseMS": 100
+    },
+    "entitlements": [
+      "com.apple.security.virtualization"
+    ],
+    "revision": null,
+    "sourceSHA256": "6684f8ad2eeb3dde50ecc5e1c08ca4dbb1aa41f0287f4a87caef64c83387112d",
+    "version": "0.1.0-dev"
+  },
+  "guest": {
+    "agentVersion": null,
+    "architecture": null,
+    "build": null,
+    "disk": null,
+    "driverVersions": null,
+    "edition": null,
+    "network": null,
+    "os": null,
+    "patchLevel": null,
+    "ramBytes": null,
+    "vCPU": null
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "displays": [
+      {
+        "backingScale": 2,
+        "finalFittedRectPoints": [
+          0,
+          52.875,
+          900,
+          506.25
+        ],
+        "physicalScanoutVerified": false,
+        "viewportPoints": [
+          0,
+          0,
+          900,
+          612
+        ]
+      }
+    ],
+    "efficiencyCores": null,
+    "gpuCores": null,
+    "macOSBuild": "26A428",
+    "macOSVersion": "27.0",
+    "model": "Mac17,8",
+    "performanceCores": null,
+    "powerMode": null,
+    "ramBytes": 51539607552,
+    "storageFreeBytes": 3696529408,
+    "storageModel": null,
+    "thermalState": null
+  },
+  "limitations": [
+    "Six sequential frames per geometry from one connection, not six independent trials.",
+    "Fixture waits at least100ms after each send; request latency includes pacing and cannot establish saturated throughput.",
+    "AppKit draw callback is submission evidence, not physical scanout, compositor completion, refresh or input latency.",
+    "Generated frame sizes do not prove Windows mode application, Retina, graphics acceleration or guest performance.",
+    "Release ad-hoc development build; no signed/notarized release or parity claim."
+  ],
+  "method": {
+    "backgroundWorkload": "Interactive development host; not quiesced",
+    "cache": "uncontrolled",
+    "confidenceInterval": null,
+    "outlierPolicy": "retain all frames; no exclusions",
+    "trialCount": 6
+  },
+  "metrics": [
+    {
+      "definition": "App-local monotonic nextFrame request to returned full frame; includes paced fixture, Unix transport and decoding",
+      "name": "request_to_receive_800x600",
+      "samples": [
+        2.617457999999999,
+        106.27841699999999,
+        106.672042,
+        105.05345800000003,
+        104.59633300000002,
+        104.450042
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Untimed qualification overhead between receipt and publication, including utility validation and scheduling",
+      "name": "validation_800x600",
+      "samples": [
+        0.45416700000000176,
+        0.3868750000000034,
+        0.4534580000000119,
+        0.4633339999999748,
+        0.3951670000000149,
+        0.39525000000003274
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Validated frame publication to first natural existing RfbGuestView draw callback; no scanout or compositor completion",
+      "name": "publication_to_sdk_draw_800x600",
+      "samples": [
+        0.9627079999999992,
+        0.524124999999998,
+        0.44670899999999847,
+        1.300374999999974,
+        0.47766699999999673,
+        0.3772910000000138
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "App-local monotonic nextFrame request to returned full frame; includes paced fixture, Unix transport and decoding",
+      "name": "request_to_receive_1920x1080",
+      "samples": [
+        113.48470800000007,
+        106.95920799999999,
+        109.55041700000004,
+        111.67695800000001,
+        110.90791600000011,
+        112.06324999999993
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Untimed qualification overhead between receipt and publication, including utility validation and scheduling",
+      "name": "validation_1920x1080",
+      "samples": [
+        1.9906250000000227,
+        1.5157920000000331,
+        1.584374999999909,
+        1.6306670000000167,
+        1.9616249999999127,
+        1.8285419999999704
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Validated frame publication to first natural existing RfbGuestView draw callback; no scanout or compositor completion",
+      "name": "publication_to_sdk_draw_1920x1080",
+      "samples": [
+        0.8524999999999636,
+        0.6490410000000111,
+        0.4166660000000775,
+        1.1289580000000115,
+        0.49337500000001455,
+        0.42058300000007875
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "App-local monotonic nextFrame request to returned full frame; includes paced fixture, Unix transport and decoding",
+      "name": "request_to_receive_3840x2160",
+      "samples": [
+        130.39254100000016,
+        131.32904200000007,
+        146.51354100000003,
+        131.68054099999972,
+        131.82650000000012,
+        132.92212499999982
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Untimed qualification overhead between receipt and publication, including utility validation and scheduling",
+      "name": "validation_3840x2160",
+      "samples": [
+        7.839333999999781,
+        9.16966699999989,
+        7.391541999999845,
+        6.3972499999999854,
+        6.320708999999852,
+        7.016458000000057
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Validated frame publication to first natural existing RfbGuestView draw callback; no scanout or compositor completion",
+      "name": "publication_to_sdk_draw_3840x2160",
+      "samples": [
+        0.40479100000015933,
+        0.4102080000002388,
+        0.4808330000000751,
+        0.4016670000000886,
+        0.4021250000000691,
+        0.4137500000001637
+      ],
+      "unit": "ms"
+    }
+  ],
+  "recordedAt": "2026-10-11T15:45:13.198894+00:00",
+  "schemaVersion": 1,
+  "status": "measured",
+  "unknownReasons": {
+    "application.backendVersion": "Not collected or no confidence interval/version claim in this qualification",
+    "application.revision": "Not collected or no confidence interval/version claim in this qualification",
+    "guest.agentVersion": "No guest exists in this generated fixture",
+    "guest.architecture": "No guest exists in this generated fixture",
+    "guest.build": "No guest exists in this generated fixture",
+    "guest.disk": "No guest exists in this generated fixture",
+    "guest.driverVersions": "No guest exists in this generated fixture",
+    "guest.edition": "No guest exists in this generated fixture",
+    "guest.network": "No guest exists in this generated fixture",
+    "guest.os": "No guest exists in this generated fixture",
+    "guest.patchLevel": "No guest exists in this generated fixture",
+    "guest.ramBytes": "No guest exists in this generated fixture",
+    "guest.vCPU": "No guest exists in this generated fixture",
+    "host.efficiencyCores": "Not collected or no confidence interval/version claim in this qualification",
+    "host.gpuCores": "Not collected or no confidence interval/version claim in this qualification",
+    "host.performanceCores": "Not collected or no confidence interval/version claim in this qualification",
+    "host.powerMode": "Not collected or no confidence interval/version claim in this qualification",
+    "host.storageModel": "Not collected or no confidence interval/version claim in this qualification",
+    "host.thermalState": "Not collected or no confidence interval/version claim in this qualification",
+    "method.confidenceInterval": "Not collected or no confidence interval/version claim in this qualification"
+  }
+}

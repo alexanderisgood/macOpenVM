@@ -1,0 +1,187 @@
+--- a/include/hw/virtio/virtio-gpu.h
++++ b/include/hw/virtio/virtio-gpu.h
+@@ -147,6 +147,11 @@
+     struct virtio_gpu_ctrl_hdr cmd_hdr;
+     uint32_t error;
+     bool finished;
++#ifdef __APPLE__
++    int64_t mvo_started_us;
++    uint64_t mvo_timing_sequence;
++    bool mvo_pending_noted;
++#endif
+     QTAILQ_ENTRY(virtio_gpu_ctrl_command) next;
+ };
+ 
+@@ -216,6 +221,13 @@
+     bool processing_cmdq;
+ 
+     uint32_t inflight;
++#ifdef __APPLE__
++    unsigned mvo_timing_records;
++    uint64_t mvo_timing_sequence;
++    int64_t mvo_last_command_us;
++    int64_t mvo_last_reply_us;
++    int64_t mvo_last_reply_wait_us;
++#endif
+     struct {
+         uint32_t max_inflight;
+         uint32_t requests;
+--- a/hw/display/virtio-gpu.c
++++ b/hw/display/virtio-gpu.c
+@@ -157,6 +157,10 @@
+     return res;
+ }
+ 
++#ifdef __APPLE__
++#include "mvo-gpu-timing.h"
++#endif
++
+ void virtio_gpu_ctrl_response(VirtIOGPU *g,
+                               struct virtio_gpu_ctrl_command *cmd,
+                               struct virtio_gpu_ctrl_hdr *resp,
+@@ -178,6 +182,9 @@
+     }
+     virtqueue_push(cmd->vq, &cmd->elem, s);
+     virtio_notify(VIRTIO_DEVICE(g), cmd->vq);
++#ifdef __APPLE__
++    mvo_gpu_timing_replied(g, cmd);
++#endif
+     cmd->finished = true;
+ }
+ 
+@@ -1203,6 +1210,9 @@
+         cmd->vq = vq;
+         cmd->error = 0;
+         cmd->finished = false;
++#ifdef __APPLE__
++        mvo_gpu_timing_initialize(cmd);
++#endif
+         QTAILQ_INSERT_TAIL(&g->cmdq, cmd, next);
+         cmd = virtqueue_pop(vq, sizeof(struct virtio_gpu_ctrl_command));
+     }
+--- a/hw/display/virtio-gpu-virgl.c
++++ b/hw/display/virtio-gpu-virgl.c
+@@ -1110,6 +1110,10 @@
+ }
+ #endif
+ 
++#ifdef __APPLE__
++#include "mvo-gpu-timing.h"
++#endif
++
+ void virtio_gpu_virgl_process_cmd(VirtIOGPU *g,
+                                       struct virtio_gpu_ctrl_command *cmd)
+ {
+@@ -1118,12 +1122,7 @@
+ 
+     VIRTIO_GPU_FILL_CMD(cmd->cmd_hdr);
+ #ifdef __APPLE__
+-    /* Bounded protocol metadata only: never command payload or pixels. */
+-    static unsigned mvo_command_observations;
+-    if (mvo_command_observations++ < 128) {
+-        error_report("macOpenVM GPU command: type=0x%x ctx=%u",
+-                     cmd->cmd_hdr.type, cmd->cmd_hdr.ctx_id);
+-    }
++    mvo_gpu_timing_started(g, cmd);
+ #endif
+ 
+     virgl_renderer_force_ctx_0();
+@@ -1484,6 +1483,9 @@
+ 
+     virgl_renderer_poll();
+     virtio_gpu_process_cmdq(g);
++#ifdef __APPLE__
++    mvo_gpu_timing_pending(g);
++#endif
+     if (!QTAILQ_EMPTY(&g->cmdq) || !QTAILQ_EMPTY(&g->fenceq)) {
+         timer_mod(gl->fence_poll, qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL) + 10);
+     }
+--- /dev/null
++++ b/hw/display/mvo-gpu-timing.h
+@@ -0,0 +1,86 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later
++ * Original macOpenVM bounded numeric diagnostics. BQL-owned call sites only.
++ * No payload, pixels, resources, pointers or guest text are logged.
++ */
++#ifndef MVO_GPU_TIMING_H
++#define MVO_GPU_TIMING_H
++#include "qemu/error-report.h"
++
++/* virtqueue_pop uses g_malloc, not zero-initialized storage. Initialize only
++ * original diagnostic fields before the command enters either queue. */
++static inline void mvo_gpu_timing_initialize(struct virtio_gpu_ctrl_command *cmd)
++{
++    cmd->mvo_started_us = 0;
++    cmd->mvo_timing_sequence = 0;
++    cmd->mvo_pending_noted = false;
++}
++
++static inline void mvo_gpu_timing_note(VirtIOGPU *g,
++                                      struct virtio_gpu_ctrl_command *cmd,
++                                      const char *event, int64_t span_us,
++                                      int64_t now)
++{
++    if (g->mvo_timing_records >= 256) {
++        return;
++    }
++    g->mvo_timing_records++;
++    error_report("macOpenVM GPU timing: event=%s seq=%" PRIu64
++                 " type=0x%x ctx=%u flags=0x%x ring=%u fence=%" PRIu64
++                 " span_us=%" PRId64 " reply_age_us=%" PRId64
++                 " reply_wait_us=%" PRId64 " inflight=%u blocked=%d",
++                 event, cmd->mvo_timing_sequence, cmd->cmd_hdr.type,
++                 cmd->cmd_hdr.ctx_id, cmd->cmd_hdr.flags,
++                 cmd->cmd_hdr.flags & VIRTIO_GPU_FLAG_INFO_RING_IDX
++                    ? cmd->cmd_hdr.ring_idx : UINT32_MAX,
++                 cmd->cmd_hdr.fence_id, span_us,
++                 g->mvo_last_reply_us ? now - g->mvo_last_reply_us : -1,
++                 g->mvo_last_reply_wait_us, g->inflight,
++                 g->parent_obj.renderer_blocked);
++    if (g->mvo_timing_records == 256) {
++        error_report("macOpenVM GPU timing: 256-record budget exhausted");
++    }
++}
++
++static inline void mvo_gpu_timing_started(VirtIOGPU *g,
++                                          struct virtio_gpu_ctrl_command *cmd)
++{
++    if (!virtio_gpu_neptune_enabled(g->parent_obj.conf) || cmd->mvo_started_us) {
++        return;
++    }
++    int64_t now = g_get_monotonic_time();
++    cmd->mvo_started_us = now;
++    cmd->mvo_timing_sequence = ++g->mvo_timing_sequence;
++    if (g->mvo_last_command_us && now - g->mvo_last_command_us >= 100000) {
++        mvo_gpu_timing_note(g, cmd, "command-gap", now - g->mvo_last_command_us, now);
++    }
++    g->mvo_last_command_us = now;
++}
++
++static inline void mvo_gpu_timing_replied(VirtIOGPU *g,
++                                          struct virtio_gpu_ctrl_command *cmd)
++{
++    if (!cmd->mvo_started_us) {
++        return;
++    }
++    int64_t now = g_get_monotonic_time();
++    int64_t elapsed = now - cmd->mvo_started_us;
++    if (elapsed >= 50000) {
++        mvo_gpu_timing_note(g, cmd, "reply", elapsed, now);
++    }
++    g->mvo_last_reply_us = now;
++    g->mvo_last_reply_wait_us = elapsed;
++}
++
++static inline void mvo_gpu_timing_pending(VirtIOGPU *g)
++{
++    struct virtio_gpu_ctrl_command *cmd = QTAILQ_FIRST(&g->fenceq);
++    if (!cmd || !cmd->mvo_started_us || cmd->mvo_pending_noted) {
++        return;
++    }
++    int64_t now = g_get_monotonic_time();
++    if (now - cmd->mvo_started_us >= 250000) {
++        cmd->mvo_pending_noted = true;
++        mvo_gpu_timing_note(g, cmd, "pending", now - cmd->mvo_started_us, now);
++    }
++}
++#endif

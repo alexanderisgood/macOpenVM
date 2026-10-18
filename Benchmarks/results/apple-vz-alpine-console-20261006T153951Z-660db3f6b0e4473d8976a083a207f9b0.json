@@ -1,0 +1,131 @@
+{
+  "application": {
+    "backend": "AppleVz",
+    "backendVersion": "26A428",
+    "configuration": {
+      "boot": "linuxKernel",
+      "build": "release",
+      "buildRecordSHA256": "b0d37a6e8a7d85bccfd0c2d087ebddd166eb9911d55c4b687bdbe30f44517186",
+      "cpuCount": 2,
+      "diskBytes": 2147483648,
+      "durability": "VZ full synchronization; sparse raw",
+      "graphics": "headless serial",
+      "harnessSHA256": "2f1367f35defd83477a34192773ba2ecde923b1dbeece3711ec5934bb5860ab6",
+      "mediaSHA256": {
+        "initialRamdisk": "5b9de8ff7b4f3055f6cf940e1ff869790415cf81b7ea1e399ee60448bc1a2c4d",
+        "installationMedia": "a57ba668b5f6b17a670fcf8e799d5d7fe43766ed086d6ce2927b0625bf43dbf6",
+        "kernel": "e698a107e4d04117db1a7b0daee99bdae5f0647fba2af50f3cd020a666950ab9"
+      },
+      "memoryBytes": 2147483648,
+      "runnerSHA256": "c4da28425d6deb27a48f09ac1936b6c6015aac555766f35d23bbcefa4cbd02a2",
+      "sourceScope": "Production Swift, Package.swift, build/signing recipe, entitlement, licenses and dependency inventory",
+      "toolchain": {
+        "hostArchitecture": "arm64",
+        "sdk": "27.0",
+        "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0"
+      }
+    },
+    "entitlements": [
+      "com.apple.security.virtualization"
+    ],
+    "revision": null,
+    "sourceSHA256": "3e86a4519fb95d300a265566dd9910aefc331f7aa63ed159baf378c84dde9a57",
+    "version": "0.1.0"
+  },
+  "guest": {
+    "agentVersion": null,
+    "architecture": "aarch64",
+    "build": "6.18.52-0-virt",
+    "disk": {
+      "format": "raw",
+      "liveRoot": "RAM; not installed",
+      "virtualBytes": 2147483648
+    },
+    "driverVersions": null,
+    "edition": "virt live media 3.24.2",
+    "network": "disconnected; no guest NIC",
+    "os": "Alpine Linux",
+    "patchLevel": "Pinned official fixture; no online patches",
+    "ramBytes": 2147483648,
+    "vCPU": 2
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "displays": [
+      {
+        "availableHeightPoints": 1003,
+        "availableWidthPoints": 1728,
+        "backingScale": 2,
+        "heightPoints": 1117,
+        "widthPoints": 1728
+      }
+    ],
+    "efficiencyCores": null,
+    "gpuCores": null,
+    "macOSBuild": "26A428",
+    "macOSVersion": "Version 27.0 (Build 26A428)",
+    "model": "Mac17,8",
+    "performanceCores": 12,
+    "powerMode": null,
+    "ramBytes": 51539607552,
+    "storageFreeBytes": 63727456256,
+    "storageModel": null,
+    "thermalState": null
+  },
+  "limitations": [
+    "Named-host feasibility only; not a release or parity benchmark.",
+    "Live RAM-root guest; no GUI, installed disk, agent or network workload. Cache and host load uncontrolled.",
+    "Raw transcripts remain private in ignored .lab. Local build provenance is not a signed attestation.",
+    "Current source scope/profile differ from the historical debug report; no regression comparison."
+  ],
+  "method": {
+    "backgroundWorkload": "Interactive development host; not quiesced",
+    "cache": "uncontrolled",
+    "confidenceInterval": null,
+    "outlierPolicy": "retain all; no exclusions",
+    "trialCount": 2
+  },
+  "metrics": [
+    {
+      "definition": "AppleVz monotonic machine.start invocation to completion; Core prelaunch history IO excluded; not guest readiness",
+      "name": "framework_start",
+      "samples": [
+        75.384084,
+        82.528292
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Monotonic CLI spawn to received guest login prompt; no authenticated agent",
+      "name": "process_to_console_login",
+      "samples": [
+        3377.9513750923797,
+        3391.339624999091
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Serial poweroff to CLI exit after observed guest stop; includes polling",
+      "name": "guest_poweroff_to_process_exit",
+      "samples": [
+        2873.2597079360858,
+        2877.823750022799
+      ],
+      "unit": "ms"
+    }
+  ],
+  "recordedAt": "2026-10-06T15:40:04.547636+00:00",
+  "schemaVersion": 1,
+  "status": "measured",
+  "unknownReasons": {
+    "application.revision": "Workspace has no Git repository or commit",
+    "guest.agentVersion": "No guest agent installed",
+    "guest.driverVersions": "Individual driver builds not inventoried",
+    "host.efficiencyCores": "Not collected or unavailable through this host probe",
+    "host.gpuCores": "Not collected or unavailable through this host probe",
+    "host.powerMode": "Not collected or unavailable through this host probe",
+    "host.storageModel": "Not collected or unavailable through this host probe",
+    "host.thermalState": "Not collected or unavailable through this host probe",
+    "method.confidenceInterval": "Uncontrolled feasibility trials; no statistical claim"
+  }
+}

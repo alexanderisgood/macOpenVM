@@ -1,0 +1,850 @@
+{
+  "application": {
+    "backend": "native DXMT/Metal/IOSurface component",
+    "backendVersion": "reviewed DXMT native library",
+    "configuration": {
+      "actualProducerExits": [
+        0,
+        0
+      ],
+      "build": {
+        "actualBuildExits": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "binaries": {
+          "Checked": {
+            "bytes": 96008,
+            "sha256": "5020ba5b68e195539f9daf77eddd3e10940ab08f828e3979cb5e4a7aa0558033"
+          },
+          "Release": {
+            "bytes": 56312,
+            "sha256": "41dcbf728e78bac80ab0f922628b5b00f9e7a8ab041e99d6e9d081b6493b409a"
+          }
+        },
+        "headersSHA256": "7334cb857dfba447796e6896d287a6e4abb398fc6bc86dd474fd54cb2903c1ab",
+        "inputs": {
+          "Benchmarks/MetalSurface/DxmtSource.cpp": "ea9c14609b6bd1885de91d8943ad71aa7fbba66561b530cb96db0f8773c862c3",
+          "Benchmarks/MetalSurface/DxmtSource.h": "5ce31ad302a51c89be5bd2872889f5b3aa2be8d918f7745472c58e8cfe90c9c7",
+          "Benchmarks/MetalSurface/Fixture.h": "229c4094f9d365c6a99aa946a01149bd36d572de8a09edd4f10c03fcadbb07b1",
+          "Benchmarks/MetalSurface/ProducerOrdering.m": "e519cd36a41897b1475ec9394a0707534d0fd359be7df3a32cd4ba13dfc3bbeb",
+          "Benchmarks/dxmt_surface.py": "d08b09f8bc60455581126d0120bc15e0a4358d8d7c0fdae6c1b4f21bb22fc4dc",
+          "Benchmarks/metal_surface.py": "8a26c5f1e706d0754d085cf8336ecd28396bd851954e16ec3ccd64e331fc7d2c",
+          "Benchmarks/result.schema.json": "1ae4c80d5c55b8bd8d07c0b3cf75a0073accbe98a3ade773205a49e6171e13f3",
+          "Benchmarks/validate_result.py": "e2cbc035c9d6747df061dd14566014cbadddbf3adf58ea14db16eb0d1fb73940",
+          "scripts/build_manifest.py": "522564b7673d4b089df0768a0836f373c2143a2a6ae7373ff5ca808b45b63259"
+        },
+        "librarySHA256": "c6ec27b5ec818e8d13e5a3f09419f524c6990f500af7c4e1e870b966302f6b80",
+        "scope": "native-DXMT-shared-source-ordering-component-build",
+        "toolchain": {
+          "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+          "sdk": "27.0",
+          "target": "arm64-apple-macos14"
+        }
+      },
+      "checkedCorrectnessPassed": true,
+      "release": {
+        "cases": [
+          {
+            "allPixelsCorrectAfterSourceOverwrite": true,
+            "dxgiFormat": 87,
+            "height": 2168,
+            "samples": [
+              {
+                "consumerDrawAndWaitMS": 1.246999740600586,
+                "exportSubmitAndWaitMS": 0.9079999923706055,
+                "producerFenceWaitMS": 1.064000129699707,
+                "sourceOverwriteFenceWaitMS": 1.0390000343322754
+              },
+              {
+                "consumerDrawAndWaitMS": 1.2690000534057617,
+                "exportSubmitAndWaitMS": 1.190999984741211,
+                "producerFenceWaitMS": 0.9869999885559082,
+                "sourceOverwriteFenceWaitMS": 0.5320000648498535
+              },
+              {
+                "consumerDrawAndWaitMS": 1.190999984741211,
+                "exportSubmitAndWaitMS": 0.5380001068115234,
+                "producerFenceWaitMS": 1.121999740600586,
+                "sourceOverwriteFenceWaitMS": 0.41300010681152344
+              },
+              {
+                "consumerDrawAndWaitMS": 1.2329998016357422,
+                "exportSubmitAndWaitMS": 1.6020002365112305,
+                "producerFenceWaitMS": 1.189000129699707,
+                "sourceOverwriteFenceWaitMS": 0.3549995422363281
+              },
+              {
+                "consumerDrawAndWaitMS": 1.2059998512268066,
+                "exportSubmitAndWaitMS": 1.436999797821045,
+                "producerFenceWaitMS": 1.136000156402588,
+                "sourceOverwriteFenceWaitMS": 0.8420000076293945
+              }
+            ],
+            "sourceFormat": 80,
+            "surfaceFormat": 80,
+            "warmups": 2,
+            "width": 3456
+          },
+          {
+            "allPixelsCorrectAfterSourceOverwrite": true,
+            "dxgiFormat": 91,
+            "height": 2168,
+            "samples": [
+              {
+                "consumerDrawAndWaitMS": 1.0190000534057617,
+                "exportSubmitAndWaitMS": 0.8330001831054688,
+                "producerFenceWaitMS": 1.176999568939209,
+                "sourceOverwriteFenceWaitMS": 1.1419997215270996
+              },
+              {
+                "consumerDrawAndWaitMS": 0.315000057220459,
+                "exportSubmitAndWaitMS": 0.4290003776550293,
+                "producerFenceWaitMS": 0.3400001525878906,
+                "sourceOverwriteFenceWaitMS": 0.3209996223449707
+              },
+              {
+                "consumerDrawAndWaitMS": 0.305999755859375,
+                "exportSubmitAndWaitMS": 0.45799970626831055,
+                "producerFenceWaitMS": 1.0999999046325684,
+                "sourceOverwriteFenceWaitMS": 0.3000001907348633
+              },
+              {
+                "consumerDrawAndWaitMS": 0.809999942779541,
+                "exportSubmitAndWaitMS": 0.4479999542236328,
+                "producerFenceWaitMS": 0.31099987030029297,
+                "sourceOverwriteFenceWaitMS": 0.305999755859375
+              },
+              {
+                "consumerDrawAndWaitMS": 0.34800004959106445,
+                "exportSubmitAndWaitMS": 0.4159998893737793,
+                "producerFenceWaitMS": 0.30900001525878906,
+                "sourceOverwriteFenceWaitMS": 0.3120002746582031
+              }
+            ],
+            "sourceFormat": 81,
+            "surfaceFormat": 81,
+            "warmups": 2,
+            "width": 3456
+          },
+          {
+            "allPixelsCorrectAfterSourceOverwrite": true,
+            "dxgiFormat": 28,
+            "height": 2168,
+            "samples": [
+              {
+                "consumerDrawAndWaitMS": 0.5380001068115234,
+                "exportSubmitAndWaitMS": 0.8499999046325684,
+                "producerFenceWaitMS": 0.6180000305175781,
+                "sourceOverwriteFenceWaitMS": 0.5520000457763672
+              },
+              {
+                "consumerDrawAndWaitMS": 1.424999713897705,
+                "exportSubmitAndWaitMS": 0.8509998321533203,
+                "producerFenceWaitMS": 0.6280002593994141,
+                "sourceOverwriteFenceWaitMS": 0.5490002632141113
+              },
+              {
+                "consumerDrawAndWaitMS": 0.34599971771240234,
+                "exportSubmitAndWaitMS": 0.42999982833862305,
+                "producerFenceWaitMS": 0.8959999084472656,
+                "sourceOverwriteFenceWaitMS": 0.3730001449584961
+              },
+              {
+                "consumerDrawAndWaitMS": 1.3450002670288086,
+                "exportSubmitAndWaitMS": 0.41499996185302734,
+                "producerFenceWaitMS": 0.34800004959106445,
+                "sourceOverwriteFenceWaitMS": 0.34599971771240234
+              },
+              {
+                "consumerDrawAndWaitMS": 0.3280000686645508,
+                "exportSubmitAndWaitMS": 0.6989998817443848,
+                "producerFenceWaitMS": 0.34200000762939453,
+                "sourceOverwriteFenceWaitMS": 0.32000017166137695
+              }
+            ],
+            "sourceFormat": 70,
+            "surfaceFormat": 80,
+            "warmups": 2,
+            "width": 3456
+          },
+          {
+            "allPixelsCorrectAfterSourceOverwrite": true,
+            "dxgiFormat": 29,
+            "height": 2168,
+            "samples": [
+              {
+                "consumerDrawAndWaitMS": 1.3319997787475586,
+                "exportSubmitAndWaitMS": 0.7129998207092285,
+                "producerFenceWaitMS": 1.0960001945495605,
+                "sourceOverwriteFenceWaitMS": 0.6680002212524414
+              },
+              {
+                "consumerDrawAndWaitMS": 0.9140000343322754,
+                "exportSubmitAndWaitMS": 0.5149998664855957,
+                "producerFenceWaitMS": 0.8280000686645508,
+                "sourceOverwriteFenceWaitMS": 0.2890000343322754
+              },
+              {
+                "consumerDrawAndWaitMS": 0.8639998435974121,
+                "exportSubmitAndWaitMS": 0.5149998664855957,
+                "producerFenceWaitMS": 0.8480000495910645,
+                "sourceOverwriteFenceWaitMS": 0.29600000381469727
+              },
+              {
+                "consumerDrawAndWaitMS": 0.7989997863769531,
+                "exportSubmitAndWaitMS": 0.4760003089904785,
+                "producerFenceWaitMS": 1.0859999656677246,
+                "sourceOverwriteFenceWaitMS": 0.3000001907348633
+              },
+              {
+                "consumerDrawAndWaitMS": 0.7930002212524414,
+                "exportSubmitAndWaitMS": 0.4379997253417969,
+                "producerFenceWaitMS": 0.7280001640319824,
+                "sourceOverwriteFenceWaitMS": 0.315000057220459
+              }
+            ],
+            "sourceFormat": 71,
+            "surfaceFormat": 81,
+            "warmups": 2,
+            "width": 3456
+          },
+          {
+            "allPixelsCorrectAfterSourceOverwrite": true,
+            "dxgiFormat": 87,
+            "height": 2160,
+            "samples": [
+              {
+                "consumerDrawAndWaitMS": 0.9519996643066406,
+                "exportSubmitAndWaitMS": 0.559999942779541,
+                "producerFenceWaitMS": 1.0240001678466797,
+                "sourceOverwriteFenceWaitMS": 0.6219997406005859
+              },
+              {
+                "consumerDrawAndWaitMS": 0.994999885559082,
+                "exportSubmitAndWaitMS": 0.5580000877380371,
+                "producerFenceWaitMS": 1.0239996910095215,
+                "sourceOverwriteFenceWaitMS": 0.6150002479553223
+              },
+              {
+                "consumerDrawAndWaitMS": 0.9850001335144043,
+                "exportSubmitAndWaitMS": 0.5590000152587891,
+                "producerFenceWaitMS": 1.0130000114440918,
+                "sourceOverwriteFenceWaitMS": 0.6029996871948242
+              },
+              {
+                "consumerDrawAndWaitMS": 0.9239997863769531,
+                "exportSubmitAndWaitMS": 0.5539999008178711,
+                "producerFenceWaitMS": 0.9789996147155762,
+                "sourceOverwriteFenceWaitMS": 0.5879998207092285
+              },
+              {
+                "consumerDrawAndWaitMS": 0.9460000991821289,
+                "exportSubmitAndWaitMS": 0.5939998626708984,
+                "producerFenceWaitMS": 0.9899997711181641,
+                "sourceOverwriteFenceWaitMS": 0.6110000610351562
+              }
+            ],
+            "sourceFormat": 80,
+            "surfaceFormat": 80,
+            "warmups": 2,
+            "width": 3840
+          },
+          {
+            "allPixelsCorrectAfterSourceOverwrite": true,
+            "dxgiFormat": 91,
+            "height": 2160,
+            "samples": [
+              {
+                "consumerDrawAndWaitMS": 0.9939999580383301,
+                "exportSubmitAndWaitMS": 1.058000087738037,
+                "producerFenceWaitMS": 1.0180001258850098,
+                "sourceOverwriteFenceWaitMS": 1.0829997062683105
+              },
+              {
+                "consumerDrawAndWaitMS": 0.9510002136230469,
+                "exportSubmitAndWaitMS": 2.7150001525878906,
+                "producerFenceWaitMS": 0.9419999122619629,
+                "sourceOverwriteFenceWaitMS": 0.9449996948242188
+              },
+              {
+                "consumerDrawAndWaitMS": 0.9220004081726074,
+                "exportSubmitAndWaitMS": 0.5889997482299805,
+                "producerFenceWaitMS": 0.9649996757507324,
+                "sourceOverwriteFenceWaitMS": 0.5879998207092285
+              },
+              {
+                "consumerDrawAndWaitMS": 0.9579997062683105,
+                "exportSubmitAndWaitMS": 0.5510001182556152,
+                "producerFenceWaitMS": 1.2929997444152832,
+                "sourceOverwriteFenceWaitMS": 0.5980000495910645
+              },
+              {
+                "consumerDrawAndWaitMS": 0.9470000267028809,
+                "exportSubmitAndWaitMS": 0.5409998893737793,
+                "producerFenceWaitMS": 0.9930000305175781,
+                "sourceOverwriteFenceWaitMS": 1.053999900817871
+              }
+            ],
+            "sourceFormat": 81,
+            "surfaceFormat": 81,
+            "warmups": 2,
+            "width": 3840
+          },
+          {
+            "allPixelsCorrectAfterSourceOverwrite": true,
+            "dxgiFormat": 28,
+            "height": 2160,
+            "samples": [
+              {
+                "consumerDrawAndWaitMS": 0.9830002784729004,
+                "exportSubmitAndWaitMS": 0.560999870300293,
+                "producerFenceWaitMS": 0.9439997673034668,
+                "sourceOverwriteFenceWaitMS": 0.5899996757507324
+              },
+              {
+                "consumerDrawAndWaitMS": 0.9729995727539062,
+                "exportSubmitAndWaitMS": 0.6280002593994141,
+                "producerFenceWaitMS": 0.9810004234313965,
+                "sourceOverwriteFenceWaitMS": 1.003000259399414
+              },
+              {
+                "consumerDrawAndWaitMS": 0.8880000114440918,
+                "exportSubmitAndWaitMS": 0.5399999618530273,
+                "producerFenceWaitMS": 0.9600000381469727,
+                "sourceOverwriteFenceWaitMS": 0.5780000686645508
+              },
+              {
+                "consumerDrawAndWaitMS": 0.5159997940063477,
+                "exportSubmitAndWaitMS": 0.5859999656677246,
+                "producerFenceWaitMS": 0.9560003280639648,
+                "sourceOverwriteFenceWaitMS": 0.6989998817443848
+              },
+              {
+                "consumerDrawAndWaitMS": 0.6510000228881836,
+                "exportSubmitAndWaitMS": 0.5520000457763672,
+                "producerFenceWaitMS": 0.620999813079834,
+                "sourceOverwriteFenceWaitMS": 0.6139998435974121
+              }
+            ],
+            "sourceFormat": 70,
+            "surfaceFormat": 80,
+            "warmups": 2,
+            "width": 3840
+          },
+          {
+            "allPixelsCorrectAfterSourceOverwrite": true,
+            "dxgiFormat": 29,
+            "height": 2160,
+            "samples": [
+              {
+                "consumerDrawAndWaitMS": 0.45399999618530273,
+                "exportSubmitAndWaitMS": 0.6189999580383301,
+                "producerFenceWaitMS": 0.4890003204345703,
+                "sourceOverwriteFenceWaitMS": 0.4050002098083496
+              },
+              {
+                "consumerDrawAndWaitMS": 1.0240001678466797,
+                "exportSubmitAndWaitMS": 0.680999755859375,
+                "producerFenceWaitMS": 1.1619997024536133,
+                "sourceOverwriteFenceWaitMS": 0.6380000114440918
+              },
+              {
+                "consumerDrawAndWaitMS": 0.5,
+                "exportSubmitAndWaitMS": 0.8130002021789551,
+                "producerFenceWaitMS": 0.48399972915649414,
+                "sourceOverwriteFenceWaitMS": 0.47499990463256836
+              },
+              {
+                "consumerDrawAndWaitMS": 1.369999885559082,
+                "exportSubmitAndWaitMS": 0.48400020599365234,
+                "producerFenceWaitMS": 0.32399988174438477,
+                "sourceOverwriteFenceWaitMS": 0.34399986267089844
+              },
+              {
+                "consumerDrawAndWaitMS": 0.41900014877319336,
+                "exportSubmitAndWaitMS": 0.5279998779296875,
+                "producerFenceWaitMS": 0.8020000457763672,
+                "sourceOverwriteFenceWaitMS": 0.570000171661377
+              }
+            ],
+            "sourceFormat": 71,
+            "surfaceFormat": 81,
+            "warmups": 2,
+            "width": 3840
+          }
+        ],
+        "earlyEventHandleCloseExercised": true,
+        "noPixelFiles": true,
+        "passed": true,
+        "pollableEventAndFenceValueBothChecked": true,
+        "scope": "native-DXMT-completed-shared-source-IOSurface-component",
+        "sourceExclusiveOwnershipIsFixtureOnly": true,
+        "windowsPresentOrPhysicalPresentationQualified": false
+      }
+    },
+    "entitlements": [],
+    "revision": null,
+    "sourceSHA256": "0b677670e162fbfe85e555d9173c2b264b7d94444fa861a77dcc268e8b302ad6",
+    "version": "0.1.0-dev"
+  },
+  "guest": {
+    "agentVersion": null,
+    "architecture": null,
+    "build": null,
+    "disk": null,
+    "driverVersions": null,
+    "edition": null,
+    "network": null,
+    "os": null,
+    "patchLevel": null,
+    "ramBytes": null,
+    "vCPU": null
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "displays": null,
+    "efficiencyCores": null,
+    "gpuCores": null,
+    "macOSBuild": "26A428",
+    "macOSVersion": "27.0",
+    "model": "Mac17,8",
+    "performanceCores": null,
+    "powerMode": null,
+    "ramBytes": 51539607552,
+    "storageFreeBytes": 7787364352,
+    "storageModel": null,
+    "thermalState": null
+  },
+  "limitations": [
+    "No VM, Windows present path or physical display is exercised; generated offscreen D3D11 only.",
+    "Source ownership is enforced by this single-purpose fixture; real guest ownership and failure paths remain unqualified.",
+    "All pixels checked after source overwrite; one-process source import/export and consumer draw, not a new cross-process claim.",
+    "Producer event/fence wait scope is separate and is not full rendering or presentation latency.",
+    "Five release samples per case, no CI, FPS,120Hz or regression claim; sanitizer timings excluded from performance metrics.",
+    "Local unsigned component provenance, reviewed library signature and hashes; no release-distribution clearance."
+  ],
+  "method": {
+    "backgroundWorkload": "Live Windows VM and interactive development host; load uncontrolled",
+    "cache": "uncontrolled",
+    "confidenceInterval": null,
+    "outlierPolicy": "retain all; two declared warmups per case",
+    "trialCount": 5
+  },
+  "metrics": [
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_87_consumerDrawAndWaitMS",
+      "samples": [
+        1.246999740600586,
+        1.2690000534057617,
+        1.190999984741211,
+        1.2329998016357422,
+        1.2059998512268066
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_87_exportSubmitAndWaitMS",
+      "samples": [
+        0.9079999923706055,
+        1.190999984741211,
+        0.5380001068115234,
+        1.6020002365112305,
+        1.436999797821045
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_87_producerFenceWaitMS",
+      "samples": [
+        1.064000129699707,
+        0.9869999885559082,
+        1.121999740600586,
+        1.189000129699707,
+        1.136000156402588
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_87_sourceOverwriteFenceWaitMS",
+      "samples": [
+        1.0390000343322754,
+        0.5320000648498535,
+        0.41300010681152344,
+        0.3549995422363281,
+        0.8420000076293945
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_91_consumerDrawAndWaitMS",
+      "samples": [
+        1.0190000534057617,
+        0.315000057220459,
+        0.305999755859375,
+        0.809999942779541,
+        0.34800004959106445
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_91_exportSubmitAndWaitMS",
+      "samples": [
+        0.8330001831054688,
+        0.4290003776550293,
+        0.45799970626831055,
+        0.4479999542236328,
+        0.4159998893737793
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_91_producerFenceWaitMS",
+      "samples": [
+        1.176999568939209,
+        0.3400001525878906,
+        1.0999999046325684,
+        0.31099987030029297,
+        0.30900001525878906
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_91_sourceOverwriteFenceWaitMS",
+      "samples": [
+        1.1419997215270996,
+        0.3209996223449707,
+        0.3000001907348633,
+        0.305999755859375,
+        0.3120002746582031
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_28_consumerDrawAndWaitMS",
+      "samples": [
+        0.5380001068115234,
+        1.424999713897705,
+        0.34599971771240234,
+        1.3450002670288086,
+        0.3280000686645508
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_28_exportSubmitAndWaitMS",
+      "samples": [
+        0.8499999046325684,
+        0.8509998321533203,
+        0.42999982833862305,
+        0.41499996185302734,
+        0.6989998817443848
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_28_producerFenceWaitMS",
+      "samples": [
+        0.6180000305175781,
+        0.6280002593994141,
+        0.8959999084472656,
+        0.34800004959106445,
+        0.34200000762939453
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_28_sourceOverwriteFenceWaitMS",
+      "samples": [
+        0.5520000457763672,
+        0.5490002632141113,
+        0.3730001449584961,
+        0.34599971771240234,
+        0.32000017166137695
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_29_consumerDrawAndWaitMS",
+      "samples": [
+        1.3319997787475586,
+        0.9140000343322754,
+        0.8639998435974121,
+        0.7989997863769531,
+        0.7930002212524414
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_29_exportSubmitAndWaitMS",
+      "samples": [
+        0.7129998207092285,
+        0.5149998664855957,
+        0.5149998664855957,
+        0.4760003089904785,
+        0.4379997253417969
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_29_producerFenceWaitMS",
+      "samples": [
+        1.0960001945495605,
+        0.8280000686645508,
+        0.8480000495910645,
+        1.0859999656677246,
+        0.7280001640319824
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3456x2168_29_sourceOverwriteFenceWaitMS",
+      "samples": [
+        0.6680002212524414,
+        0.2890000343322754,
+        0.29600000381469727,
+        0.3000001907348633,
+        0.315000057220459
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_87_consumerDrawAndWaitMS",
+      "samples": [
+        0.9519996643066406,
+        0.994999885559082,
+        0.9850001335144043,
+        0.9239997863769531,
+        0.9460000991821289
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_87_exportSubmitAndWaitMS",
+      "samples": [
+        0.559999942779541,
+        0.5580000877380371,
+        0.5590000152587891,
+        0.5539999008178711,
+        0.5939998626708984
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_87_producerFenceWaitMS",
+      "samples": [
+        1.0240001678466797,
+        1.0239996910095215,
+        1.0130000114440918,
+        0.9789996147155762,
+        0.9899997711181641
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_87_sourceOverwriteFenceWaitMS",
+      "samples": [
+        0.6219997406005859,
+        0.6150002479553223,
+        0.6029996871948242,
+        0.5879998207092285,
+        0.6110000610351562
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_91_consumerDrawAndWaitMS",
+      "samples": [
+        0.9939999580383301,
+        0.9510002136230469,
+        0.9220004081726074,
+        0.9579997062683105,
+        0.9470000267028809
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_91_exportSubmitAndWaitMS",
+      "samples": [
+        1.058000087738037,
+        2.7150001525878906,
+        0.5889997482299805,
+        0.5510001182556152,
+        0.5409998893737793
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_91_producerFenceWaitMS",
+      "samples": [
+        1.0180001258850098,
+        0.9419999122619629,
+        0.9649996757507324,
+        1.2929997444152832,
+        0.9930000305175781
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_91_sourceOverwriteFenceWaitMS",
+      "samples": [
+        1.0829997062683105,
+        0.9449996948242188,
+        0.5879998207092285,
+        0.5980000495910645,
+        1.053999900817871
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_28_consumerDrawAndWaitMS",
+      "samples": [
+        0.9830002784729004,
+        0.9729995727539062,
+        0.8880000114440918,
+        0.5159997940063477,
+        0.6510000228881836
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_28_exportSubmitAndWaitMS",
+      "samples": [
+        0.560999870300293,
+        0.6280002593994141,
+        0.5399999618530273,
+        0.5859999656677246,
+        0.5520000457763672
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_28_producerFenceWaitMS",
+      "samples": [
+        0.9439997673034668,
+        0.9810004234313965,
+        0.9600000381469727,
+        0.9560003280639648,
+        0.620999813079834
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_28_sourceOverwriteFenceWaitMS",
+      "samples": [
+        0.5899996757507324,
+        1.003000259399414,
+        0.5780000686645508,
+        0.6989998817443848,
+        0.6139998435974121
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_29_consumerDrawAndWaitMS",
+      "samples": [
+        0.45399999618530273,
+        1.0240001678466797,
+        0.5,
+        1.369999885559082,
+        0.41900014877319336
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_29_exportSubmitAndWaitMS",
+      "samples": [
+        0.6189999580383301,
+        0.680999755859375,
+        0.8130002021789551,
+        0.48400020599365234,
+        0.5279998779296875
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_29_producerFenceWaitMS",
+      "samples": [
+        0.4890003204345703,
+        1.1619997024536133,
+        0.48399972915649414,
+        0.32399988174438477,
+        0.8020000457763672
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Native DXMT generated shared-source completion/export component; excludes Windows present and scanout",
+      "name": "3840x2160_29_sourceOverwriteFenceWaitMS",
+      "samples": [
+        0.4050002098083496,
+        0.6380000114440918,
+        0.47499990463256836,
+        0.34399986267089844,
+        0.570000171661377
+      ],
+      "unit": "ms"
+    }
+  ],
+  "recordedAt": "2026-10-14T22:29:17.789155+00:00",
+  "schemaVersion": 1,
+  "status": "measured",
+  "unknownReasons": {
+    "application.revision": "Not collected or no statistical claim",
+    "guest.agentVersion": "No guest in this component",
+    "guest.architecture": "No guest in this component",
+    "guest.build": "No guest in this component",
+    "guest.disk": "No guest in this component",
+    "guest.driverVersions": "No guest in this component",
+    "guest.edition": "No guest in this component",
+    "guest.network": "No guest in this component",
+    "guest.os": "No guest in this component",
+    "guest.patchLevel": "No guest in this component",
+    "guest.ramBytes": "No guest in this component",
+    "guest.vCPU": "No guest in this component",
+    "host.displays": "Not collected or no statistical claim",
+    "host.efficiencyCores": "Not collected or no statistical claim",
+    "host.gpuCores": "Not collected or no statistical claim",
+    "host.performanceCores": "Not collected or no statistical claim",
+    "host.powerMode": "Not collected or no statistical claim",
+    "host.storageModel": "Not collected or no statistical claim",
+    "host.thermalState": "Not collected or no statistical claim",
+    "method.confidenceInterval": "Not collected or no statistical claim"
+  }
+}

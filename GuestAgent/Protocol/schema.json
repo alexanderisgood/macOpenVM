@@ -1,0 +1,40 @@
+{
+  "license": "Apache-2.0",
+  "protocol": "macOpenVM agent",
+  "major": 1,
+  "minor": 0,
+  "magic": 1297502017,
+  "maximumFrameBytes": 4096,
+  "features": {"health": 1},
+  "commonFields": [
+    {"name": "sessionID", "type": "bytes16"},
+    {"name": "sequence", "type": "u64"},
+    {"name": "requestID", "type": "bytes16"}
+  ],
+  "messages": [
+    {"name": "hello", "id": 1, "fields": [
+      {"name": "vmID", "type": "bytes16"},
+      {"name": "supportedFeatures", "type": "u32"},
+      {"name": "requiredFeatures", "type": "u32"}
+    ]},
+    {"name": "helloReply", "id": 2, "fields": [
+      {"name": "vmID", "type": "bytes16"},
+      {"name": "selectedFeatures", "type": "u32"},
+      {"name": "agentMajor", "type": "u16"},
+      {"name": "agentMinor", "type": "u16"},
+      {"name": "agentPatch", "type": "u16"},
+      {"name": "architecture", "type": "u16"}
+    ]},
+    {"name": "healthRequest", "id": 3, "fields": []},
+    {"name": "healthReply", "id": 4, "fields": [
+      {"name": "agentMajor", "type": "u16"},
+      {"name": "agentMinor", "type": "u16"},
+      {"name": "agentPatch", "type": "u16"},
+      {"name": "architecture", "type": "u16"},
+      {"name": "status", "type": "u32"}
+    ]},
+    {"name": "rejection", "id": 5, "fields": [
+      {"name": "reason", "type": "u32"}
+    ]}
+  ]
+}

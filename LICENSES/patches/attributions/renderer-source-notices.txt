@@ -1,0 +1,154 @@
+renderer — retained source copyright and license notices
+These are exact leading notices from the retained source copies identified below.
+The retained files can contain downstream modifications; no pristine-tree or binary reproducibility claim is made.
+
+========================================================================
+Target: server/render_worker.c
+Upstream version: 451505ad0aa449290f2c0672da6877d57ee770e5
+Retained source bytes SHA-256: a720272377fa5f6a8b87751a934747c7beea4e5b198e464ca5cb795cd2c2cbcf
+License basis: Upstream project license
+
+/*
+ * Copyright 2021 Google LLC
+ * SPDX-License-Identifier: MIT
+ */
+
+
+========================================================================
+Target: src/neptune/npt_library_names.h
+Upstream version: 451505ad0aa449290f2c0672da6877d57ee770e5
+Retained source bytes SHA-256: ef3d50e2f9303847a95cc1a7231927b71a508477c836efb3b562728c7e614769
+License basis: Upstream project license
+
+/*
+ * Copyright 2026 Turing Software LLC
+ * SPDX-License-Identifier: MIT
+ */
+
+
+========================================================================
+Target: src/neptune/npt_renderer.c
+Upstream version: 451505ad0aa449290f2c0672da6877d57ee770e5
+Retained source bytes SHA-256: f63a9c6c772de47eaf09d42222e0bd252818e24a9ec9cb921adffad3037a254b
+License basis: Upstream project license
+
+/*
+ * Copyright 2026 Turing Software LLC
+ * SPDX-License-Identifier: MIT
+ */
+
+
+========================================================================
+Target: src/virgl_resource.c
+Upstream version: 451505ad0aa449290f2c0672da6877d57ee770e5
+Retained source bytes SHA-256: 2d6eed22fe2db243d04ced0e0abf155463a98ea4248e726d66d9bf1037a6e117
+License basis: Upstream project license
+
+/**************************************************************************
+ *
+ * Copyright (C) 2020 Chromium
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ **************************************************************************/
+
+
+========================================================================
+Target: src/virgl_resource.h
+Upstream version: 451505ad0aa449290f2c0672da6877d57ee770e5
+Retained source bytes SHA-256: f7d8149057ce5ead8fede7d337ee5995d266fdba19b3ecb6f2a560662f728d6e
+License basis: Upstream project license
+
+/**************************************************************************
+ *
+ * Copyright (C) 2020 Chromium
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ **************************************************************************/
+
+
+========================================================================
+Target: src/virgl_scanout_cache.h
+Upstream version: 451505ad0aa449290f2c0672da6877d57ee770e5
+Retained source bytes SHA-256: 8ee27a211e41c11b6d451233c6ae29558caeeb51483a9d0322e5105c5e3cc94e
+License basis: Upstream project license
+
+/* SPDX-License-Identifier: MIT
+ * Original macOpenVM resource-owned native scanout view cache.
+ */
+
+========================================================================
+Target: src/virglrenderer.c
+Upstream version: 451505ad0aa449290f2c0672da6877d57ee770e5
+Retained source bytes SHA-256: 2b0e3450815add4ba42d9a871bd738f670ab3e8ce49ec0a4caf548a8f75cbace
+License basis: Upstream project license
+
+/**************************************************************************
+ *
+ * Copyright (C) 2014 Red Hat Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ **************************************************************************/
+
+
+========================================================================
+Target: tests/scanout_cache_test.c
+Upstream version: 451505ad0aa449290f2c0672da6877d57ee770e5
+Retained source bytes SHA-256: 77f70cc1251e4dbdf585f48c5cc77bdd7028d89bc923a5fa8c88772af968328d
+License basis: Upstream project license
+
+/* SPDX-License-Identifier: MIT
+ * Finite component regression for the exact production cache helper.
+ * Backend objects below count owned references; they are not Metal stand-ins
+ * for pixels, mappings, GPU completion, device behavior or performance.
+ */

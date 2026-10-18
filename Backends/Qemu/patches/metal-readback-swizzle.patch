@@ -1,0 +1,107 @@
+--- a/ui/mvo-metal-readback.m
++++ b/ui/mvo-metal-readback.m
+@@ -1,5 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0-or-later */
+ #include "mvo-metal-readback.h"
++#include "mvo-metal-swizzle.h"
+ #import <Foundation/Foundation.h>
+ #import <Metal/Metal.h>
+ 
+@@ -23,6 +24,11 @@
+          t.pixelFormat == MTLPixelFormatRGBA8Unorm_sRGB);
+ }
+ 
++uint32_t mvo_metal_format(void *texture)
++{
++    return mvo_metal_can_read(texture) ? (uint32_t)[(id<MTLTexture>)texture pixelFormat] : 0;
++}
++
+ bool mvo_metal_copy(void *texture, uint8_t *target, uint32_t stride,
+                     uint32_t width, uint32_t height, uint32_t x, uint32_t y)
+ {
+@@ -39,9 +45,7 @@
+             t.pixelFormat == MTLPixelFormatRGBA8Unorm_sRGB) {
+             for (uint32_t row = 0; row < height; row++) {
+                 uint8_t *p = target + (uint64_t)row * stride;
+-                for (uint32_t col = 0; col < width; col++, p += 4) {
+-                    uint8_t red = p[0]; p[0] = p[2]; p[2] = red;
+-                }
++                mvo_rgba_to_bgra_row(p, width);
+             }
+         }
+         return true;
+--- a/ui/mvo-metal-readback.h
++++ b/ui/mvo-metal-readback.h
+@@ -8,6 +8,7 @@
+ void *mvo_metal_retain(void *texture);
+ void mvo_metal_release(void *texture);
+ bool mvo_metal_can_read(void *texture);
++uint32_t mvo_metal_format(void *texture);
+ bool mvo_metal_copy(void *texture, uint8_t *target, uint32_t stride,
+                     uint32_t width, uint32_t height, uint32_t x, uint32_t y);
+ #endif
+--- /dev/null
++++ b/ui/mvo-metal-swizzle.h
+@@ -0,0 +1,27 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef MVO_METAL_SWIZZLE_H
++#define MVO_METAL_SWIZZLE_H
++#include <stdint.h>
++#if defined(__aarch64__) && defined(__ARM_NEON)
++#include <arm_neon.h>
++#endif
++
++/* The caller supplies exactly width complete RGBA pixels; padding is untouched. */
++static inline void mvo_rgba_to_bgra_row(uint8_t *pixels, uint32_t width)
++{
++    uint32_t remaining = width;
++#if defined(__aarch64__) && defined(__ARM_NEON)
++    const uint8x16_t order = {2, 1, 0, 3, 6, 5, 4, 7, 10, 9, 8, 11, 14, 13, 12, 15};
++    while (remaining >= 4) {
++        uint8x16_t rgba = vld1q_u8(pixels);
++        vst1q_u8(pixels, vqtbl1q_u8(rgba, order));
++        pixels += 16;
++        remaining -= 4;
++    }
++#endif
++    while (remaining--) {
++        uint8_t red = pixels[0]; pixels[0] = pixels[2]; pixels[2] = red;
++        pixels += 4;
++    }
++}
++#endif
+--- a/ui/egl-headless.c
++++ b/ui/egl-headless.c
+@@ -109,10 +109,11 @@
+             edpy->metal_copy_count = edpy->metal_copy_ns = 0;
+             edpy->metal_partial_count = edpy->metal_copy_pixels = 0;
+             if (edpy->metal_geometry_reports++ < 32) {
+-                error_report("macOpenVM Metal scanout: frame=%ux%u backing=%ux%u origin=%u,%u surface=%dx%d",
++                error_report("macOpenVM Metal scanout: frame=%ux%u backing=%ux%u origin=%u,%u surface=%dx%d format=%u",
+                              w, h, backing_width, backing_height, x, y,
+                              edpy->ds ? surface_width(edpy->ds) : 0,
+-                             edpy->ds ? surface_height(edpy->ds) : 0);
++                             edpy->ds ? surface_height(edpy->ds) : 0,
++                             mvo_metal_format(edpy->metal_texture));
+             }
+         }
+         egl_fb_destroy(&edpy->guest_fb);
+@@ -317,13 +318,16 @@
+ 
+ static void early_egl_headless_init(DisplayOptions *opts)
+ {
++#ifndef __APPLE__
+     DisplayGLMode mode = DISPLAY_GL_MODE_ON;
+ 
+     if (opts->has_gl) {
+         mode = opts->gl;
+     }
+-
+-#ifdef __APPLE__
++#endif
++
++#ifdef __APPLE__
++    (void)opts;
+     /* ANGLE's published Metal platform; never select a software renderer. */
+     const EGLint platform_attribs[] = { 0x3203, 0x3489, EGL_NONE };
+     const EGLint config_attribs[] = {

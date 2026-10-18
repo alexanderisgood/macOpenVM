@@ -1,0 +1,384 @@
+[
+  {
+    "name": "Redistributed source patch: auth2-strict-timestamp.patch",
+    "version": "2026-10-18 snapshot (5f5036b56ab4)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "GPL-2.0-or-later",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/auth2-strict-timestamp.patch",
+    "patchSHA256": "5f5036b56ab412521de1d760d1e2d6e5e85de76d495410ffedb67b26c6ff57f1",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: dxmt-completion-autorelease-pool.patch",
+    "version": "2026-10-18 snapshot (807e75cde651)",
+    "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+    "license": "LGPL-2.1-or-later",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/dxmt-completion-autorelease-pool.patch",
+    "patchSHA256": "807e75cde651005f615734d42e5dec43e96b5588d15de59e66788148fe2f5852",
+    "upstreamSources": [
+      {
+        "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+        "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: dxmt-constant-interface-identifiers.patch",
+    "version": "2026-10-18 snapshot (6bac67898b6f)",
+    "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+    "license": "LGPL-2.1-or-later AND MIT AND Zlib",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/dxmt-constant-interface-identifiers.patch",
+    "patchSHA256": "6bac67898b6f9f070dd1e8f11dc3c04ba56618237caae450762ca702ea2e8ddc",
+    "upstreamSources": [
+      {
+        "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+        "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: dxmt-native-gpu-timing-evaluation.patch",
+    "version": "2026-10-18 snapshot (3d42daacc990)",
+    "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+    "license": "LGPL-2.1-or-later AND Apache-2.0",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/dxmt-native-gpu-timing-evaluation.patch",
+    "patchSHA256": "3d42daacc990108851d58b76014a255631a927338ad4cfb4950c16ad7a2f625b",
+    "upstreamSources": [
+      {
+        "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+        "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: dxmt-pipeline-task-autorelease-pool.patch",
+    "version": "2026-10-18 snapshot (561bd48fa65c)",
+    "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+    "license": "LGPL-2.1-or-later",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/dxmt-pipeline-task-autorelease-pool.patch",
+    "patchSHA256": "561bd48fa65caf96297b8f48dbde475d68b8d2cc3aa20b8783298a1abc1dd663",
+    "upstreamSources": [
+      {
+        "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+        "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: fenced-blob-unmap-suspension.patch",
+    "version": "2026-10-18 snapshot (b11eb0722375)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "GPL-2.0-only AND GPL-2.0-or-later",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/fenced-blob-unmap-suspension.patch",
+    "patchSHA256": "b11eb072237530460a0f7bd22dedf2100a8fde5f84d6751befea15516fb4aa3e",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: gpu-control-timing.patch",
+    "version": "2026-10-18 snapshot (c10c0883f4a3)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "GPL-2.0-only AND GPL-2.0-or-later",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/gpu-control-timing.patch",
+    "patchSHA256": "c10c0883f4a309b067e63c7e4167fc4f8817e8210bc0736c58ef0c8fba1e50a5",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: metal-damage-readback.patch",
+    "version": "2026-10-18 snapshot (57de1f04e6ee)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "GPL-2.0-or-later",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/metal-damage-readback.patch",
+    "patchSHA256": "57de1f04e6ee6637567860111608f55986aef052c20af5c13801e7d2850dbdf9",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: metal-readback-swizzle.patch",
+    "version": "2026-10-18 snapshot (110491137212)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "GPL-2.0-or-later",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/metal-readback-swizzle.patch",
+    "patchSHA256": "110491137212a5481af317fafb93f81b4a3a7237685a595e0e040f42e86c7b5e",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: neptune-metal-headless-qemu-11.1.patch",
+    "version": "2026-10-18 snapshot (f93331bd493e)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "GPL-2.0-only AND GPL-2.0-or-later AND BSD-2-Clause AND BSD-3-Clause AND LGPL-2.1-or-later",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/neptune-metal-headless-qemu-11.1.patch",
+    "patchSHA256": "f93331bd493e8afd4202a7e54fc215d225a9b0d500869b4df411a76d191321f3",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: neptune-native-loader-evaluation.patch",
+    "version": "2026-10-18 snapshot (017295920268)",
+    "sourceURL": "https://github.com/utmapp/libepoxy/tree/bf98587477fe68d07b93319ece7b40a7d0e2eabe",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/neptune-native-loader-evaluation.patch",
+    "patchSHA256": "0172959202682e2cc9cfc40eee81d7601ddcccf766f278d837c13680ed5a6d8b",
+    "upstreamSources": [
+      {
+        "url": "https://github.com/utmapp/libepoxy/tree/bf98587477fe68d07b93319ece7b40a7d0e2eabe",
+        "version": "bf98587477fe68d07b93319ece7b40a7d0e2eabe"
+      },
+      {
+        "url": "https://github.com/utmapp/virglrenderer/tree/451505ad0aa449290f2c0672da6877d57ee770e5",
+        "version": "451505ad0aa449290f2c0672da6877d57ee770e5"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: qemu-coreaudio-actual-capacity.patch",
+    "version": "2026-10-18 snapshot (23041280eb49)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/qemu-coreaudio-actual-capacity.patch",
+    "patchSHA256": "23041280eb49d5419c4ba18931dc8eed2cd9591e2f522fb88a59b5f1b62b9e86",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: qemu-coreaudio-format-topology.patch",
+    "version": "2026-10-18 snapshot (484ed935e1d8)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/qemu-coreaudio-format-topology.patch",
+    "patchSHA256": "484ed935e1d8ac4d2ba3dc3c980a7533a5ddc6b4ea1cca2326dcd938a2f2403f",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: qemu-coreaudio-nonmixing-admission.patch",
+    "version": "2026-10-18 snapshot (a642fe20a5bd)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/qemu-coreaudio-nonmixing-admission.patch",
+    "patchSHA256": "a642fe20a5bd42e124dd821534523687f493649ddb780a1cb3d0fddfae14136e",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: qemu-coreaudio-playback.patch",
+    "version": "2026-10-18 snapshot (c05dc5488a69)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/qemu-coreaudio-playback.patch",
+    "patchSHA256": "c05dc5488a69dec5a197c10a078cbdd6cc0d7d6c4dfc1ade69fc6c646d6e773a",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: qemu-coreaudio-realtime-lock.patch",
+    "version": "2026-10-18 snapshot (283f1481ec04)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/qemu-coreaudio-realtime-lock.patch",
+    "patchSHA256": "283f1481ec04d5c62558ad2a851b8450ab529ad17bff50f7ad1a23429ae8c39d",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: qemu-coreaudio-signal-stats.patch",
+    "version": "2026-10-18 snapshot (7ee4e7e9d7bb)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/qemu-coreaudio-signal-stats.patch",
+    "patchSHA256": "7ee4e7e9d7bb13eb528a8c650865589dd4dfeccd7a7a954d0194a92d328e6676",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: qemu-coreaudio-stream-start.patch",
+    "version": "2026-10-18 snapshot (c6db633a3545)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/qemu-coreaudio-stream-start.patch",
+    "patchSHA256": "c6db633a3545625079cebc750b2301ec7e8eba2e811347c26702a6f245b5b781",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: renderer-shm-scanout-cache.patch",
+    "version": "2026-10-18 snapshot (3fe01ac3feae)",
+    "sourceURL": "https://github.com/utmapp/virglrenderer/tree/451505ad0aa449290f2c0672da6877d57ee770e5",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/renderer-shm-scanout-cache.patch",
+    "patchSHA256": "3fe01ac3feae100ea7070356d838d58b460540ca474d38cd5de2cb0da82e7327",
+    "upstreamSources": [
+      {
+        "url": "https://github.com/utmapp/virglrenderer/tree/451505ad0aa449290f2c0672da6877d57ee770e5",
+        "version": "451505ad0aa449290f2c0672da6877d57ee770e5"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: shared-host-frame-display.patch",
+    "version": "2026-10-18 snapshot (bb857d823a9c)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "GPL-2.0-or-later AND MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/shared-host-frame-display.patch",
+    "patchSHA256": "bb857d823a9c70e268c9e9719a7d936310a2040acd591a713b7f9e31632bf002",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  },
+  {
+    "name": "Redistributed source patch: vnc-active-refresh-16ms.patch",
+    "version": "2026-10-18 snapshot (57f998d98167)",
+    "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+    "license": "MIT",
+    "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-10-18; not an unmodified upstream release.",
+    "scope": "redistributed-source-patch",
+    "redistributed": true,
+    "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+    "patchPath": "Backends/Qemu/patches/vnc-active-refresh-16ms.patch",
+    "patchSHA256": "57f998d98167ac13ee06b6375ec49d9d39ebce7fd44c0d3738f19430c2579615",
+    "upstreamSources": [
+      {
+        "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+        "version": "11.1.0"
+      }
+    ]
+  }
+]

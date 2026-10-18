@@ -1,0 +1,872 @@
+diff --git a/src/virgl_resource.c b/src/virgl_resource.c
+--- a/src/virgl_resource.c
++++ b/src/virgl_resource.c
+@@ -36,14 +36,25 @@
+ #include "virgl_util.h"
+ #include "virgl_context.h"
+ 
++#ifdef ENABLE_METAL
++#include "vrend/vrend_metal.h"
++#endif
++
+ static struct util_hash_table *virgl_resource_table;
+ static struct virgl_resource_pipe_callbacks pipe_callbacks;
+ 
++#ifdef ENABLE_METAL
++static struct virgl_scanout_cache_pool metal_scanout_pool;
++#endif
++
+ static void
+ virgl_resource_destroy_func(void *val)
+ {
+    struct virgl_resource *res = (struct virgl_resource *)val;
+ 
++#ifdef ENABLE_METAL
++   virgl_scanout_cache_clear(&res->metal_scanout, virgl_metal_release_texture);
++#endif
+    if (res->pipe_resource)
+       pipe_callbacks.unref(res->pipe_resource, pipe_callbacks.data);
+    if ((res->fd_type != VIRGL_RESOURCE_FD_INVALID) &&
+@@ -62,6 +73,9 @@
+    if (!virgl_resource_table)
+       return ENOMEM;
+ 
++#ifdef ENABLE_METAL
++   virgl_scanout_cache_pool_init(&metal_scanout_pool, getpagesize());
++#endif
+    if (callbacks)
+       pipe_callbacks = *callbacks;
+ 
+@@ -72,6 +86,9 @@
+ virgl_resource_table_cleanup(void)
+ {
+    util_hash_table_destroy(virgl_resource_table);
++#ifdef ENABLE_METAL
++   assert(!metal_scanout_pool.count && !metal_scanout_pool.bytes);
++#endif
+    virgl_resource_table = NULL;
+    memset(&pipe_callbacks, 0, sizeof(pipe_callbacks));
+ }
+@@ -80,6 +97,9 @@
+ virgl_resource_table_reset(void)
+ {
+    util_hash_table_clear(virgl_resource_table);
++#ifdef ENABLE_METAL
++   assert(!metal_scanout_pool.count && !metal_scanout_pool.bytes);
++#endif
+ }
+ 
+ static struct virgl_resource *
+@@ -92,6 +112,9 @@
+    if (!res)
+       return NULL;
+ 
++#ifdef ENABLE_METAL
++   res->metal_scanout.pool = &metal_scanout_pool;
++#endif
+    err = util_hash_table_set(virgl_resource_table,
+                              uintptr_to_pointer(res_id),
+                              res);
+diff --git a/src/virgl_resource.h b/src/virgl_resource.h
+--- a/src/virgl_resource.h
++++ b/src/virgl_resource.h
+@@ -27,6 +27,10 @@
+ 
+ #include <stdbool.h>
+ #include <stdint.h>
++
++#ifdef ENABLE_METAL
++#include "virgl_scanout_cache.h"
++#endif
+ 
+ struct iovec;
+ struct pipe_resource;
+@@ -119,6 +123,11 @@
+     */
+    uint32_t export_format;
+ 
++#ifdef ENABLE_METAL
++   /* One owned view of this resource's existing SHM storage. */
++   struct virgl_scanout_cache metal_scanout;
++#endif
++
+    void *private_data;
+ };
+ 
+diff --git a/src/virglrenderer.c b/src/virglrenderer.c
+--- a/src/virglrenderer.c
++++ b/src/virglrenderer.c
+@@ -1530,6 +1530,26 @@
+    return 0;
+ }
+ 
++#if defined(ENABLE_METAL) && defined(HAVE_EPOXY_EGL_H)
++static void *
++virgl_renderer_create_shm_scanout(const struct virgl_scanout_cache_key *key)
++{
++   struct vrend_metal_texture_description desc = {
++      .width = key->width,
++      .height = key->height,
++      .stride = key->stride,
++      .offset = key->offset,
++      .usage = PIPE_USAGE_IMMUTABLE,
++      .format = key->format,
++   };
++   MTLTexture_id tex;
++
++   return virgl_egl_metal_create_texture_from_shm(key->winsys, key->fd,
++                                                 key->size, &desc, &tex)
++             ? tex : NULL;
++}
++#endif
++
+ enum virgl_renderer_native_handle_type
+ virgl_renderer_create_handle_for_scanout(uint32_t res_id,
+                                          uint32_t width,
+@@ -1574,19 +1594,23 @@
+        * guess, so the exporter's own format wins where it is known.  A
+        * scanout never passes through vrend_resource_needs_redblue_swizzle,
+        * so this is the only place the channel order can be corrected. */
+-      struct vrend_metal_texture_description desc = {
++      const struct virgl_scanout_cache_key key = {
++         .winsys = egl,
++         .fd = res->fd,
++         .size = res->map_size,
+          .width = width,
+          .height = height,
+          .stride = stride,
+          .offset = offset,
+-         .usage = PIPE_USAGE_IMMUTABLE,
+          .format = res->export_format ? res->export_format : virgl_format,
+       };
+-      MTLTexture_id tex;
+-
+-      if (virgl_egl_metal_create_texture_from_shm(egl, res->fd,
+-                                                  res->map_size,
+-                                                  &desc, &tex)) {
++      /* Cache the view of shared pages, not pixels. Flush/fence/readback
++       * ordering and the caller's separate ownership remain unchanged. */
++      MTLTexture_id tex = virgl_scanout_cache_acquire(
++         &res->metal_scanout, &key, virgl_renderer_create_shm_scanout,
++         virgl_metal_retain_texture, virgl_metal_release_texture);
++
++      if (tex) {
+          *handle = tex;
+          return VIRGL_NATIVE_HANDLE_METAL_TEXTURE;
+       }
+diff --git a/src/virgl_scanout_cache.h b/src/virgl_scanout_cache.h
+new file mode 100644
+--- /dev/null
++++ b/src/virgl_scanout_cache.h
+@@ -0,0 +1,148 @@
++/* SPDX-License-Identifier: MIT
++ * Original macOpenVM resource-owned native scanout view cache.
++ */
++#ifndef VIRGL_SCANOUT_CACHE_H
++#define VIRGL_SCANOUT_CACHE_H
++
++#include <stdbool.h>
++#include <stddef.h>
++#include <stdint.h>
++
++struct virgl_scanout_cache_key {
++   void *winsys;
++   uint64_t size;
++   int fd;
++   uint32_t width, height, stride, offset, format;
++};
++
++enum { VIRGL_SCANOUT_CACHE_ENTRIES = 3 };
++#define VIRGL_SCANOUT_CACHE_BYTES UINT64_C(100663296)
++
++struct virgl_scanout_cache;
++
++/* Oldest entry first. This bounds cache-owned references only: independent
++ * caller references and an import being prepared can keep other views alive. */
++struct virgl_scanout_cache_pool {
++   struct virgl_scanout_cache *entries[VIRGL_SCANOUT_CACHE_ENTRIES];
++   uint64_t page_size, bytes;
++   unsigned count;
++};
++
++struct virgl_scanout_cache {
++   struct virgl_scanout_cache_pool *pool;
++   void *texture;
++   uint64_t charge;
++   struct virgl_scanout_cache_key key;
++};
++
++typedef void *(*virgl_scanout_create_fn)(const struct virgl_scanout_cache_key *key);
++typedef void *(*virgl_scanout_retain_fn)(void *texture);
++typedef void (*virgl_scanout_release_fn)(void *texture);
++
++/* Initialize only an empty pool. Resource-table teardown clears every member
++ * before the pool can be initialized for a later table lifetime. */
++static inline void
++virgl_scanout_cache_pool_init(struct virgl_scanout_cache_pool *pool,
++                              uint64_t page_size)
++{
++   *pool = (struct virgl_scanout_cache_pool){ .page_size = page_size };
++}
++
++static inline bool
++virgl_scanout_cache_charge(uint64_t size, uint64_t page_size, uint64_t *charge)
++{
++   if (!size || !page_size || size > UINT64_MAX - (page_size - 1))
++      return false;
++   *charge = ((size + page_size - 1) / page_size) * page_size;
++   return *charge <= VIRGL_SCANOUT_CACHE_BYTES;
++}
++
++static inline bool
++virgl_scanout_cache_key_equal(const struct virgl_scanout_cache_key *a,
++                              const struct virgl_scanout_cache_key *b)
++{
++   return a->winsys == b->winsys && a->size == b->size && a->fd == b->fd &&
++          a->width == b->width && a->height == b->height &&
++          a->stride == b->stride && a->offset == b->offset &&
++          a->format == b->format;
++}
++
++static inline void
++virgl_scanout_cache_clear(struct virgl_scanout_cache *cache,
++                          virgl_scanout_release_fn release)
++{
++   struct virgl_scanout_cache_pool *pool = cache->pool;
++   void *texture = cache->texture;
++   if (pool) {
++      for (unsigned i = 0; i < pool->count; i++) {
++         if (pool->entries[i] != cache)
++            continue;
++         pool->bytes -= cache->charge;
++         for (unsigned j = i + 1; j < pool->count; j++)
++            pool->entries[j - 1] = pool->entries[j];
++         pool->entries[--pool->count] = NULL;
++         break;
++      }
++   }
++   /* Unlink, debit and clear the entry before the backend may destroy it.
++    * Preserve its resource-table owner so this entry can be acquired again. */
++   *cache = (struct virgl_scanout_cache){ .pool = pool };
++   if (texture)
++      release(texture);
++}
++
++static inline void
++virgl_scanout_cache_touch(struct virgl_scanout_cache *cache)
++{
++   struct virgl_scanout_cache_pool *pool = cache->pool;
++   for (unsigned i = 0; i < pool->count; i++) {
++      if (pool->entries[i] != cache)
++         continue;
++      for (unsigned j = i + 1; j < pool->count; j++)
++         pool->entries[j - 1] = pool->entries[j];
++      pool->entries[pool->count - 1] = cache;
++      return;
++   }
++}
++
++/* The create callback returns an owned reference or NULL. Eligible views give
++ * that reference to the bounded pool and retain another for the caller.
++ * Ineligible views pass the create reference directly to the caller uncached.
++ * Failed imports preserve the prior cache and LRU/accounting state. Callers
++ * serialize helper operations with their existing resource-table access. */
++static inline void *
++virgl_scanout_cache_acquire(struct virgl_scanout_cache *cache,
++                            const struct virgl_scanout_cache_key *key,
++                            virgl_scanout_create_fn create,
++                            virgl_scanout_retain_fn retain,
++                            virgl_scanout_release_fn release)
++{
++   if (cache->texture && virgl_scanout_cache_key_equal(&cache->key, key)) {
++      virgl_scanout_cache_touch(cache);
++      return retain(cache->texture);
++   }
++
++   struct virgl_scanout_cache_key requested = *key;
++   void *texture = create(&requested);
++   if (!texture)
++      return NULL;
++
++   struct virgl_scanout_cache_pool *pool = cache->pool;
++   uint64_t charge;
++   if (!pool || !virgl_scanout_cache_charge(requested.size, pool->page_size, &charge))
++      return texture;
++
++   virgl_scanout_cache_clear(cache, release);
++   while (pool->count >= VIRGL_SCANOUT_CACHE_ENTRIES ||
++          pool->bytes > VIRGL_SCANOUT_CACHE_BYTES - charge)
++      virgl_scanout_cache_clear(pool->entries[0], release);
++
++   cache->texture = texture;
++   cache->key = requested;
++   cache->charge = charge;
++   pool->entries[pool->count++] = cache;
++   pool->bytes += charge;
++   return retain(texture);
++}
++
++#endif
+diff --git a/tests/scanout_cache_test.c b/tests/scanout_cache_test.c
+new file mode 100644
+--- /dev/null
++++ b/tests/scanout_cache_test.c
+@@ -0,0 +1,558 @@
++/* SPDX-License-Identifier: MIT
++ * Finite component regression for the exact production cache helper.
++ * Backend objects below count owned references; they are not Metal stand-ins
++ * for pixels, mappings, GPU completion, device behavior or performance.
++ */
++#include "../src/virgl_scanout_cache.h"
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#define CHECK(condition) do { \
++   if (!(condition)) { \
++      fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, #condition); \
++      exit(1); \
++   } \
++} while (0)
++
++struct counted_texture {
++   unsigned references;
++   unsigned serial;
++   struct virgl_scanout_cache_key imported;
++};
++
++static struct {
++   struct counted_texture textures[512];
++   unsigned attempts, imports, retains, releases, destroyed, live;
++   bool fail_next;
++} backend;
++static int device_a, device_b;
++static struct virgl_scanout_cache_pool test_pool;
++static struct virgl_scanout_cache *release_must_observe_unlinked;
++static void *watched_texture;
++static unsigned watched_count;
++static uint64_t watched_bytes;
++static bool unlink_observed;
++
++static void
++reset_backend(void)
++{
++   CHECK(backend.live == 0);
++   CHECK(test_pool.count == 0 && test_pool.bytes == 0);
++   memset(&backend, 0, sizeof(backend));
++   virgl_scanout_cache_pool_init(&test_pool, 16384);
++}
++
++static void *
++create_texture(const struct virgl_scanout_cache_key *key)
++{
++   backend.attempts++;
++   if (backend.fail_next) {
++      backend.fail_next = false;
++      return NULL;
++   }
++   CHECK(backend.imports < 512);
++   struct counted_texture *texture = &backend.textures[backend.imports++];
++   texture->references = 1;
++   texture->serial = backend.imports;
++   texture->imported = *key;
++   backend.live++;
++   return texture;
++}
++
++static void *
++retain_texture(void *opaque)
++{
++   struct counted_texture *texture = opaque;
++   CHECK(texture && texture->references > 0);
++   texture->references++;
++   backend.retains++;
++   return texture;
++}
++
++static void
++release_texture(void *opaque)
++{
++   struct counted_texture *texture = opaque;
++   CHECK(texture && texture->references > 0);
++   if (release_must_observe_unlinked && opaque == watched_texture) {
++      CHECK(release_must_observe_unlinked->texture == NULL);
++      CHECK(release_must_observe_unlinked->charge == 0);
++      CHECK(test_pool.count == watched_count && test_pool.bytes == watched_bytes);
++      for (unsigned i = 0; i < test_pool.count; i++)
++         CHECK(test_pool.entries[i] != release_must_observe_unlinked);
++      unlink_observed = true;
++   }
++   backend.releases++;
++   if (--texture->references == 0) {
++      backend.destroyed++;
++      backend.live--;
++   }
++}
++
++static struct virgl_scanout_cache_key
++native_key(void)
++{
++   return (struct virgl_scanout_cache_key) {
++      .winsys = &device_a, .fd = 17, .size = 29982720,
++      .width = 3456, .height = 2168, .stride = 13824,
++      .offset = 0, .format = 80,
++   };
++}
++
++static struct counted_texture *
++acquire(struct virgl_scanout_cache *cache,
++        const struct virgl_scanout_cache_key *key)
++{
++   /* Same owner binding as production virgl_resource_create; no cache logic
++    * is duplicated in this fixture wrapper. */
++   if (!cache->pool)
++      cache->pool = &test_pool;
++   return virgl_scanout_cache_acquire(cache, key, create_texture,
++                                       retain_texture, release_texture);
++}
++
++static void
++clear(struct virgl_scanout_cache *cache)
++{
++   virgl_scanout_cache_clear(cache, release_texture);
++}
++
++static void
++same_key_keeps_one_cache_reference_and_two_callers(void)
++{
++   struct virgl_scanout_cache cache = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   struct counted_texture *first = acquire(&cache, &key);
++   struct counted_texture *second = acquire(&cache, &key);
++   CHECK(first == second);
++   CHECK(backend.attempts == 1 && backend.imports == 1);
++   CHECK(first->references == 3 && backend.retains == 2);
++   release_texture(first);
++   CHECK(second->references == 2);
++   release_texture(second);
++   CHECK(backend.live == 1 && backend.destroyed == 0);
++   clear(&cache);
++   CHECK(backend.live == 0 && backend.destroyed == 1);
++}
++
++static void
++replacement_and_clear_preserve_outstanding_callers(void)
++{
++   struct virgl_scanout_cache cache = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   struct counted_texture *old = acquire(&cache, &key);
++   key.offset = 256;
++   struct counted_texture *replacement = acquire(&cache, &key);
++   CHECK(old != replacement && old->references == 1);
++   CHECK(replacement->references == 2 && backend.live == 2);
++   clear(&cache);
++   CHECK(replacement->references == 1 && backend.live == 2);
++   release_texture(old);
++   CHECK(backend.live == 1);
++   release_texture(replacement);
++   CHECK(backend.destroyed == 2 && backend.live == 0);
++}
++
++static void
++failed_changed_import_never_returns_the_prior_view(void)
++{
++   struct virgl_scanout_cache cache = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   struct counted_texture *old = acquire(&cache, &key);
++   struct virgl_scanout_cache_key changed = key;
++   changed.width--;
++   backend.fail_next = true;
++   unsigned retains = backend.retains, releases = backend.releases;
++   CHECK(acquire(&cache, &changed) == NULL);
++   CHECK(backend.attempts == 2 && backend.imports == 1);
++   CHECK(backend.retains == retains && backend.releases == releases);
++   CHECK(old->references == 2);
++   struct counted_texture *again = acquire(&cache, &key);
++   CHECK(again == old && again->references == 3);
++   CHECK(backend.attempts == 2);
++   release_texture(old);
++   release_texture(again);
++   clear(&cache);
++   CHECK(backend.live == 0 && backend.destroyed == 1);
++}
++
++static void
++failed_empty_import_does_not_create_ownership(void)
++{
++   struct virgl_scanout_cache cache = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   backend.fail_next = true;
++   CHECK(acquire(&cache, &key) == NULL);
++   CHECK(backend.imports == 0 && backend.retains == 0);
++   clear(&cache);
++   CHECK(backend.releases == 0 && backend.destroyed == 0);
++   struct counted_texture *valid = acquire(&cache, &key);
++   CHECK(valid && backend.attempts == 2 && valid->references == 2);
++   release_texture(valid);
++   clear(&cache);
++   CHECK(backend.live == 0 && backend.destroyed == 1);
++}
++
++static void
++every_interpretation_field_requires_a_fresh_import(void)
++{
++   for (unsigned field = 0; field < 8; field++) {
++      reset_backend();
++      struct virgl_scanout_cache cache = {0};
++      struct virgl_scanout_cache_key key = native_key();
++      struct counted_texture *old = acquire(&cache, &key);
++      switch (field) {
++      case 0: key.winsys = &device_b; break;
++      case 1: key.fd++; break;
++      case 2: key.size += 16384; break;
++      case 3: key.width--; break;
++      case 4: key.height--; break;
++      case 5: key.stride += 256; break;
++      case 6: key.offset = 256; break;
++      case 7: key.format++; break;
++      }
++      struct counted_texture *fresh = acquire(&cache, &key);
++      CHECK(fresh && fresh != old && backend.attempts == 2);
++      CHECK(old->references == 1 && fresh->references == 2);
++      CHECK(fresh->imported.winsys == key.winsys);
++      CHECK(fresh->imported.fd == key.fd && fresh->imported.size == key.size);
++      CHECK(fresh->imported.width == key.width && fresh->imported.height == key.height);
++      CHECK(fresh->imported.stride == key.stride && fresh->imported.offset == key.offset);
++      CHECK(fresh->imported.format == key.format);
++      release_texture(old);
++      release_texture(fresh);
++      clear(&cache);
++      CHECK(backend.live == 0 && backend.destroyed == 2);
++   }
++}
++
++static void
++separate_resources_never_share_a_cache_by_fd_or_layout(void)
++{
++   struct virgl_scanout_cache resources[2] = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   struct counted_texture *a = acquire(&resources[0], &key);
++   struct counted_texture *b = acquire(&resources[1], &key);
++   CHECK(a != b && backend.imports == 2);
++   release_texture(a);
++   release_texture(b);
++   clear(&resources[0]);
++   CHECK(backend.live == 1);
++   clear(&resources[1]);
++   CHECK(backend.live == 0 && backend.destroyed == 2);
++}
++
++static void
++two_and_three_revisited_buffers_import_once_each(void)
++{
++   for (unsigned buffer_count = 2; buffer_count <= 3; buffer_count++) {
++      reset_backend();
++      struct virgl_scanout_cache resources[3] = {0};
++      for (unsigned frame = 0; frame < 24; frame++) {
++         unsigned resource = frame % buffer_count;
++         struct virgl_scanout_cache_key key = native_key();
++         key.fd += resource;
++         struct counted_texture *texture = acquire(&resources[resource], &key);
++         CHECK(texture && texture->references == 2);
++         CHECK(texture->imported.fd == key.fd);
++         release_texture(texture);
++      }
++      CHECK(backend.attempts == buffer_count && backend.live == buffer_count);
++      CHECK(test_pool.count == buffer_count);
++      CHECK(test_pool.bytes == (uint64_t)buffer_count * native_key().size);
++      for (unsigned resource = 0; resource < buffer_count; resource++)
++         clear(&resources[resource]);
++      CHECK(backend.live == 0 && backend.destroyed == buffer_count);
++      CHECK(test_pool.count == 0 && test_pool.bytes == 0);
++   }
++}
++
++static void
++clear_then_same_fd_layout_requires_new_import(void)
++{
++   struct virgl_scanout_cache cache = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   struct counted_texture *old_caller = acquire(&cache, &key);
++   clear(&cache);
++   CHECK(old_caller->references == 1);
++   struct counted_texture *new_caller = acquire(&cache, &key);
++   CHECK(new_caller != old_caller && backend.imports == 2);
++   CHECK(old_caller->references == 1 && new_caller->references == 2);
++   release_texture(old_caller);
++   clear(&cache);
++   CHECK(new_caller->references == 1);
++   release_texture(new_caller);
++   CHECK(backend.live == 0 && backend.destroyed == 2);
++}
++
++static void
++many_historically_scanned_resources_keep_only_three_cache_references(void)
++{
++   struct virgl_scanout_cache resources[32] = {0};
++   for (unsigned resource = 0; resource < 32; resource++) {
++      struct virgl_scanout_cache_key key = native_key();
++      key.fd += resource;
++      struct counted_texture *texture = acquire(&resources[resource], &key);
++      CHECK(texture && texture->imported.size == key.size);
++      release_texture(texture);
++      CHECK(test_pool.count <= 3 && test_pool.bytes <= VIRGL_SCANOUT_CACHE_BYTES);
++      CHECK(backend.live <= 3);
++   }
++   CHECK(backend.imports == 32 && backend.live == 3 && backend.destroyed == 29);
++   for (unsigned resource = 0; resource < 32; resource++)
++      clear(&resources[resource]);
++   CHECK(backend.live == 0 && backend.destroyed == 32);
++   CHECK(test_pool.count == 0 && test_pool.bytes == 0);
++}
++
++static void
++repeated_empty_clear_is_idempotent(void)
++{
++   struct virgl_scanout_cache cache = {0};
++   clear(&cache);
++   clear(&cache);
++   CHECK(backend.releases == 0);
++   struct virgl_scanout_cache_key key = native_key();
++   struct counted_texture *caller = acquire(&cache, &key);
++   release_texture(caller);
++   clear(&cache);
++   unsigned releases = backend.releases;
++   clear(&cache);
++   CHECK(backend.releases == releases && backend.destroyed == 1);
++}
++
++static void
++hit_promotes_the_resource_and_evicts_the_least_recent_view(void)
++{
++   struct virgl_scanout_cache resources[4] = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   for (unsigned i = 0; i < 3; i++) {
++      key.fd = 17 + (int)i;
++      release_texture(acquire(&resources[i], &key));
++   }
++   key.fd = 17;
++   release_texture(acquire(&resources[0], &key));
++   CHECK(backend.attempts == 3);
++   key.fd = 20;
++   release_texture(acquire(&resources[3], &key));
++   CHECK(resources[1].texture == NULL && resources[0].texture != NULL);
++   CHECK(resources[2].texture != NULL && resources[3].texture != NULL);
++   key.fd = 17;
++   release_texture(acquire(&resources[0], &key));
++   CHECK(backend.attempts == 4);
++   key.fd = 18;
++   release_texture(acquire(&resources[1], &key));
++   CHECK(backend.attempts == 5 && resources[2].texture == NULL);
++   for (unsigned i = 0; i < 4; i++)
++      clear(&resources[i]);
++   CHECK(backend.live == 0 && test_pool.bytes == 0 && test_pool.count == 0);
++}
++
++static void
++whole_resource_bytes_can_evict_before_the_entry_count_cap(void)
++{
++   struct virgl_scanout_cache resources[3] = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   key.size = UINT64_C(40) * 1024 * 1024;
++   for (unsigned i = 0; i < 3; i++) {
++      key.fd = 17 + (int)i;
++      release_texture(acquire(&resources[i], &key));
++   }
++   CHECK(test_pool.count == 2 && test_pool.bytes == UINT64_C(80) * 1024 * 1024);
++   CHECK(resources[0].texture == NULL && backend.destroyed == 1);
++   CHECK(resources[1].charge == key.size && resources[2].charge == key.size);
++   for (unsigned i = 0; i < 3; i++)
++      clear(&resources[i]);
++   CHECK(backend.live == 0 && test_pool.bytes == 0);
++}
++
++static void
++page_rounding_is_charged_instead_of_visible_bytes_or_raw_size(void)
++{
++   struct virgl_scanout_cache resources[3] = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   key.size = UINT64_C(32) * 1024 * 1024 + 1;
++   uint64_t expected = UINT64_C(32) * 1024 * 1024 + 16384;
++   for (unsigned i = 0; i < 3; i++) {
++      key.fd = 17 + (int)i;
++      release_texture(acquire(&resources[i], &key));
++   }
++   CHECK(test_pool.count == 2 && test_pool.bytes == expected * 2);
++   CHECK(resources[0].texture == NULL);
++   CHECK(resources[1].charge == expected && resources[2].charge == expected);
++   for (unsigned i = 0; i < 3; i++)
++      clear(&resources[i]);
++   CHECK(test_pool.bytes == 0 && backend.live == 0);
++}
++
++static void
++oversized_success_is_returned_uncached_instead_of_rejected(void)
++{
++   struct virgl_scanout_cache cache = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   key.size = UINT64_C(256) * 1024 * 1024;
++   struct counted_texture *a = acquire(&cache, &key);
++   CHECK(a && a->references == 1);
++   CHECK(cache.texture == NULL && test_pool.count == 0 && test_pool.bytes == 0);
++   struct counted_texture *b = acquire(&cache, &key);
++   CHECK(b && b != a && b->references == 1);
++   CHECK(backend.attempts == 2 && backend.retains == 0);
++   release_texture(a);
++   release_texture(b);
++   clear(&cache);
++   CHECK(backend.live == 0 && backend.destroyed == 2);
++}
++
++static void
++changed_oversized_success_keeps_the_previous_cache_and_accounting(void)
++{
++   struct virgl_scanout_cache cache = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   struct counted_texture *old = acquire(&cache, &key);
++   release_texture(old);
++   uint64_t bytes = test_pool.bytes;
++   struct virgl_scanout_cache_key changed = key;
++   changed.size = VIRGL_SCANOUT_CACHE_BYTES + 1;
++   struct counted_texture *large = acquire(&cache, &changed);
++   CHECK(large && large->references == 1 && old->references == 1);
++   CHECK(cache.texture == old && test_pool.count == 1 && test_pool.bytes == bytes);
++   struct counted_texture *again = acquire(&cache, &key);
++   CHECK(again == old && backend.attempts == 2 && again->references == 2);
++   release_texture(again);
++   clear(&cache);
++   CHECK(large->references == 1 && backend.live == 1);
++   release_texture(large);
++   CHECK(backend.live == 0 && test_pool.bytes == 0);
++}
++
++static void
++unaccountable_size_and_missing_pool_bypass_without_ownership_changes(void)
++{
++   struct virgl_scanout_cache cache = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   key.size = UINT64_MAX;
++   struct counted_texture *overflow = acquire(&cache, &key);
++   CHECK(overflow && overflow->references == 1 && cache.texture == NULL);
++   CHECK(test_pool.bytes == 0 && backend.retains == 0);
++   release_texture(overflow);
++   key = native_key();
++   struct virgl_scanout_cache unattached = {0};
++   struct counted_texture *no_pool = virgl_scanout_cache_acquire(
++      &unattached, &key, create_texture, retain_texture, release_texture);
++   CHECK(no_pool && no_pool->references == 1 && unattached.texture == NULL);
++   release_texture(no_pool);
++   uint64_t untouched = 91;
++   CHECK(!virgl_scanout_cache_charge(UINT64_MAX, 16384, &untouched));
++   CHECK(untouched == 91);
++   CHECK(!virgl_scanout_cache_charge(1, 0, &untouched));
++   CHECK(untouched == 91);
++   clear(&cache);
++   clear(&unattached);
++   CHECK(backend.live == 0 && test_pool.count == 0);
++}
++
++static void
++failed_import_with_a_full_pool_preserves_all_entries_and_lru_order(void)
++{
++   struct virgl_scanout_cache resources[4] = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   for (unsigned i = 0; i < 3; i++) {
++      key.fd = 17 + (int)i;
++      release_texture(acquire(&resources[i], &key));
++   }
++   uint64_t bytes = test_pool.bytes;
++   backend.fail_next = true;
++   key.fd = 20;
++   CHECK(acquire(&resources[3], &key) == NULL);
++   CHECK(test_pool.count == 3 && test_pool.bytes == bytes && backend.destroyed == 0);
++   CHECK(test_pool.entries[0] == &resources[0]);
++   CHECK(test_pool.entries[1] == &resources[1]);
++   CHECK(test_pool.entries[2] == &resources[2]);
++   release_texture(acquire(&resources[3], &key));
++   CHECK(resources[0].texture == NULL && backend.attempts == 5);
++   for (unsigned i = 0; i < 4; i++)
++      clear(&resources[i]);
++   CHECK(backend.live == 0 && test_pool.bytes == 0);
++}
++
++static void
++evicted_cache_reference_does_not_destroy_an_outstanding_caller(void)
++{
++   struct virgl_scanout_cache resources[4] = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   struct counted_texture *caller = acquire(&resources[0], &key);
++   for (unsigned i = 1; i < 4; i++) {
++      key.fd = 17 + (int)i;
++      release_texture(acquire(&resources[i], &key));
++   }
++   CHECK(resources[0].texture == NULL && caller->references == 1);
++   CHECK(test_pool.count == 3 && backend.live == 4);
++   CHECK(test_pool.bytes <= VIRGL_SCANOUT_CACHE_BYTES);
++   clear(&resources[0]);
++   CHECK(caller->references == 1);
++   release_texture(caller);
++   CHECK(backend.live == 3);
++   for (unsigned i = 1; i < 4; i++)
++      clear(&resources[i]);
++   CHECK(backend.live == 0 && test_pool.count == 0 && test_pool.bytes == 0);
++}
++
++static void
++eviction_unlinks_debits_and_zeroes_before_backend_release(void)
++{
++   struct virgl_scanout_cache resources[4] = {0};
++   struct virgl_scanout_cache_key key = native_key();
++   for (unsigned i = 0; i < 3; i++) {
++      key.fd = 17 + (int)i;
++      release_texture(acquire(&resources[i], &key));
++   }
++   release_must_observe_unlinked = &resources[0];
++   watched_texture = resources[0].texture;
++   watched_count = 2;
++   watched_bytes = 2 * native_key().size;
++   unlink_observed = false;
++   key.fd = 20;
++   release_texture(acquire(&resources[3], &key));
++   CHECK(unlink_observed);
++   release_must_observe_unlinked = NULL;
++   watched_texture = NULL;
++   for (unsigned i = 0; i < 4; i++)
++      clear(&resources[i]);
++   CHECK(test_pool.count == 0 && test_pool.bytes == 0);
++   for (unsigned i = 0; i < VIRGL_SCANOUT_CACHE_ENTRIES; i++)
++      CHECK(test_pool.entries[i] == NULL);
++}
++
++#define RUN(test) do { \
++   reset_backend(); \
++   test(); \
++   CHECK(backend.live == 0); \
++   puts("PASS " #test); \
++} while (0)
++
++int
++main(void)
++{
++   RUN(same_key_keeps_one_cache_reference_and_two_callers);
++   RUN(replacement_and_clear_preserve_outstanding_callers);
++   RUN(failed_changed_import_never_returns_the_prior_view);
++   RUN(failed_empty_import_does_not_create_ownership);
++   RUN(every_interpretation_field_requires_a_fresh_import);
++   RUN(separate_resources_never_share_a_cache_by_fd_or_layout);
++   RUN(two_and_three_revisited_buffers_import_once_each);
++   RUN(clear_then_same_fd_layout_requires_new_import);
++   RUN(many_historically_scanned_resources_keep_only_three_cache_references);
++   RUN(repeated_empty_clear_is_idempotent);
++   RUN(hit_promotes_the_resource_and_evicts_the_least_recent_view);
++   RUN(whole_resource_bytes_can_evict_before_the_entry_count_cap);
++   RUN(page_rounding_is_charged_instead_of_visible_bytes_or_raw_size);
++   RUN(oversized_success_is_returned_uncached_instead_of_rejected);
++   RUN(changed_oversized_success_keeps_the_previous_cache_and_accounting);
++   RUN(unaccountable_size_and_missing_pool_bypass_without_ownership_changes);
++   RUN(failed_import_with_a_full_pool_preserves_all_entries_and_lru_order);
++   RUN(evicted_cache_reference_does_not_destroy_an_outstanding_caller);
++   RUN(eviction_unlinks_debits_and_zeroes_before_backend_release);
++   puts("PASS 19 component cases; key-field case covers 8 independent changes");
++   return 0;
++}

@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0
+[Defines]
+  INF_VERSION = 0x00010017
+  BASE_NAME = MacOpenVMAuthenticatedVariableProbe
+  FILE_GUID = 7deafdf8-a99a-4676-b3d9-375b59bfd86f
+  MODULE_TYPE = UEFI_APPLICATION
+  VERSION_STRING = 0.1
+  ENTRY_POINT = UefiMain
+
+[Sources]
+  AuthenticatedVariableProbe.c
+  ../PositiveTrustChainProbe/BoundedInputs.h
+  ../PkEnrollmentProbe/FixtureCertificate.h
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
+  BaseMemoryLib
+
+[Guids]
+  gEfiGlobalVariableGuid
+  gEfiCertX509Guid
+  gEfiCertPkcs7Guid
+
+[Protocols]
+  gEfiLoadedImageProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid

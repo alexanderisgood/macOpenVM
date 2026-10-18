@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "status": "experimental-host-prerequisite",
+  "windowsHardwareRenderingVerified": false,
+  "releaseCleared": false,
+  "backend": "Windows Direct3D 11 / Neptune / native DXMT / Metal",
+  "sources": [
+    {
+      "name": "DXMT",
+      "url": "https://github.com/utmapp/dxmt",
+      "revision": "bcdcf6da89af6c9fedeb2fc92b4367b23d5d6ed6",
+      "archiveSHA256": "3f7022836696da7af96f31253484f358a0772009e84c13e565a3ee1c26075c13",
+      "license": "LGPL-2.1-or-later"
+    },
+    {
+      "name": "virglrenderer Neptune",
+      "url": "https://github.com/utmapp/virglrenderer",
+      "revision": "482f9d8b8c2d2288efa10a027116216909d2c226",
+      "archiveSHA256": "47f2c2fd490486a133467c24edf1682bafb832111ca7c98a0f4448ad60f5293e",
+      "license": "MIT"
+    },
+    {
+      "name": "ANGLE in WebKit",
+      "url": "https://github.com/utmapp/WebKit",
+      "revision": "ed78ab6e1a37f4f11583a0bd038f22ec91f3ff10",
+      "selectedDirectories": [
+        "Source/ThirdParty/ANGLE",
+        "Configurations",
+        "Tools/ccache"
+      ],
+      "license": "BSD-3-Clause",
+      "modifications": "Current libc++ extensive hardening build option; compiler compatibility source patch retained in private evaluation artifacts."
+    },
+    {
+      "name": "QEMU matching GPU prerequisite",
+      "url": "https://github.com/utmapp/qemu/releases/tag/v10.0.12-utm",
+      "archiveSHA256": "7c9605290b34152debb842e965a55d2e4fbba4793e536ab677b4027e5dc0ba1a",
+      "license": "GPL-2.0-only",
+      "limitation": "Build passes, but virt-10.0 does not preserve the current VM's virt-11.1 machine contract; do not substitute this runtime into that VM."
+    },
+    {
+      "name": "viogpu3d signed ARM64X package",
+      "url": "https://github.com/osy/kvm-guest-drivers-windows/releases/tag/v0.3",
+      "kernelSourceRevision": "769e75cd645fc48f4aaae716ca8a74795fe5e241",
+      "version": "100.6.101.58000",
+      "driverLicense": "BSD-2-Clause",
+      "userModeCorrespondingSourceVerified": false,
+      "installed": false,
+      "archiveSHA256": "af976d1fc6cbd1c8462ba06a45f860ae1638d9a6a007e2bfe95bb9b235251c5d",
+      "archiveBytes": 2117369,
+      "kernelLicenseURL": "https://github.com/osy/kvm-guest-drivers-windows/blob/769e75cd645fc48f4aaae716ca8a74795fe5e241/viogpu/LICENSE"
+    }
+  ],
+  "acceptance": {
+    "nativeD3D11Checks": {
+      "passed": 145,
+      "failed": 0,
+      "actualExit": 0
+    },
+    "neptuneInitializationChecks": {
+      "passed": 7,
+      "failed": 0,
+      "actualExit": 0
+    },
+    "guestDirect3DChecks": "pending",
+    "nativeResolutionFramePacing": "pending",
+    "inputAndLifecycleSoak": "pending",
+    "angleMetalProbe": {
+      "actualExit": 0,
+      "device": "Apple M5 Pro",
+      "EGLVersion": "1.5",
+      "knownPixel": [
+        255,
+        0,
+        0,
+        255
+      ],
+      "softwareRendererRejected": true
+    }
+  },
+  "localFollowup20261014": {
+    "status": "experimental",
+    "publicISVSourceURL": "https://www.mail-archive.com/qemu-devel%40nongnu.org/msg1182915.html",
+    "publicHVFIntegrationURL": "https://www.mail-archive.com/qemu-devel%40nongnu.org/msg1182906.html",
+    "sourceLicense": "GPL-2.0-or-later",
+    "modifications": [
+      "QEMU11.1 translation-success convention",
+      "non-TLB accelerator page walk retaining protection and access-flag checks",
+      "unsupported AF/DB update raises guest walk fault",
+      "explicit bounded monitor refresh with upstream default preserved",
+      "VNC bounds8192; original client16M pixel cap retained",
+      "reused per-worker heap scratch for enlarged VncState",
+      "default-off CTA-861 VIC97 4K60 basic EDID timing; private GPU profile only",
+      "original global/context async fence namespace isolation",
+      "Akihiko Odaki upstream per-command inflight accounting correction, v3 7/9 2026-09-08",
+      "Original Buffer cursor-consumption API used for VNC plain output; retain per-buffer LGPL-2.1-or-later notices and source",
+      "Darwin AF_UNIX VNC send capacity hint256KiB; host client receive hint256KiB only after endpoint/UID verification; existing frame/parser/fairness/backpressure limits retained",
+      "Default-off VNC active-refresh-ms0..200; private GPU profile200ms grace before existing idle backoff, retain bounded outstanding request and output limits"
+    ],
+    "candidateRuntimeVersion": 27,
+    "candidateBinarySHA256": "c4b0a4f228d4800890374e6d29661370e793bd6c452c6005ccea3990e8c5a3ce",
+    "candidateGPLPatchSHA256": "79445c5dbe665ee0ce3c9038bb61cfc2311125f33f5f15a29db299fa2333d1f9",
+    "redistributionStatus": "not release cleared; full corresponding source and notices required",
+    "qualified": "MMU-enabled public HVF loads and precise abort onv21; real native Windows GDI/CCD acceptance onv19; full3456x2168 RFB frame and every generated pixel checked onv22; same final fixturev21 times out; v24 diskless Metal/QMP launch/property true/quit0; five generated EDID cases; old actual async callback fails eight of ten synthetic-queue regressions while v24 passes all ten; v24/v25 identical full native generated RFB pixels/hash and quit0; 30000 seeded mixed buffer operations pass ASAN/UBSAN; generated native8KB drain median765.673ms legacy vs0.655ms cursor, component only; v25/v26 every generated native RFB pixel/identicalhash/QMPexit0; local kernel defaults8192 confirmed; exact generated socketpair native30MB median40.555ms\u219211.965ms with256KiB hint, component only;20 native RFB client interoperability/deadline/duplex/cancel checks passed; actual extracted vnc_refresh callback 13/13 ASAN/UBSAN checks (old5 failures), default-off/idle/no-client policy preserved; v26/v27 exact full generated 3456x2168 frame and every public pixel/hash checked with QMP0/actual reaped0",
+    "windows120HzQualified": false,
+    "generalWindowsStabilityQualified": false,
+    "windowsNativePresentationOnCandidate": "v26 live app20.6 received/drawn persecond at3456x2168; shader buffer3440x1904/DPR2 differs from earlier; v27 live active-cadence comparison pending",
+    "publicFenceAccountingSourceURL": "https://patchew.org/QEMU/20260908-gpu-v3-0-25332a85f909@rsg.ci.i.u-tokyo.ac.jp/",
+    "public4KTimingReferenceURL": "https://code.googlesource.com/linux/torvalds/linux/+/4bf54e47525dcacd4c6cdd97fb5902592414dd7a/drivers/gpu/drm/drm_edid.c",
+    "knownWindowsFailure": "v22 observed Windows 0x119 parameter1=1 after native desktop and benchmark navigation; exact cause and correction not yet qualified",
+    "bufferModificationLicense": "LGPL-2.1-or-later for existing Buffer files; retain MIT-style VNC source notice; aggregate QEMU GPL-2.0-or-later obligations remain",
+    "knownPerformanceGap": "v26 Start16cycles p9552.88ms/worst220.15ms, shader transport20.6/s; physicalscanout and120Hz still unqualified; signedmode60Hz"
+  }
+}

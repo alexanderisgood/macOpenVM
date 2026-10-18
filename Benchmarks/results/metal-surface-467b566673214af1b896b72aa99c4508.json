@@ -1,0 +1,1611 @@
+{
+  "application": {
+    "backend": "generated Metal/IOSurface component",
+    "backendVersion": "public SDK APIs",
+    "configuration": {
+      "build": {
+        "actualBuildExits": [
+          0,
+          0,
+          0
+        ],
+        "binaries": {
+          "SurfaceSingle": {
+            "bytes": 55104,
+            "sha256": "be0cd725608e5e6a8dc43ba4c58b8d573383aee0dcf427d764e22a5b8b3d3259"
+          },
+          "SurfaceTransport": {
+            "bytes": 73216,
+            "sha256": "87fa18deee465658631a46fe35e5f901409b9996340aa1c8568b67de5a16f7a5"
+          },
+          "SurfaceTransportChecked": {
+            "bytes": 96088,
+            "sha256": "c6e44bbc497b890dedc771b3ef536b7432094d70d84ebea000571f0fb7829d55"
+          }
+        },
+        "inputs": {
+          "Benchmarks/MetalSurface/Fixture.h": "229c4094f9d365c6a99aa946a01149bd36d572de8a09edd4f10c03fcadbb07b1",
+          "Benchmarks/MetalSurface/SingleProcess.m": "1958824b3be941c2328134492977ecf330f12fb247f044edd952c2f8f2c8f1f2",
+          "Benchmarks/MetalSurface/TransportProbe.m": "d966495422b24819981f0c957d7e38a95ac684b9da1166974319b8f92f731854",
+          "Benchmarks/metal_surface.py": "8a26c5f1e706d0754d085cf8336ecd28396bd851954e16ec3ccd64e331fc7d2c",
+          "Benchmarks/result.schema.json": "1ae4c80d5c55b8bd8d07c0b3cf75a0073accbe98a3ade773205a49e6171e13f3",
+          "Benchmarks/validate_result.py": "e2cbc035c9d6747df061dd14566014cbadddbf3adf58ea14db16eb0d1fb73940",
+          "scripts/build_manifest.py": "522564b7673d4b089df0768a0836f373c2143a2a6ae7373ff5ca808b45b63259"
+        },
+        "scope": "generated-Metal-surface-component-build",
+        "toolchain": {
+          "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+          "sdk": "27.0",
+          "target": "arm64-apple-macos14"
+        }
+      },
+      "measurements": {
+        "early-exit": {
+          "actualChildExit": 7,
+          "actualParentReaped": true,
+          "cases": [],
+          "consumerShaderReadUsageIsAccessControl": false,
+          "expectedProtocolRejectionObserved": true,
+          "forcedOwnedCleanup": false,
+          "guestOrPhysicalPresentationQualified": false,
+          "kernelPeerAuditUIDAndOwnedChildPIDChecked": true,
+          "mode": "early-exit",
+          "namedServiceOrGlobalSurfaceIDUsed": false,
+          "noGuestPixelsOrScreenFiles": true,
+          "passed": true,
+          "productionAuthenticationQualified": false,
+          "registeredPortsRestored": true,
+          "scope": "cross-process-generated-IOSurface-GPU-delivery-component",
+          "timingScope": "completed source excluded; GPU export, private Mach notice and consumer GPU draw separate; ACK includes independent all-pixel CPU oracle and declared pause"
+        },
+        "malformed-attach": {
+          "actualChildExit": 24,
+          "actualParentReaped": true,
+          "cases": [],
+          "consumerShaderReadUsageIsAccessControl": false,
+          "expectedProtocolRejectionObserved": true,
+          "forcedOwnedCleanup": false,
+          "guestOrPhysicalPresentationQualified": false,
+          "kernelPeerAuditUIDAndOwnedChildPIDChecked": true,
+          "mode": "malformed-attach",
+          "namedServiceOrGlobalSurfaceIDUsed": false,
+          "noGuestPixelsOrScreenFiles": true,
+          "passed": true,
+          "productionAuthenticationQualified": false,
+          "registeredPortsRestored": true,
+          "scope": "cross-process-generated-IOSurface-GPU-delivery-component",
+          "timingScope": "completed source excluded; GPU export, private Mach notice and consumer GPU draw separate; ACK includes independent all-pixel CPU oracle and declared pause"
+        },
+        "replay-ack": {
+          "actualChildExit": 0,
+          "actualParentReaped": true,
+          "cases": [],
+          "consumerShaderReadUsageIsAccessControl": false,
+          "expectedProtocolRejectionObserved": true,
+          "forcedOwnedCleanup": false,
+          "guestOrPhysicalPresentationQualified": false,
+          "kernelPeerAuditUIDAndOwnedChildPIDChecked": true,
+          "mode": "replay-ack",
+          "namedServiceOrGlobalSurfaceIDUsed": false,
+          "noGuestPixelsOrScreenFiles": true,
+          "passed": true,
+          "productionAuthenticationQualified": false,
+          "registeredPortsRestored": true,
+          "scope": "cross-process-generated-IOSurface-GPU-delivery-component",
+          "timingScope": "completed source excluded; GPU export, private Mach notice and consumer GPU draw separate; ACK includes independent all-pixel CPU oracle and declared pause"
+        },
+        "single": {
+          "cases": [
+            {
+              "allPixelsCorrect": true,
+              "alphaForcedOpaque": true,
+              "height": 2168,
+              "machPortsDeallocatedAfterImport": true,
+              "samples": [
+                {
+                  "combinedMS": 1.7589998245239258,
+                  "consumerDrawAndWaitMS": 0.8730001449584961,
+                  "exportSubmitAndWaitMS": 0.8859996795654297
+                },
+                {
+                  "combinedMS": 1.5749998092651367,
+                  "consumerDrawAndWaitMS": 0.5469999313354492,
+                  "exportSubmitAndWaitMS": 1.0279998779296875
+                },
+                {
+                  "combinedMS": 1.0639996528625488,
+                  "consumerDrawAndWaitMS": 0.5089998245239258,
+                  "exportSubmitAndWaitMS": 0.554999828338623
+                },
+                {
+                  "combinedMS": 1.0210003852844238,
+                  "consumerDrawAndWaitMS": 0.49700021743774414,
+                  "exportSubmitAndWaitMS": 0.5240001678466797
+                },
+                {
+                  "combinedMS": 1.49399995803833,
+                  "consumerDrawAndWaitMS": 0.5949997901916504,
+                  "exportSubmitAndWaitMS": 0.8990001678466797
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 80,
+              "surfaceFormat": 80,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3456
+            },
+            {
+              "allPixelsCorrect": true,
+              "alphaForcedOpaque": true,
+              "height": 2168,
+              "machPortsDeallocatedAfterImport": true,
+              "samples": [
+                {
+                  "combinedMS": 1.065000057220459,
+                  "consumerDrawAndWaitMS": 0.5390000343322754,
+                  "exportSubmitAndWaitMS": 0.5260000228881836
+                },
+                {
+                  "combinedMS": 1.114999771118164,
+                  "consumerDrawAndWaitMS": 0.5570001602172852,
+                  "exportSubmitAndWaitMS": 0.5579996109008789
+                },
+                {
+                  "combinedMS": 0.9549999237060547,
+                  "consumerDrawAndWaitMS": 0.5639996528625488,
+                  "exportSubmitAndWaitMS": 0.39100027084350586
+                },
+                {
+                  "combinedMS": 1.4869999885559082,
+                  "consumerDrawAndWaitMS": 0.43000030517578125,
+                  "exportSubmitAndWaitMS": 1.056999683380127
+                },
+                {
+                  "combinedMS": 0.8330001831054688,
+                  "consumerDrawAndWaitMS": 0.434999942779541,
+                  "exportSubmitAndWaitMS": 0.39800024032592773
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 81,
+              "surfaceFormat": 81,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3456
+            },
+            {
+              "allPixelsCorrect": true,
+              "alphaForcedOpaque": true,
+              "height": 2168,
+              "machPortsDeallocatedAfterImport": true,
+              "samples": [
+                {
+                  "combinedMS": 0.9899997711181641,
+                  "consumerDrawAndWaitMS": 0.46199989318847656,
+                  "exportSubmitAndWaitMS": 0.5279998779296875
+                },
+                {
+                  "combinedMS": 1.1529998779296875,
+                  "consumerDrawAndWaitMS": 0.560999870300293,
+                  "exportSubmitAndWaitMS": 0.5920000076293945
+                },
+                {
+                  "combinedMS": 0.9920001029968262,
+                  "consumerDrawAndWaitMS": 0.4790000915527344,
+                  "exportSubmitAndWaitMS": 0.5130000114440918
+                },
+                {
+                  "combinedMS": 1.5489997863769531,
+                  "consumerDrawAndWaitMS": 0.5489997863769531,
+                  "exportSubmitAndWaitMS": 1
+                },
+                {
+                  "combinedMS": 1.0949997901916504,
+                  "consumerDrawAndWaitMS": 0.5520000457763672,
+                  "exportSubmitAndWaitMS": 0.5429997444152832
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 70,
+              "surfaceFormat": 80,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3456
+            },
+            {
+              "allPixelsCorrect": true,
+              "alphaForcedOpaque": true,
+              "height": 2168,
+              "machPortsDeallocatedAfterImport": true,
+              "samples": [
+                {
+                  "combinedMS": 0.9030003547668457,
+                  "consumerDrawAndWaitMS": 0.5060000419616699,
+                  "exportSubmitAndWaitMS": 0.3970003128051758
+                },
+                {
+                  "combinedMS": 1.0120000839233398,
+                  "consumerDrawAndWaitMS": 0.4980001449584961,
+                  "exportSubmitAndWaitMS": 0.5139999389648438
+                },
+                {
+                  "combinedMS": 0.9239997863769531,
+                  "consumerDrawAndWaitMS": 0.5120000839233398,
+                  "exportSubmitAndWaitMS": 0.4119997024536133
+                },
+                {
+                  "combinedMS": 1.0520000457763672,
+                  "consumerDrawAndWaitMS": 0.5339999198913574,
+                  "exportSubmitAndWaitMS": 0.5180001258850098
+                },
+                {
+                  "combinedMS": 0.8010001182556152,
+                  "consumerDrawAndWaitMS": 0.43599987030029297,
+                  "exportSubmitAndWaitMS": 0.36500024795532227
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 71,
+              "surfaceFormat": 81,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3456
+            },
+            {
+              "allPixelsCorrect": true,
+              "alphaForcedOpaque": true,
+              "height": 2160,
+              "machPortsDeallocatedAfterImport": true,
+              "samples": [
+                {
+                  "combinedMS": 0.9010000228881836,
+                  "consumerDrawAndWaitMS": 0.4930000305175781,
+                  "exportSubmitAndWaitMS": 0.40799999237060547
+                },
+                {
+                  "combinedMS": 1.315999984741211,
+                  "consumerDrawAndWaitMS": 0.7090001106262207,
+                  "exportSubmitAndWaitMS": 0.6069998741149902
+                },
+                {
+                  "combinedMS": 1.366999626159668,
+                  "consumerDrawAndWaitMS": 0.7219996452331543,
+                  "exportSubmitAndWaitMS": 0.6449999809265137
+                },
+                {
+                  "combinedMS": 0.6180000305175781,
+                  "consumerDrawAndWaitMS": 0.3210000991821289,
+                  "exportSubmitAndWaitMS": 0.2969999313354492
+                },
+                {
+                  "combinedMS": 0.7979998588562012,
+                  "consumerDrawAndWaitMS": 0.48400020599365234,
+                  "exportSubmitAndWaitMS": 0.31399965286254883
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 80,
+              "surfaceFormat": 80,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3840
+            },
+            {
+              "allPixelsCorrect": true,
+              "alphaForcedOpaque": true,
+              "height": 2160,
+              "machPortsDeallocatedAfterImport": true,
+              "samples": [
+                {
+                  "combinedMS": 0.7699999809265137,
+                  "consumerDrawAndWaitMS": 0.4350004196166992,
+                  "exportSubmitAndWaitMS": 0.33499956130981445
+                },
+                {
+                  "combinedMS": 0.935999870300293,
+                  "consumerDrawAndWaitMS": 0.5520000457763672,
+                  "exportSubmitAndWaitMS": 0.3839998245239258
+                },
+                {
+                  "combinedMS": 0.9790000915527344,
+                  "consumerDrawAndWaitMS": 0.6090002059936523,
+                  "exportSubmitAndWaitMS": 0.36999988555908203
+                },
+                {
+                  "combinedMS": 0.9229998588562012,
+                  "consumerDrawAndWaitMS": 0.5120000839233398,
+                  "exportSubmitAndWaitMS": 0.41099977493286133
+                },
+                {
+                  "combinedMS": 0.6640000343322754,
+                  "consumerDrawAndWaitMS": 0.33100032806396484,
+                  "exportSubmitAndWaitMS": 0.33299970626831055
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 81,
+              "surfaceFormat": 81,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3840
+            },
+            {
+              "allPixelsCorrect": true,
+              "alphaForcedOpaque": true,
+              "height": 2160,
+              "machPortsDeallocatedAfterImport": true,
+              "samples": [
+                {
+                  "combinedMS": 0.9100003242492676,
+                  "consumerDrawAndWaitMS": 0.48000001907348633,
+                  "exportSubmitAndWaitMS": 0.43000030517578125
+                },
+                {
+                  "combinedMS": 0.7280001640319824,
+                  "consumerDrawAndWaitMS": 0.3490004539489746,
+                  "exportSubmitAndWaitMS": 0.3789997100830078
+                },
+                {
+                  "combinedMS": 1.6220002174377441,
+                  "consumerDrawAndWaitMS": 0.4570002555847168,
+                  "exportSubmitAndWaitMS": 1.1649999618530273
+                },
+                {
+                  "combinedMS": 0.8179998397827148,
+                  "consumerDrawAndWaitMS": 0.4609999656677246,
+                  "exportSubmitAndWaitMS": 0.35699987411499023
+                },
+                {
+                  "combinedMS": 0.8959999084472656,
+                  "consumerDrawAndWaitMS": 0.5199999809265137,
+                  "exportSubmitAndWaitMS": 0.37599992752075195
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 70,
+              "surfaceFormat": 80,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3840
+            },
+            {
+              "allPixelsCorrect": true,
+              "alphaForcedOpaque": true,
+              "height": 2160,
+              "machPortsDeallocatedAfterImport": true,
+              "samples": [
+                {
+                  "combinedMS": 0.929999828338623,
+                  "consumerDrawAndWaitMS": 0.5260000228881836,
+                  "exportSubmitAndWaitMS": 0.40399980545043945
+                },
+                {
+                  "combinedMS": 0.9479999542236328,
+                  "consumerDrawAndWaitMS": 0.5139999389648438,
+                  "exportSubmitAndWaitMS": 0.43400001525878906
+                },
+                {
+                  "combinedMS": 0.9639997482299805,
+                  "consumerDrawAndWaitMS": 0.47899961471557617,
+                  "exportSubmitAndWaitMS": 0.4850001335144043
+                },
+                {
+                  "combinedMS": 0.8779997825622559,
+                  "consumerDrawAndWaitMS": 0.49200010299682617,
+                  "exportSubmitAndWaitMS": 0.3859996795654297
+                },
+                {
+                  "combinedMS": 0.7260003089904785,
+                  "consumerDrawAndWaitMS": 0.3530001640319824,
+                  "exportSubmitAndWaitMS": 0.3730001449584961
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 71,
+              "surfaceFormat": 81,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3840
+            }
+          ],
+          "consumerShaderReadUsageIsAccessControl": false,
+          "crossProcessIPCQualified": false,
+          "device": "Apple M5 Pro",
+          "guestPerformanceQualified": false,
+          "guestPixelsOrScreenFiles": false,
+          "physicalPresentationQualified": false,
+          "sameProcessMachPortRoundTrip": true,
+          "scope": "single-process-generated-IOSurface-GPU-delivery-component",
+          "synchronization": "two independent command queues, sequential completion; two slots, one in flight; no IPC/failure-recovery claim",
+          "timingScope": "GPU export draw then GPU consumer draw; each CPU submit-to-command-completion; generated source and all-pixel oracle excluded"
+        },
+        "stale-epoch": {
+          "actualChildExit": 0,
+          "actualParentReaped": true,
+          "cases": [],
+          "consumerShaderReadUsageIsAccessControl": false,
+          "expectedProtocolRejectionObserved": true,
+          "forcedOwnedCleanup": false,
+          "guestOrPhysicalPresentationQualified": false,
+          "kernelPeerAuditUIDAndOwnedChildPIDChecked": true,
+          "mode": "stale-epoch",
+          "namedServiceOrGlobalSurfaceIDUsed": false,
+          "noGuestPixelsOrScreenFiles": true,
+          "passed": true,
+          "productionAuthenticationQualified": false,
+          "registeredPortsRestored": true,
+          "scope": "cross-process-generated-IOSurface-GPU-delivery-component",
+          "timingScope": "completed source excluded; GPU export, private Mach notice and consumer GPU draw separate; ACK includes independent all-pixel CPU oracle and declared pause"
+        },
+        "stalled-consumer": {
+          "actualChildExit": 0,
+          "actualParentReaped": true,
+          "cases": [],
+          "consumerShaderReadUsageIsAccessControl": false,
+          "expectedProtocolRejectionObserved": true,
+          "forcedOwnedCleanup": false,
+          "guestOrPhysicalPresentationQualified": false,
+          "kernelPeerAuditUIDAndOwnedChildPIDChecked": true,
+          "mode": "stalled-consumer",
+          "namedServiceOrGlobalSurfaceIDUsed": false,
+          "noGuestPixelsOrScreenFiles": true,
+          "passed": true,
+          "productionAuthenticationQualified": false,
+          "registeredPortsRestored": true,
+          "scope": "cross-process-generated-IOSurface-GPU-delivery-component",
+          "timingScope": "completed source excluded; GPU export, private Mach notice and consumer GPU draw separate; ACK includes independent all-pixel CPU oracle and declared pause"
+        },
+        "transport": {
+          "actualChildExit": 0,
+          "actualParentReaped": true,
+          "cases": [
+            {
+              "allConsumerPixelsCorrect": true,
+              "height": 2168,
+              "maximumInFlight": 1,
+              "samples": [
+                {
+                  "consumerDrawAndWaitMS": 0.5840001106262207,
+                  "consumerNoticeMS": 0.005000114440917969,
+                  "deliberateConsumerPauseMS": 32,
+                  "exportSubmitAndWaitMS": 0.5949997901916504,
+                  "validatedACKRoundTripMS": 43.74000024795532
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.490999698638916,
+                  "consumerNoticeMS": 0.008000373840332031,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5130000114440918,
+                  "validatedACKRoundTripMS": 6.74500036239624
+                },
+                {
+                  "consumerDrawAndWaitMS": 1.4270000457763672,
+                  "consumerNoticeMS": 0.005000114440917969,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5360002517700195,
+                  "validatedACKRoundTripMS": 7.355000019073486
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.6100001335144043,
+                  "consumerNoticeMS": 0.004999637603759766,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5190000534057617,
+                  "validatedACKRoundTripMS": 6.365999698638916
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.7979998588562012,
+                  "consumerNoticeMS": 0.006999969482421875,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5120000839233398,
+                  "validatedACKRoundTripMS": 6.686999797821045
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 80,
+              "surfaceFormat": 80,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3456
+            },
+            {
+              "allConsumerPixelsCorrect": true,
+              "height": 2168,
+              "maximumInFlight": 1,
+              "samples": [
+                {
+                  "consumerDrawAndWaitMS": 0.9769997596740723,
+                  "consumerNoticeMS": 0.009999752044677734,
+                  "deliberateConsumerPauseMS": 32,
+                  "exportSubmitAndWaitMS": 0.6080002784729004,
+                  "validatedACKRoundTripMS": 43.176000118255615
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.6059999465942383,
+                  "consumerNoticeMS": 0.01399993896484375,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5590000152587891,
+                  "validatedACKRoundTripMS": 6.7779998779296875
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5490002632141113,
+                  "consumerNoticeMS": 0.004999637603759766,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5469999313354492,
+                  "validatedACKRoundTripMS": 6.432999610900879
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.6119999885559082,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5419998168945312,
+                  "validatedACKRoundTripMS": 6.498000144958496
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5529999732971191,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5380001068115234,
+                  "validatedACKRoundTripMS": 6.6519999504089355
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 81,
+              "surfaceFormat": 81,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3456
+            },
+            {
+              "allConsumerPixelsCorrect": true,
+              "height": 2168,
+              "maximumInFlight": 1,
+              "samples": [
+                {
+                  "consumerDrawAndWaitMS": 0.9869999885559082,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 32,
+                  "exportSubmitAndWaitMS": 0.5710000991821289,
+                  "validatedACKRoundTripMS": 44.30399990081787
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5699996948242188,
+                  "consumerNoticeMS": 0.005000114440917969,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.9250001907348633,
+                  "validatedACKRoundTripMS": 6.933000087738037
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.9910001754760742,
+                  "consumerNoticeMS": 0.008999824523925781,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.9970002174377441,
+                  "validatedACKRoundTripMS": 6.929999828338623
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.6040000915527344,
+                  "consumerNoticeMS": 0.009999752044677734,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.9700002670288086,
+                  "validatedACKRoundTripMS": 6.539999961853027
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.619999885559082,
+                  "consumerNoticeMS": 0.007999897003173828,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5890002250671387,
+                  "validatedACKRoundTripMS": 6.454999923706055
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 70,
+              "surfaceFormat": 80,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3456
+            },
+            {
+              "allConsumerPixelsCorrect": true,
+              "height": 2168,
+              "maximumInFlight": 1,
+              "samples": [
+                {
+                  "consumerDrawAndWaitMS": 0.9239997863769531,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 32,
+                  "exportSubmitAndWaitMS": 0.5749998092651367,
+                  "validatedACKRoundTripMS": 42.60599994659424
+                },
+                {
+                  "consumerDrawAndWaitMS": 1.2970004081726074,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.9159998893737793,
+                  "validatedACKRoundTripMS": 7.38200044631958
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.556999683380127,
+                  "consumerNoticeMS": 0.008000373840332031,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5320000648498535,
+                  "validatedACKRoundTripMS": 6.61400032043457
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.630000114440918,
+                  "consumerNoticeMS": 0.0039997100830078125,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.49499988555908203,
+                  "validatedACKRoundTripMS": 6.500999927520752
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5469999313354492,
+                  "consumerNoticeMS": 0.005000114440917969,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5230002403259277,
+                  "validatedACKRoundTripMS": 6.5239996910095215
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 71,
+              "surfaceFormat": 81,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3456
+            },
+            {
+              "allConsumerPixelsCorrect": true,
+              "height": 2160,
+              "maximumInFlight": 1,
+              "samples": [
+                {
+                  "consumerDrawAndWaitMS": 1.4950003623962402,
+                  "consumerNoticeMS": 0.005000114440917969,
+                  "deliberateConsumerPauseMS": 32,
+                  "exportSubmitAndWaitMS": 0.5659999847412109,
+                  "validatedACKRoundTripMS": 45.70700025558472
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5510001182556152,
+                  "consumerNoticeMS": 0.005000114440917969,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5679998397827148,
+                  "validatedACKRoundTripMS": 7.6080002784729
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5580000877380371,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 1.1479997634887695,
+                  "validatedACKRoundTripMS": 7.546000003814697
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.570000171661377,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5669999122619629,
+                  "validatedACKRoundTripMS": 7.234000205993652
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5510001182556152,
+                  "consumerNoticeMS": 0.006999969482421875,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.565000057220459,
+                  "validatedACKRoundTripMS": 6.904999732971191
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 80,
+              "surfaceFormat": 80,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3840
+            },
+            {
+              "allConsumerPixelsCorrect": true,
+              "height": 2160,
+              "maximumInFlight": 1,
+              "samples": [
+                {
+                  "consumerDrawAndWaitMS": 1.2849998474121094,
+                  "consumerNoticeMS": 0.012000083923339844,
+                  "deliberateConsumerPauseMS": 32,
+                  "exportSubmitAndWaitMS": 1.0489997863769531,
+                  "validatedACKRoundTripMS": 44.884000301361084
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.564000129699707,
+                  "consumerNoticeMS": 0.005999565124511719,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 1.0350003242492676,
+                  "validatedACKRoundTripMS": 7.4579997062683105
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5739998817443848,
+                  "consumerNoticeMS": 0.005000114440917969,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5420002937316895,
+                  "validatedACKRoundTripMS": 7.297999858856201
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5710000991821289,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5439996719360352,
+                  "validatedACKRoundTripMS": 7.2170000076293945
+                },
+                {
+                  "consumerDrawAndWaitMS": 1.0329999923706055,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.568000316619873,
+                  "validatedACKRoundTripMS": 7.671999931335449
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 81,
+              "surfaceFormat": 81,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3840
+            },
+            {
+              "allConsumerPixelsCorrect": true,
+              "height": 2160,
+              "maximumInFlight": 1,
+              "samples": [
+                {
+                  "consumerDrawAndWaitMS": 1.4499998092651367,
+                  "consumerNoticeMS": 0.004999637603759766,
+                  "deliberateConsumerPauseMS": 32,
+                  "exportSubmitAndWaitMS": 0.5999999046325684,
+                  "validatedACKRoundTripMS": 42.7960000038147
+                },
+                {
+                  "consumerDrawAndWaitMS": 1.0069999694824219,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 1.114999771118164,
+                  "validatedACKRoundTripMS": 7.647000312805176
+                },
+                {
+                  "consumerDrawAndWaitMS": 1.4879999160766602,
+                  "consumerNoticeMS": 0.006999969482421875,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.9270000457763672,
+                  "validatedACKRoundTripMS": 8.271999835968018
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.5970001220703125,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.75,
+                  "validatedACKRoundTripMS": 7.064000129699707
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.8010001182556152,
+                  "consumerNoticeMS": 0.01100015640258789,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 1.1499996185302734,
+                  "validatedACKRoundTripMS": 7.458000183105469
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 70,
+              "surfaceFormat": 80,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3840
+            },
+            {
+              "allConsumerPixelsCorrect": true,
+              "height": 2160,
+              "maximumInFlight": 1,
+              "samples": [
+                {
+                  "consumerDrawAndWaitMS": 1.4619998931884766,
+                  "consumerNoticeMS": 0.012999534606933594,
+                  "deliberateConsumerPauseMS": 32,
+                  "exportSubmitAndWaitMS": 1.2049999237060547,
+                  "validatedACKRoundTripMS": 45.20599985122681
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.9860000610351562,
+                  "consumerNoticeMS": 0.01100015640258789,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.999000072479248,
+                  "validatedACKRoundTripMS": 7.6519999504089355
+                },
+                {
+                  "consumerDrawAndWaitMS": 1.071000099182129,
+                  "consumerNoticeMS": 0.006999969482421875,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.6170001029968262,
+                  "validatedACKRoundTripMS": 7.732999801635742
+                },
+                {
+                  "consumerDrawAndWaitMS": 1.128000259399414,
+                  "consumerNoticeMS": 0.009999752044677734,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.9820003509521484,
+                  "validatedACKRoundTripMS": 7.882999897003174
+                },
+                {
+                  "consumerDrawAndWaitMS": 0.6370000839233398,
+                  "consumerNoticeMS": 0.006000041961669922,
+                  "deliberateConsumerPauseMS": 0,
+                  "exportSubmitAndWaitMS": 0.5649995803833008,
+                  "validatedACKRoundTripMS": 6.980999946594238
+                }
+              ],
+              "slots": 2,
+              "sourceFormat": 71,
+              "surfaceFormat": 81,
+              "trials": 5,
+              "warmups": 2,
+              "width": 3840
+            }
+          ],
+          "consumerShaderReadUsageIsAccessControl": false,
+          "expectedProtocolRejectionObserved": false,
+          "forcedOwnedCleanup": false,
+          "guestOrPhysicalPresentationQualified": false,
+          "kernelPeerAuditUIDAndOwnedChildPIDChecked": true,
+          "mode": "healthy",
+          "namedServiceOrGlobalSurfaceIDUsed": false,
+          "noGuestPixelsOrScreenFiles": true,
+          "passed": true,
+          "productionAuthenticationQualified": false,
+          "registeredPortsRestored": true,
+          "scope": "cross-process-generated-IOSurface-GPU-delivery-component",
+          "timingScope": "completed source excluded; GPU export, private Mach notice and consumer GPU draw separate; ACK includes independent all-pixel CPU oracle and declared pause"
+        }
+      }
+    },
+    "entitlements": [],
+    "revision": null,
+    "sourceSHA256": "5360bf431432d9049c6746c43b6c34e24b10618c24423d1c782bdbc8fdb5fc41",
+    "version": "0.1.0-dev"
+  },
+  "guest": {
+    "agentVersion": null,
+    "architecture": null,
+    "build": null,
+    "disk": null,
+    "driverVersions": null,
+    "edition": null,
+    "network": null,
+    "os": null,
+    "patchLevel": null,
+    "ramBytes": null,
+    "vCPU": null
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "displays": null,
+    "efficiencyCores": null,
+    "gpuCores": null,
+    "macOSBuild": "26A428",
+    "macOSVersion": "27.0",
+    "model": "Mac17,8",
+    "performanceCores": null,
+    "powerMode": null,
+    "ramBytes": 51539607552,
+    "storageFreeBytes": 6579888128,
+    "storageModel": null,
+    "thermalState": null
+  },
+  "limitations": [
+    "Generated quadrants only; no VM access, guest pixels, screen files or real display presentation.",
+    "Five sequential samples per format/geometry; no CI, FPS, gameplay or120Hz claim.",
+    "Cross-process GPU draw is not physical scanout; ACK includes CPU correctness checks and a declared pause.",
+    "Mach peer UID/owned-child identity and protocol faults are tested; production VM/session/authentication binding is not.",
+    "Shader-read usage is a role, not enforced read-only access to an IOSurface capability.",
+    "Local unsigned build provenance; no clean-machine release reproduction or distribution clearance."
+  ],
+  "method": {
+    "backgroundWorkload": "Interactive development host; other CPU/GPU work uncontrolled",
+    "cache": "uncontrolled",
+    "confidenceInterval": null,
+    "outlierPolicy": "retain all; two declared warmups per case",
+    "trialCount": 5
+  },
+  "metrics": [
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_80_combinedMS",
+      "samples": [
+        1.7589998245239258,
+        1.5749998092651367,
+        1.0639996528625488,
+        1.0210003852844238,
+        1.49399995803833
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_80_consumerDrawAndWaitMS",
+      "samples": [
+        0.8730001449584961,
+        0.5469999313354492,
+        0.5089998245239258,
+        0.49700021743774414,
+        0.5949997901916504
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_80_exportSubmitAndWaitMS",
+      "samples": [
+        0.8859996795654297,
+        1.0279998779296875,
+        0.554999828338623,
+        0.5240001678466797,
+        0.8990001678466797
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_81_combinedMS",
+      "samples": [
+        1.065000057220459,
+        1.114999771118164,
+        0.9549999237060547,
+        1.4869999885559082,
+        0.8330001831054688
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_81_consumerDrawAndWaitMS",
+      "samples": [
+        0.5390000343322754,
+        0.5570001602172852,
+        0.5639996528625488,
+        0.43000030517578125,
+        0.434999942779541
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_81_exportSubmitAndWaitMS",
+      "samples": [
+        0.5260000228881836,
+        0.5579996109008789,
+        0.39100027084350586,
+        1.056999683380127,
+        0.39800024032592773
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_70_combinedMS",
+      "samples": [
+        0.9899997711181641,
+        1.1529998779296875,
+        0.9920001029968262,
+        1.5489997863769531,
+        1.0949997901916504
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_70_consumerDrawAndWaitMS",
+      "samples": [
+        0.46199989318847656,
+        0.560999870300293,
+        0.4790000915527344,
+        0.5489997863769531,
+        0.5520000457763672
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_70_exportSubmitAndWaitMS",
+      "samples": [
+        0.5279998779296875,
+        0.5920000076293945,
+        0.5130000114440918,
+        1,
+        0.5429997444152832
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_71_combinedMS",
+      "samples": [
+        0.9030003547668457,
+        1.0120000839233398,
+        0.9239997863769531,
+        1.0520000457763672,
+        0.8010001182556152
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_71_consumerDrawAndWaitMS",
+      "samples": [
+        0.5060000419616699,
+        0.4980001449584961,
+        0.5120000839233398,
+        0.5339999198913574,
+        0.43599987030029297
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3456x2168_71_exportSubmitAndWaitMS",
+      "samples": [
+        0.3970003128051758,
+        0.5139999389648438,
+        0.4119997024536133,
+        0.5180001258850098,
+        0.36500024795532227
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_80_combinedMS",
+      "samples": [
+        0.9010000228881836,
+        1.315999984741211,
+        1.366999626159668,
+        0.6180000305175781,
+        0.7979998588562012
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_80_consumerDrawAndWaitMS",
+      "samples": [
+        0.4930000305175781,
+        0.7090001106262207,
+        0.7219996452331543,
+        0.3210000991821289,
+        0.48400020599365234
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_80_exportSubmitAndWaitMS",
+      "samples": [
+        0.40799999237060547,
+        0.6069998741149902,
+        0.6449999809265137,
+        0.2969999313354492,
+        0.31399965286254883
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_81_combinedMS",
+      "samples": [
+        0.7699999809265137,
+        0.935999870300293,
+        0.9790000915527344,
+        0.9229998588562012,
+        0.6640000343322754
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_81_consumerDrawAndWaitMS",
+      "samples": [
+        0.4350004196166992,
+        0.5520000457763672,
+        0.6090002059936523,
+        0.5120000839233398,
+        0.33100032806396484
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_81_exportSubmitAndWaitMS",
+      "samples": [
+        0.33499956130981445,
+        0.3839998245239258,
+        0.36999988555908203,
+        0.41099977493286133,
+        0.33299970626831055
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_70_combinedMS",
+      "samples": [
+        0.9100003242492676,
+        0.7280001640319824,
+        1.6220002174377441,
+        0.8179998397827148,
+        0.8959999084472656
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_70_consumerDrawAndWaitMS",
+      "samples": [
+        0.48000001907348633,
+        0.3490004539489746,
+        0.4570002555847168,
+        0.4609999656677246,
+        0.5199999809265137
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_70_exportSubmitAndWaitMS",
+      "samples": [
+        0.43000030517578125,
+        0.3789997100830078,
+        1.1649999618530273,
+        0.35699987411499023,
+        0.37599992752075195
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_71_combinedMS",
+      "samples": [
+        0.929999828338623,
+        0.9479999542236328,
+        0.9639997482299805,
+        0.8779997825622559,
+        0.7260003089904785
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_71_consumerDrawAndWaitMS",
+      "samples": [
+        0.5260000228881836,
+        0.5139999389648438,
+        0.47899961471557617,
+        0.49200010299682617,
+        0.3530001640319824
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "single_3840x2160_71_exportSubmitAndWaitMS",
+      "samples": [
+        0.40399980545043945,
+        0.43400001525878906,
+        0.4850001335144043,
+        0.3859996795654297,
+        0.3730001449584961
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_80_consumerDrawAndWaitMS",
+      "samples": [
+        0.5840001106262207,
+        0.490999698638916,
+        1.4270000457763672,
+        0.6100001335144043,
+        0.7979998588562012
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_80_consumerNoticeMS",
+      "samples": [
+        0.005000114440917969,
+        0.008000373840332031,
+        0.005000114440917969,
+        0.004999637603759766,
+        0.006999969482421875
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_80_exportSubmitAndWaitMS",
+      "samples": [
+        0.5949997901916504,
+        0.5130000114440918,
+        0.5360002517700195,
+        0.5190000534057617,
+        0.5120000839233398
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_80_validatedACKRoundTripMS",
+      "samples": [
+        43.74000024795532,
+        6.74500036239624,
+        7.355000019073486,
+        6.365999698638916,
+        6.686999797821045
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_81_consumerDrawAndWaitMS",
+      "samples": [
+        0.9769997596740723,
+        0.6059999465942383,
+        0.5490002632141113,
+        0.6119999885559082,
+        0.5529999732971191
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_81_consumerNoticeMS",
+      "samples": [
+        0.009999752044677734,
+        0.01399993896484375,
+        0.004999637603759766,
+        0.006000041961669922,
+        0.006000041961669922
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_81_exportSubmitAndWaitMS",
+      "samples": [
+        0.6080002784729004,
+        0.5590000152587891,
+        0.5469999313354492,
+        0.5419998168945312,
+        0.5380001068115234
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_81_validatedACKRoundTripMS",
+      "samples": [
+        43.176000118255615,
+        6.7779998779296875,
+        6.432999610900879,
+        6.498000144958496,
+        6.6519999504089355
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_70_consumerDrawAndWaitMS",
+      "samples": [
+        0.9869999885559082,
+        0.5699996948242188,
+        0.9910001754760742,
+        0.6040000915527344,
+        0.619999885559082
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_70_consumerNoticeMS",
+      "samples": [
+        0.006000041961669922,
+        0.005000114440917969,
+        0.008999824523925781,
+        0.009999752044677734,
+        0.007999897003173828
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_70_exportSubmitAndWaitMS",
+      "samples": [
+        0.5710000991821289,
+        0.9250001907348633,
+        0.9970002174377441,
+        0.9700002670288086,
+        0.5890002250671387
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_70_validatedACKRoundTripMS",
+      "samples": [
+        44.30399990081787,
+        6.933000087738037,
+        6.929999828338623,
+        6.539999961853027,
+        6.454999923706055
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_71_consumerDrawAndWaitMS",
+      "samples": [
+        0.9239997863769531,
+        1.2970004081726074,
+        0.556999683380127,
+        0.630000114440918,
+        0.5469999313354492
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_71_consumerNoticeMS",
+      "samples": [
+        0.006000041961669922,
+        0.006000041961669922,
+        0.008000373840332031,
+        0.0039997100830078125,
+        0.005000114440917969
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_71_exportSubmitAndWaitMS",
+      "samples": [
+        0.5749998092651367,
+        0.9159998893737793,
+        0.5320000648498535,
+        0.49499988555908203,
+        0.5230002403259277
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3456x2168_71_validatedACKRoundTripMS",
+      "samples": [
+        42.60599994659424,
+        7.38200044631958,
+        6.61400032043457,
+        6.500999927520752,
+        6.5239996910095215
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_80_consumerDrawAndWaitMS",
+      "samples": [
+        1.4950003623962402,
+        0.5510001182556152,
+        0.5580000877380371,
+        0.570000171661377,
+        0.5510001182556152
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_80_consumerNoticeMS",
+      "samples": [
+        0.005000114440917969,
+        0.005000114440917969,
+        0.006000041961669922,
+        0.006000041961669922,
+        0.006999969482421875
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_80_exportSubmitAndWaitMS",
+      "samples": [
+        0.5659999847412109,
+        0.5679998397827148,
+        1.1479997634887695,
+        0.5669999122619629,
+        0.565000057220459
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_80_validatedACKRoundTripMS",
+      "samples": [
+        45.70700025558472,
+        7.6080002784729,
+        7.546000003814697,
+        7.234000205993652,
+        6.904999732971191
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_81_consumerDrawAndWaitMS",
+      "samples": [
+        1.2849998474121094,
+        0.564000129699707,
+        0.5739998817443848,
+        0.5710000991821289,
+        1.0329999923706055
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_81_consumerNoticeMS",
+      "samples": [
+        0.012000083923339844,
+        0.005999565124511719,
+        0.005000114440917969,
+        0.006000041961669922,
+        0.006000041961669922
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_81_exportSubmitAndWaitMS",
+      "samples": [
+        1.0489997863769531,
+        1.0350003242492676,
+        0.5420002937316895,
+        0.5439996719360352,
+        0.568000316619873
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_81_validatedACKRoundTripMS",
+      "samples": [
+        44.884000301361084,
+        7.4579997062683105,
+        7.297999858856201,
+        7.2170000076293945,
+        7.671999931335449
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_70_consumerDrawAndWaitMS",
+      "samples": [
+        1.4499998092651367,
+        1.0069999694824219,
+        1.4879999160766602,
+        0.5970001220703125,
+        0.8010001182556152
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_70_consumerNoticeMS",
+      "samples": [
+        0.004999637603759766,
+        0.006000041961669922,
+        0.006999969482421875,
+        0.006000041961669922,
+        0.01100015640258789
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_70_exportSubmitAndWaitMS",
+      "samples": [
+        0.5999999046325684,
+        1.114999771118164,
+        0.9270000457763672,
+        0.75,
+        1.1499996185302734
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_70_validatedACKRoundTripMS",
+      "samples": [
+        42.7960000038147,
+        7.647000312805176,
+        8.271999835968018,
+        7.064000129699707,
+        7.458000183105469
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_71_consumerDrawAndWaitMS",
+      "samples": [
+        1.4619998931884766,
+        0.9860000610351562,
+        1.071000099182129,
+        1.128000259399414,
+        0.6370000839233398
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_71_consumerNoticeMS",
+      "samples": [
+        0.012999534606933594,
+        0.01100015640258789,
+        0.006999969482421875,
+        0.009999752044677734,
+        0.006000041961669922
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_71_exportSubmitAndWaitMS",
+      "samples": [
+        1.2049999237060547,
+        0.999000072479248,
+        0.6170001029968262,
+        0.9820003509521484,
+        0.5649995803833008
+      ],
+      "unit": "ms"
+    },
+    {
+      "definition": "Generated GPU export/draw/notice component only; ACK includes the all-pixel CPU oracle and one declared32ms pause",
+      "name": "transport_3840x2160_71_validatedACKRoundTripMS",
+      "samples": [
+        45.20599985122681,
+        7.6519999504089355,
+        7.732999801635742,
+        7.882999897003174,
+        6.980999946594238
+      ],
+      "unit": "ms"
+    }
+  ],
+  "recordedAt": "2026-10-14T22:10:52.121561+00:00",
+  "schemaVersion": 1,
+  "status": "measured",
+  "unknownReasons": {
+    "application.revision": "Not collected or no statistical claim",
+    "guest.agentVersion": "No guest exists in this component",
+    "guest.architecture": "No guest exists in this component",
+    "guest.build": "No guest exists in this component",
+    "guest.disk": "No guest exists in this component",
+    "guest.driverVersions": "No guest exists in this component",
+    "guest.edition": "No guest exists in this component",
+    "guest.network": "No guest exists in this component",
+    "guest.os": "No guest exists in this component",
+    "guest.patchLevel": "No guest exists in this component",
+    "guest.ramBytes": "No guest exists in this component",
+    "guest.vCPU": "No guest exists in this component",
+    "host.displays": "Not collected or no statistical claim",
+    "host.efficiencyCores": "Not collected or no statistical claim",
+    "host.gpuCores": "Not collected or no statistical claim",
+    "host.performanceCores": "Not collected or no statistical claim",
+    "host.powerMode": "Not collected or no statistical claim",
+    "host.storageModel": "Not collected or no statistical claim",
+    "host.thermalState": "Not collected or no statistical claim",
+    "method.confidenceInterval": "Not collected or no statistical claim"
+  }
+}

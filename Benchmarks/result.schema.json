@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:macOpenVM:benchmark:v1",
+  "title": "macOpenVM benchmark result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "recordedAt", "status", "host", "application", "guest", "method", "metrics", "unknownReasons", "limitations"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "recordedAt": {"type": "string"},
+    "status": {"enum": ["measured", "failed", "skipped"]},
+    "host": {
+      "type": "object", "additionalProperties": false,
+      "required": ["model", "chip", "performanceCores", "efficiencyCores", "gpuCores", "ramBytes", "storageModel", "storageFreeBytes", "powerMode", "thermalState", "displays", "macOSVersion", "macOSBuild"],
+      "properties": {
+        "model": {"type": ["string", "null"]}, "chip": {"type": ["string", "null"]},
+        "performanceCores": {"type": ["integer", "null"], "minimum": 0},
+        "efficiencyCores": {"type": ["integer", "null"], "minimum": 0},
+        "gpuCores": {"type": ["integer", "null"], "minimum": 0},
+        "ramBytes": {"type": ["integer", "null"], "minimum": 0},
+        "storageModel": {"type": ["string", "null"]}, "storageFreeBytes": {"type": ["integer", "null"], "minimum": 0},
+        "powerMode": {"type": ["string", "null"]}, "thermalState": {"type": ["string", "null"]},
+        "displays": {"type": ["array", "null"]}, "macOSVersion": {"type": ["string", "null"]}, "macOSBuild": {"type": ["string", "null"]}
+      }
+    },
+    "application": {
+      "type": "object", "additionalProperties": false,
+      "required": ["revision", "sourceSHA256", "version", "backend", "backendVersion", "entitlements", "configuration"],
+      "properties": {
+        "revision": {"type": ["string", "null"]}, "sourceSHA256": {"type": "string"},
+        "version": {"type": "string"}, "backend": {"type": "string"}, "backendVersion": {"type": ["string", "null"]},
+        "entitlements": {"type": "array", "items": {"type": "string"}}, "configuration": {"type": "object"}
+      }
+    },
+    "guest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["os", "edition", "build", "architecture", "patchLevel", "agentVersion", "driverVersions", "vCPU", "ramBytes", "disk", "network"],
+      "properties": {
+        "os": {"type": ["string", "null"]}, "edition": {"type": ["string", "null"]}, "build": {"type": ["string", "null"]},
+        "architecture": {"type": ["string", "null"]}, "patchLevel": {"type": ["string", "null"]},
+        "agentVersion": {"type": ["string", "null"]}, "driverVersions": {"type": ["object", "null"]},
+        "vCPU": {"type": ["integer", "null"]}, "ramBytes": {"type": ["integer", "null"]},
+        "disk": {"type": ["object", "null"]}, "network": {"type": ["string", "null"]}
+      }
+    },
+    "method": {
+      "type": "object", "additionalProperties": false,
+      "required": ["cache", "trialCount", "outlierPolicy", "confidenceInterval", "backgroundWorkload"],
+      "properties": {
+        "cache": {"enum": ["warm", "cold", "uncontrolled"]}, "trialCount": {"type": "integer", "minimum": 0},
+        "outlierPolicy": {"type": "string"}, "confidenceInterval": {"type": ["object", "null"]}, "backgroundWorkload": {"type": ["string", "null"]}
+      }
+    },
+    "metrics": {
+      "type": "array", "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["name", "unit", "samples", "definition"],
+        "properties": {"name": {"type": "string"}, "unit": {"type": "string"}, "samples": {"type": "array", "items": {"type": "number", "minimum": 0}}, "definition": {"type": "string"}}
+      }
+    },
+    "unknownReasons": {"type": "object", "additionalProperties": {"type": "string"}},
+    "limitations": {"type": "array", "items": {"type": "string"}}
+  }
+}

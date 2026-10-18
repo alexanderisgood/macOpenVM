@@ -1,0 +1,18 @@
+macOpenVM
+Copyright 2026 macOpenVM contributors
+
+Original project code is licensed under Apache-2.0.
+External dependencies retain their own licenses. No operating-system media,
+QEMU binary, firmware, Windows driver or guest-agent binary is included.
+
+Included source patches retain file-specific upstream licenses. The patch map,
+complete license texts and copyright notices are in LICENSES/patches/. These
+source patches are separately inventoried in dependencies.json and sbom.spdx.json.
+The public EDK2 certificate fixture retains its adjacent BSD-2-Clause-Patent
+license in Tests/EFI/MacOpenVMLabPkg/PkEnrollmentProbe/. No private key is included.
+
+The screenshot docs/images/windows-development.jpg depicts a private Windows
+development VM through VNC. Windows and Counter-Strike assets belong to their
+respective owners; the screenshot is illustrative documentation, excluded from
+the Apache source license. No OS media, game files, VM or required runtime binary
+is distributed with it.

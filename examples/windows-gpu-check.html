@@ -1,0 +1,102 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>macOpenVM GPU check</title>
+<style>
+html,body{margin:0;height:100%;background:#122035;color:white;font:18px system-ui}
+canvas{display:block;width:100%;height:100%}
+section{position:fixed;top:24px;left:24px;padding:20px;max-width:720px;background:#101827e8;border-radius:18px}
+b{display:block;font-size:26px}p{margin:10px 0}button,select{font:inherit;margin:8px 8px 0 0}
+small{display:block;max-width:700px}
+</style>
+<canvas id="c"></canvas>
+<section>
+  <b>Windows GPU check</b>
+  <p id="renderer">Checking the renderer...</p>
+  <p id="geometry"></p>
+  <p id="result">Preparing a 20 second drawing test...</p>
+  <p id="pacing"></p>
+  <small>Target: 120 frames/s (8.33 ms per frame). This measures one browser shader workload, not games or delivery to the Mac display. Resizing or hiding the page discards the current trial.</small>
+  <label>Drawing:
+    <select id="mode"><option value="queued">Normal queued drawing</option><option value="finish">Wait for GPU each frame (original test)</option></select>
+  </label>
+  <button id="restart">Restart test</button>
+</section>
+<script>
+'use strict';
+const c=document.getElementById('c'),r=document.getElementById('renderer');
+const g=document.getElementById('geometry'),s=document.getElementById('result');
+const pacing=document.getElementById('pacing'),mode=document.getElementById('mode');
+const gl=c.getContext('webgl2',{antialias:false,alpha:false,preserveDrawingBuffer:false});
+let callback=0,started=null,last=null,lastReport=0,gaps=[],trialGeometry=null;
+let program,t,size,failed=false;
+function fail(error){failed=true;cancelAnimationFrame(callback);window.macOpenVMGpuResult=null;s.textContent='Check failed: '+error.message;document.title=s.textContent;}
+function geometry(){
+  const ratio=devicePixelRatio;
+  const width=Math.round(innerWidth*ratio),height=Math.round(innerHeight*ratio);
+  if(!Number.isFinite(ratio)||ratio<=0||width<1||height<1||width>8192||height>8192||width*height>16777216)throw Error('Viewport exceeds the bounded test size');
+  return {width,height,ratio,cssWidth:innerWidth,cssHeight:innerHeight};
+}
+function resetTrial(current){
+  c.width=current.width;c.height=current.height;
+  if(gl.drawingBufferWidth!==current.width||gl.drawingBufferHeight!==current.height)throw Error('Browser did not allocate the requested drawing buffer');
+  gl.viewport(0,0,current.width,current.height);gl.uniform2f(size,current.width,current.height);
+  trialGeometry={...current,mode:mode.value};started=null;last=null;lastReport=0;gaps=[];
+  g.textContent='Drawing buffer: '+current.width+' × '+current.height+' pixels | Browser viewport: '+current.cssWidth+' × '+current.cssHeight+' CSS pixels | Scale: '+current.ratio;
+  s.textContent='Warming up at the current size...';pacing.textContent='';document.title='macOpenVM GPU check — running';
+}
+function percentile(sorted,fraction){return sorted[Math.max(0,Math.ceil(sorted.length*fraction)-1)]||0;}
+function report(complete,elapsed){
+  const total=gaps.reduce((sum,gap)=>sum+gap,0);
+  const sorted=gaps.slice().sort((a,b)=>a-b);
+  const fps=total?gaps.length*1000/total:0;
+  const late=gaps.filter(gap=>gap>1000/120*1.1).length;
+  s.textContent=(complete?'Complete: ':'')+trialGeometry.width+' × '+trialGeometry.height+' | '+fps.toFixed(1)+' frames/s | '+gaps.length+' measured intervals'+(complete?'':' | '+Math.max(0,Math.ceil((22000-elapsed)/1000))+'s remaining');
+  pacing.textContent='Frame time: median '+percentile(sorted,.5).toFixed(2)+' ms | p95 '+percentile(sorted,.95).toFixed(2)+' ms | p99 '+percentile(sorted,.99).toFixed(2)+' ms | longest '+(sorted.at(-1)||0).toFixed(2)+' ms | >9.17 ms: '+late+'/'+gaps.length+' | '+(trialGeometry.mode==='finish'?'Synchronous GPU wait':'Queued drawing');
+  if(complete){document.title=s.textContent;window.macOpenVMGpuResult={schemaVersion:2,workload:'single-shader-'+trialGeometry.mode+'-v2',geometry:{...trialGeometry},measuredIntervals:gaps.length,measuredMilliseconds:total,framesPerSecond:fps,medianMilliseconds:percentile(sorted,.5),p95Milliseconds:percentile(sorted,.95),p99Milliseconds:percentile(sorted,.99),longestMilliseconds:sorted.at(-1)||0,over120HzBudgetWith10PercentTolerance:late,intervalsMilliseconds:gaps.slice(),renderer:r.textContent,hostPresentationMeasured:false};}
+}
+function begin(){
+  if(failed)return;
+  cancelAnimationFrame(callback);window.macOpenVMGpuResult=null;
+  try{resetTrial(geometry());callback=requestAnimationFrame(frame);}catch(error){fail(error);}
+}
+function frame(now){
+  try{
+    if(document.hidden){started=null;last=null;gaps=[];window.macOpenVMGpuResult=null;callback=requestAnimationFrame(frame);return;}
+    const current=geometry();
+    if(current.width!==trialGeometry.width||current.height!==trialGeometry.height||current.ratio!==trialGeometry.ratio||current.cssWidth!==trialGeometry.cssWidth||current.cssHeight!==trialGeometry.cssHeight||mode.value!==trialGeometry.mode){window.macOpenVMGpuResult=null;resetTrial(current);}
+    if(started===null)started=now;
+    const elapsed=now-started;
+    gl.uniform1f(t,elapsed*.001);gl.drawArrays(gl.TRIANGLES,0,3);
+    if(trialGeometry.mode==='finish')gl.finish();
+    if(elapsed>2000){if(last!==null){if(gaps.length>=10000)throw Error('Frame sample limit reached');gaps.push(now-last);}last=now;if(now-lastReport>500){report(false,elapsed);lastReport=now;}}
+    if(elapsed<22000)callback=requestAnimationFrame(frame);else report(true,elapsed);
+  }catch(error){fail(error);}
+}
+function shader(type,source){
+  const a=gl.createShader(type);gl.shaderSource(a,source);gl.compileShader(a);
+  if(!gl.getShaderParameter(a,gl.COMPILE_STATUS))throw Error((type===gl.VERTEX_SHADER?'Vertex':'Fragment')+' shader compilation failed; '+(gl.getShaderInfoLog(a)||'empty compiler log'));
+  return a;
+}
+try{
+  if(!gl)throw Error('WebGL 2 unavailable');
+  const ext=gl.getExtension('WEBGL_debug_renderer_info');
+  const name=ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);
+  r.textContent=String(name);
+  if(/swiftshader|llvmpipe|WARP|Microsoft Basic/i.test(name))throw Error('Software renderer detected');
+  program=gl.createProgram();
+  gl.attachShader(program,shader(gl.VERTEX_SHADER,'#version 300 es\nvoid main(){vec2 q=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(q*2.-1.,0.,1.);}'));
+  gl.attachShader(program,shader(gl.FRAGMENT_SHADER,'#version 300 es\nprecision highp float;uniform float t;uniform vec2 size;out vec4 color;void main(){vec2 q=gl_FragCoord.xy/size;float v=sin(22.*q.x+t)*cos(16.*q.y-t*.7);color=vec4(.2+.35*q.x,.3+.25*v,.5+.4*q.y,1.);}'));
+  gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
+  gl.useProgram(program);t=gl.getUniformLocation(program,'t');size=gl.getUniformLocation(program,'size');
+  c.addEventListener('webglcontextlost',()=>fail(Error('WebGL context lost; restart the page after recovery')));
+  document.getElementById('restart').addEventListener('click',begin);
+  mode.addEventListener('change',begin);
+  window.addEventListener('resize',begin);
+  document.addEventListener('visibilitychange',begin);
+  begin();
+}catch(error){fail(error);}
+</script>
+</html>

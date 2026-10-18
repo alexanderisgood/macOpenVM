@@ -1,0 +1,61 @@
+#!/sbin/openrc-run
+# SPDX-License-Identifier: Apache-2.0
+# Experimental Alpine/OpenRC foreground service. No ambient capabilities are granted.
+name="macOpenVM experimental agent"
+description="Experimental authenticated host/guest transport"
+supervisor="supervise-daemon"
+command="/usr/local/libexec/macopenvm-agent/macopenvm-agent"
+command_user="macopenvm-agent:macopenvm-agent"
+pidfile="/run/macopenvm-agent.pid"
+logfile="/run/macopenvm-agent.log"
+log_owner="/run/macopenvm-agent.log.owner"
+output_log="$logfile"
+error_log="$logfile"
+directory="/etc/macopenvm-agent"
+umask="0077"
+no_new_privs="yes"
+respawn_delay=2
+respawn_max=3
+respawn_period=0
+# Zero disables the rolling reset; C separately bounds output to its regular stdout descriptor.
+retry="SIGTERM/5"
+required_files="/etc/macopenvm-agent/cert.pem /etc/macopenvm-agent/key.pem /etc/macopenvm-agent/ca.pem /etc/macopenvm-agent/vm-id"
+
+depend() {
+  need localmount
+}
+
+start_pre() {
+  local vm_id uid gid mode
+  uid=$(id -u macopenvm-agent) || return 1
+  gid=$(id -g macopenvm-agent) || return 1
+  [ "$uid" -gt 0 ] && [ "$gid" -gt 0 ] || return 1
+  [ ! -L "$directory" ] && [ "$(stat -c %u "$directory")" = "$uid" ] && [ "$(stat -c %a "$directory")" = 700 ] || return 1
+  for file in cert.pem key.pem ca.pem vm-id; do
+    case "$file" in cert.pem|ca.pem) mode=400 ;; *) mode=600 ;; esac
+    [ -f "$directory/$file" ] && [ ! -L "$directory/$file" ] && [ "$(stat -c %u "$directory/$file")" = "$uid" ] && [ "$(stat -c %a "$directory/$file")" = "$mode" ] || return 1
+  done
+  [ "$(stat -c %s "$directory/vm-id")" = 37 ] || return 1
+  vm_id=$(cat "$directory/vm-id")
+  printf '%s\n' "$vm_id" | awk 'length($0)==36 && /^[0-9a-fA-F]+-[0-9a-fA-F]+-[0-9a-fA-F]+-[0-9a-fA-F]+-[0-9a-fA-F]+$/ {
+    split($0,a,"-"); ok=(length(a[1])==8 && length(a[2])==4 && length(a[3])==4 && length(a[4])==4 && length(a[5])==12)
+  } END {exit !ok}' || return 1
+  command_args="/etc/macopenvm-agent/cert.pem /etc/macopenvm-agent/key.pem /etc/macopenvm-agent/ca.pem $vm_id --service"
+  local log_parent
+  log_parent=${logfile%/*}
+  [ -d "$log_parent" ] && [ ! -L "$log_parent" ] && [ "$(stat -c %u "$log_parent")" = 0 ] || return 1
+  mode=$(stat -c %a "$log_parent")
+  [ $((0$mode & 0022)) -eq 0 ] || return 1
+  if [ -e "$logfile" ] || [ -L "$logfile" ]; then
+    [ -f "$logfile" ] && [ ! -L "$logfile" ] && [ "$(stat -c %h "$logfile")" = 1 ] && [ "$(stat -c %u "$logfile")" = "$uid" ] && [ "$(stat -c %a "$logfile")" = 600 ] || return 1
+    [ -f "$log_owner" ] && [ ! -L "$log_owner" ] && [ "$(stat -c %h "$log_owner")" = 1 ] && [ "$(stat -c %u "$log_owner")" = 0 ] && [ "$(stat -c %a "$log_owner")" = 600 ] || return 1
+    [ "$(cat "$log_owner")" = "macopenvm-agent-log-v1:$(stat -c '%d:%i' "$logfile")" ] || return 1
+  else
+    [ ! -e "$log_owner" ] && [ ! -L "$log_owner" ] || return 1
+    (umask 077; set -C; : > "$logfile") || return 1
+    chown "$uid:$gid" "$logfile" || return 1
+    (umask 077; set -C; printf 'macopenvm-agent-log-v1:%s\n' "$(stat -c '%d:%i' "$logfile")" > "$log_owner") || return 1
+  fi
+  # Only a normal OpenRC start runs this hook; supervisor child respawns append to this log.
+  : > "$logfile"
+}

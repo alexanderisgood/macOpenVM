@@ -1,0 +1,12 @@
+--- a/src/dxmt/dxmt_command_queue.cpp
++++ b/src/dxmt/dxmt_command_queue.cpp
+@@ -193,6 +193,9 @@
+     ready_for_commit.wait(internal_seq, std::memory_order_acquire);
+     if (stopped.load())
+       break;
++    // Metal completion/log/readback helpers can return autoreleased objects.
++    // Drain each retired chunk on this long-lived native completion thread.
++    auto pool = WMT::MakeAutoreleasePool();
+     auto &chunk = chunks[internal_seq % kCommandChunkCount];
+     if (chunk.attached_cmdbuf.status() <= WMTCommandBufferStatusScheduled) {
+       chunk.attached_cmdbuf.waitUntilCompleted();

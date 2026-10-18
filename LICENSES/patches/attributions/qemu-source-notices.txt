@@ -1,0 +1,471 @@
+qemu — retained source copyright and license notices
+These are exact leading notices from the retained source copies identified below.
+The retained files can contain downstream modifications; no pristine-tree or binary reproducibility claim is made.
+
+========================================================================
+Target: accel/hvf/hvf-all.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 0e6d0dc6f551480f38c457336e95108b5f2106ed78bbfdc6237d44ef22d01c05
+License basis: Explicit GPLv2 header; accel/hvf additionally permits later versions for post-2012 contributions
+
+/*
+ * QEMU Hypervisor.framework support
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2.  See
+ * the COPYING file in the top-level directory.
+ *
+ * Contributions after 2012-01-13 are licensed under the terms of the
+ * GNU GPL, version 2 or (at your option) any later version.
+ */
+
+
+========================================================================
+Target: audio/coreaudio.m
+Upstream version: 11.1.0
+Retained source bytes SHA-256: e9ec7b43840ec7c42e555df71bb86203685e9d2edc3cebed218022dcafeae63a
+License basis: Complete permission/copyright notice in retained source header
+
+/*
+ * QEMU OS X CoreAudio audio driver
+ *
+ * Copyright (c) 2005 Mike Kronenberg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+========================================================================
+Target: hw/display/meson.build
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 554f8d3ab58d7d55b73dfb53d0bcdcce3d73919148d4ea3138d9593dff984fa5
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: hw/display/mvo-gpu-timing.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: bb6b88930a563cdf879629a602ee9223dbc781019850c92b50979c3d63fe41a6
+License basis: Explicit SPDX notice in added source
+
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Original macOpenVM bounded numeric diagnostics. BQL-owned call sites only.
+ * No payload, pixels, resources, pointers or guest text are logged.
+ */
+
+========================================================================
+Target: hw/display/virtio-gpu-gl.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 957455b18ac920ac87752e772cc1dbc64f9805af11172eb6054fa4c3ffca16bf
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+/*
+ * Virtio GPU Device
+ *
+ * Copyright Red Hat, Inc. 2013-2014
+ *
+ * Authors:
+ *     Dave Airlie <airlied@redhat.com>
+ *     Gerd Hoffmann <kraxel@redhat.com>
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2 or later.
+ * See the COPYING file in the top-level directory.
+ */
+
+
+========================================================================
+Target: hw/display/virtio-gpu-virgl.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 7dddcbbe08969aa1234dc80b2ef44153465603a88895c11dbdb2b7e02fd5b77a
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+/*
+ * Virtio GPU Device
+ *
+ * Copyright Red Hat, Inc. 2013-2014
+ *
+ * Authors:
+ *     Dave Airlie <airlied@redhat.com>
+ *     Gerd Hoffmann <kraxel@redhat.com>
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2 or later.
+ * See the COPYING file in the top-level directory.
+ */
+
+
+========================================================================
+Target: hw/display/virtio-gpu.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 971ad6ab065af353d8a0b3ab48c9ddd8433a4f219c93f668b275e62e4d204c33
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+/*
+ * Virtio GPU Device
+ *
+ * Copyright Red Hat, Inc. 2013-2014
+ *
+ * Authors:
+ *     Dave Airlie <airlied@redhat.com>
+ *     Gerd Hoffmann <kraxel@redhat.com>
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2 or later.
+ * See the COPYING file in the top-level directory.
+ */
+
+
+========================================================================
+Target: hw/display/virtio-ramfb-gl.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: aa1e8c32c8d34a2d7933fef485aa5a700b8de46c6059bec18c0532bf05c77b30
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: hw/display/virtio-ramfb.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: de2774f2a53ae9381cfb28b3ccc25c0af27fda7d3e54bcfd33ed95839c9ace59
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: hw/display/virtio-ramfb.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: f122f09a0d06f4d214c1a42011f5105bafa16f42cd810a946d8ad0d4cfbc01c3
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: hw/uefi/var-service-vars.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 4b6befcaf02eda12392c64732ed6e7707430406422f8483fbc6a7e84cffe3e61
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+/*
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ * uefi vars device - EfiSmmVariableProtocol implementation
+ */
+
+========================================================================
+Target: include/hw/virtio/virtio-gpu.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: e780e43f121d624e385e7897f8676ba8aa7ca5e627559ead5b66ca9770677a03
+License basis: Explicit GPLv2 header; accel/hvf additionally permits later versions for post-2012 contributions
+
+/*
+ * Virtio GPU Device
+ *
+ * Copyright Red Hat, Inc. 2013-2014
+ *
+ * Authors:
+ *     Dave Airlie <airlied@redhat.com>
+ *     Gerd Hoffmann <kraxel@redhat.com>
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2.
+ * See the COPYING file in the top-level directory.
+ */
+
+
+========================================================================
+Target: include/standard-headers/linux/virtio_gpu.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 8d8b78602f965bac5ce7c709acdea22a260f483ae69ed3edd14ba53c125ff0fc
+License basis: Complete three-condition BSD notice in retained source header, including its original IBM wording
+
+/*
+ * Virtio GPU Device
+ *
+ * Copyright Red Hat, Inc. 2013-2014
+ *
+ * Authors:
+ *     Dave Airlie <airlied@redhat.com>
+ *     Gerd Hoffmann <kraxel@redhat.com>
+ *
+ * This header is BSD licensed so anyone can use the definitions
+ * to implement compatible drivers/servers:
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of IBM nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL IBM OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+
+========================================================================
+Target: include/system/hvf.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: eda7847a2f0f41ec21acf1c9c53405e2439a75924b8f6cd6363ee056f5a3561d
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+/*
+ * QEMU Hypervisor.framework (HVF) support
+ *
+ * Copyright Google Inc., 2017
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2 or later.
+ * See the COPYING file in the top-level directory.
+ *
+ */
+
+/* header to be included in non-HVF-specific code */
+
+
+========================================================================
+Target: include/system/hvf_int.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 3ba2794676fd885becfc512e9dfcedf7697221e17752013666c9539bb99caa32
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+/*
+ * QEMU Hypervisor.framework (HVF) support
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2 or later.
+ * See the COPYING file in the top-level directory.
+ *
+ */
+
+/* header to be included in HVF-specific code */
+
+
+========================================================================
+Target: qapi/ui.json
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 280fb9eb47ee1d0bb6e7960afcf99371a84852a4ee8a855d891cf0e399d62b45
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: target/arm/hvf/hvf.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 1d9d5ea31f2e2ad8da76b69570fcbfaeaa28618b63515c4d9df1a770d687b5cb
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+/*
+ * QEMU Hypervisor.framework support for Apple Silicon
+
+ * Copyright 2020 Alexander Graf <agraf@csgraf.de>
+ * Copyright 2020 Google LLC
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2 or later.
+ * See the COPYING file in the top-level directory.
+ *
+ */
+
+
+========================================================================
+Target: target/i386/hvf/hvf.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: c8fcdb388968b70191498add6f78fbafad41e1016347b9bcd6e4dacba12ad680
+License basis: Explicit GPLv2-only header plus retained NetApp two-condition BSD and public-domain attribution
+
+/* Copyright 2008 IBM Corporation
+ *           2008 Red Hat, Inc.
+ * Copyright 2011 Intel Corporation
+ * Copyright 2016 Veertu, Inc.
+ * Copyright 2017 The Android Open Source Project
+ *
+ * QEMU Hypervisor.framework support
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of version 2 of the GNU General Public
+ * License as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ * This file contain code under public domain from the hvdos project:
+ * https://github.com/mist64/hvdos
+ *
+ * Parts Copyright (c) 2011 NetApp, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NETAPP, INC ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL NETAPP, INC OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+
+========================================================================
+Target: ui/egl-headless.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 4f769ef25d9339ab3508473cfd85251732511d670fce971887895e114be2a228
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: ui/egl-helpers.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: aba2f81d7c8a9e23a68af97c56a2620ca27e207b545c7dcf05030151e93f2f74
+License basis: Explicit retained source header
+
+/*
+ * Copyright (C) 2015-2016 Gerd Hoffmann <kraxel@redhat.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+ */
+
+========================================================================
+Target: ui/meson.build
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 4b41794ef70a9aaf9f211b0f7bbfbfa99385e1c10874df37c3772c4d9cd674f7
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: ui/mvo-metal-damage.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 01286571926fe3c2f5631633eb821341683697451dac39db82206f42b2183f6d
+License basis: Explicit SPDX notice in added source
+
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* Private generated-pixel prototype. Not installed in the running backend. */
+
+========================================================================
+Target: ui/mvo-metal-readback.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 08e5e65ecea6cf0f5e1d990a60fe282f20ad2d8ea1fb580831e4da3341dddc56
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Original macOpenVM experimental headless Metal scanout bridge.
+ */
+
+========================================================================
+Target: ui/mvo-metal-readback.m
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 53fd4ac8a8240116df5efdc7334daa55834540f87452bc17082f4295b4d0214d
+License basis: QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later
+
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+========================================================================
+Target: ui/mvo-metal-swizzle.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: b8a800e553469d67dd50f582be43b6e46bf36f9f9a5a1d629c810fd545faf3ef
+License basis: Explicit SPDX notice in added source
+
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+========================================================================
+Target: ui/mvo-shared-frame.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: cfe9168fb5f034ce41fb09f42238ddc77968450513626070ca74465b0d833020
+License basis: Explicit SPDX notice in added source
+
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* Optional dedicated host snapshots. No guest-memory or global-surface export. */
+
+========================================================================
+Target: ui/mvo-shared-frame.h
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 4850c27d6ac79ea71e1bf75376fa28212eb126d589437a5d5bbf7be1fc24db68
+License basis: Explicit SPDX notice in added source
+
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+========================================================================
+Target: ui/vnc.c
+Upstream version: 11.1.0
+Retained source bytes SHA-256: 4f84e2b6c74635f4c5adc0cab780bda79c922e1861d868ad9a2f255ab8b1b874
+License basis: Complete permission/copyright notice in retained source header
+
+/*
+ * QEMU VNC display driver
+ *
+ * Copyright (C) 2006 Anthony Liguori <anthony@codemonkey.ws>
+ * Copyright (C) 2006 Fabrice Bellard
+ * Copyright (C) 2009 Red Hat, Inc
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+

@@ -1,0 +1,7 @@
+Can we build a great open-source Windows VM for Apple silicon?
+
+I’ve opened macOpenVM’s source. Looking for graphics, driver & audio contributors.
+
+Early alpha; pictured demo uses private runtime components. HDR/120 FPS are goals.
+
+https://github.com/alexanderisgood/macOpenVM

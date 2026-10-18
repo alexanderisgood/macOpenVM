@@ -1,0 +1,16 @@
+--- a/audio/coreaudio.m
++++ b/audio/coreaudio.m
+@@ -354,9 +354,10 @@
+     core->mvo_callback_bytes = outOutputData->mBuffers[0].mDataByteSize;
+     out = outOutputData->mBuffers[0].mData;
+ 
+-    frame_size = MIN(core->device_frame_size,
+-                     outOutputData->mBuffers[0].mDataByteSize /
+-                     hw->info.bytes_per_frame);
++    /* The callback's supplied byte capacity is authoritative. The device can
++     * deliver more frames than the earlier requested/reported setting. */
++    frame_size = outOutputData->mBuffers[0].mDataByteSize /
++                 hw->info.bytes_per_frame;
+     pending_frames = hw->pending_emul / hw->info.bytes_per_frame;
+ 
+     /* Play the available complete frames; the zeroed remainder is silence. */
