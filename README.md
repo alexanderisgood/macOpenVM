@@ -4,10 +4,10 @@ An experimental macOS virtual machine app and CLI for Apple silicon.
 Windows 11 ARM64 is the main development goal; ARM64 Linux uses Apple's native
 Virtualization framework. This is a **source-only alpha**, with incomplete features.
 
-**Build requirement: macOS SDK 26 or later and a compatible Swift 6 toolchain.**
+**Build requirement: macOS SDK 27 and Swift 6.4 (Xcode 27 or Command Line Tools 27).**
 The macOS 14 deployment target is separate from the build SDK requirement.
 Local development used Command Line Tools 27, macOS SDK 27 and Swift 6.4. CI
-targets an ARM64 macOS 26 runner with Xcode 26.6; public CI validation is pending.
+targets an ARM64 Xcode 27 runner; public CI validation is pending.
 
 ![Private Windows development VM over VNC](docs/images/windows-development.jpg)
 
@@ -31,7 +31,7 @@ are not qualified.
 ## Build and check
 
 Select the intended Xcode or Command Line Tools installation, confirm its SDK
-is version 26 or later, and have Python 3 available. From this source directory:
+is version 27, and have Python 3 available. From this source directory:
 
 ```sh
 xcrun --sdk macosx --show-sdk-version
@@ -46,7 +46,9 @@ use ad hoc signing and are not notarized. Native guest and hardware tests have
 separate prerequisites; a skip does not qualify that feature.
 
 The clean public source copy passed 1,319 Swift tests on Apple silicon with
-CLT 27/SDK 27/Swift 6.4. Other clean-copy checks and public CI are pending.
+CLT 27/SDK 27/Swift 6.4. Strict formatting, generated protocol/SPDX checks, 33 portable benchmark tests
+and signed debug/release bundles also passed. Public CI remains pending.
+Older compiler/toolchain support is unqualified for this alpha.
 The [release notes](docs/release.md) describe this source preview's limits.
 
 ## Contribute

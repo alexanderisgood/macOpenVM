@@ -6,7 +6,7 @@ ownership and untrusted protocol handling remain security-sensitive work.
 
 Report a suspected vulnerability through
 [GitHub private vulnerability reporting](https://github.com/alexanderisgood/macOpenVM/security/advisories/new).
-This feature will be enabled when the repository is created. If the private form
+Private reporting is enabled for this repository. If the private form
 is unavailable, open an issue asking for a private reporting channel without
 including vulnerability details. Maintainer: [alexanderisgood](https://github.com/alexanderisgood).
 

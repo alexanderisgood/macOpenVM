@@ -7,10 +7,10 @@ concurrency:
   cancel-in-progress: true
 jobs:
   macos:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 30
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.app/Contents/Developer
       MACOPENVM_BUILD_JOBS: 2
       MACOPENVM_TEST_JOBS: 2
     steps:
@@ -21,7 +21,7 @@ jobs:
           xcrun swift --version
           python3 --version
           sdk=$(xcrun --sdk macosx --show-sdk-version)
-          test "${sdk%%.*}" -ge 26
+          test "${sdk%%.*}" -ge 27
           test "$(uname -m)" = arm64
       - name: Debug, unit contracts, formatting and inventory
         run: ./scripts/check.sh
