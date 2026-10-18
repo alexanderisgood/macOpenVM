@@ -14,10 +14,10 @@ actor RegisteredWindowsRuntimeStore: RecordedRuntimeStore {
   private var attempted = false
 
   init(
-    configuration: VMConfiguration, lock: VMLock,
+    configuration: VMConfiguration, lock: VMLock, host: HostResources = .current,
     synchronize: @escaping @Sendable (Int32) throws -> Void = RegisteredWindowsPlatformFlush.sync
   ) throws {
-    try ConfigurationValidator.validate(configuration, host: .current)
+    try ConfigurationValidator.validate(configuration, host: host)
     try VMFiles.validateCloneDiskName(configuration.diskFile)
     guard configuration.guest == .windows11, configuration.backend == .qemuHVF,
       configuration.architecture == .arm64, configuration.boot == .efi,

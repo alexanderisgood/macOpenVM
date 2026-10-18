@@ -8,6 +8,9 @@ import VMStorage
 
 @testable import Qemu
 
+// Parser/file admission does not allocate guest CPUs or depend on CI core count.
+private let registeredTestHost = HostResources(cpuCount: 8, memoryBytes: 16 << 30)
+
 private func registeredTestHash(_ bytes: Data) -> String {
   SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
 }
@@ -699,11 +702,11 @@ private struct RegisteredFixture {
       try QemuRegisteredAdmission.prepare(
         configuration: c, in: f.vm,
         platformIdentity: identity, resources: f.resources, endpoints: endpoints, lock: lock,
-        verify: {})
+        host: registeredTestHost, verify: {})
     }
     let plan = try QemuRegisteredAdmission.prepare(
       configuration: c, in: f.vm, platformIdentity: identity,
-      resources: shared, endpoints: endpoints, lock: lock, verify: {})
+      resources: shared, endpoints: endpoints, lock: lock, host: registeredTestHost, verify: {})
     #expect(plan.qemuExecutable == shared.runtimeQemu.url && plan.vmID == c.id)
     #expect(await files.writerStatus(in: f.vm) == .held)
     #expect(try Data(contentsOf: f.vm.appendingPathComponent("qemu-platform.json")) == identity)
@@ -844,11 +847,12 @@ private struct RegisteredFixture {
       try QemuRegisteredAdmission.prepare(
         configuration: c,
         in: f.vm, platformIdentity: identity, resources: f.resources, endpoints: endpoints,
-        lock: lock, verify: {})
+        lock: lock, host: registeredTestHost, verify: {})
     }
     _ = try QemuRegisteredAdmission.prepare(
       configuration: c, in: f.vm, platformIdentity: identity,
       resources: resources, endpoints: endpoints, lock: lock,
+      host: registeredTestHost,
       verify: { try resources.verify(hostMajor: 27, signature: { _, _ in }) })
     let after = try stateNames.map { name -> String in
       var info = stat()
@@ -973,7 +977,7 @@ private struct RegisteredFixture {
     let endpointNames = try FileManager.default.contentsOfDirectory(atPath: f.sockets.path)
     try QemuRegisteredAdmission.validateStoredState(
       configuration: c, in: f.vm, platformIdentity: identity,
-      resources: f.resources, lock: lock, verify: {})
+      resources: f.resources, lock: lock, host: registeredTestHost, verify: {})
     #expect(
       try FileManager.default.contentsOfDirectory(atPath: f.vm.path).sorted() == beforeValidation)
     #expect(try FileManager.default.contentsOfDirectory(atPath: f.sockets.path) == endpointNames)
@@ -984,7 +988,8 @@ private struct RegisteredFixture {
     let names = try FileManager.default.contentsOfDirectory(atPath: f.vm.path).sorted()
     let plan = try QemuRegisteredAdmission.prepare(
       configuration: c, in: f.vm, platformIdentity: identity,
-      resources: f.resources, endpoints: endpoints, lock: lock, verify: {})
+      resources: f.resources, endpoints: endpoints, lock: lock, host: registeredTestHost, verify: {}
+    )
     let expectedExecutable = try f.resources.creation.resource(.qemu).url
     #expect(plan.vmID == c.id && plan.qemuExecutable == expectedExecutable)
     #expect(await files.writerStatus(in: f.vm) == .held)
@@ -994,7 +999,8 @@ private struct RegisteredFixture {
     #expect(throws: (any Error).self) {
       try QemuRegisteredAdmission.prepare(
         configuration: wrong, in: f.vm, platformIdentity: identity,
-        resources: f.resources, endpoints: endpoints, lock: lock, verify: {})
+        resources: f.resources, endpoints: endpoints, lock: lock, host: registeredTestHost,
+        verify: {})
     }
     let different = f.root.appendingPathComponent("other-writer")
     try await files.createDirectory(different)
@@ -1002,14 +1008,16 @@ private struct RegisteredFixture {
     #expect(throws: VMError.self) {
       try QemuRegisteredAdmission.prepare(
         configuration: c, in: f.vm, platformIdentity: identity,
-        resources: f.resources, endpoints: endpoints, lock: foreign, verify: {})
+        resources: f.resources, endpoints: endpoints, lock: foreign, host: registeredTestHost,
+        verify: {})
     }
     try FileManager.default.linkItem(
       at: f.vm.appendingPathComponent(c.diskFile), to: f.root.appendingPathComponent("disk-alias"))
     #expect(throws: VMError.self) {
       try QemuRegisteredAdmission.prepare(
         configuration: c, in: f.vm, platformIdentity: identity,
-        resources: f.resources, endpoints: endpoints, lock: lock, verify: {})
+        resources: f.resources, endpoints: endpoints, lock: lock, host: registeredTestHost,
+        verify: {})
     }
     #expect(try FileManager.default.contentsOfDirectory(atPath: f.vm.path).sorted() == names)
     #expect(try Data(contentsOf: f.vm.appendingPathComponent("configuration.json")) == config)

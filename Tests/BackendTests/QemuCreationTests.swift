@@ -98,6 +98,24 @@ private struct QemuFileIdentity: Equatable {
 }
 
 @Suite(.serialized) @MainActor struct QemuCreationTests {
+  @Test(arguments: [2, 3])
+  func smallInjectedHostsCannotAdmitTheWindowsCPUAllocation(cpuCount: Int) throws {
+    let fixture = try QemuCreationFixture()
+    defer { fixture.close() }
+    do {
+      try QemuCreationPlatform.validateConfiguration(
+        fixture.configuration, host: HostResources(cpuCount: cpuCount, memoryBytes: 16 << 30),
+        operatingSystemMajor: 27)
+      Issue.record("An undersized host admitted the Windows CPU allocation.")
+    } catch let error as VMError {
+      #expect(error.code == .invalidConfiguration)
+      #expect(error.message == "CPU allocation must leave host capacity.")
+    }
+    try QemuCreationPlatform.validateConfiguration(
+      fixture.configuration, host: HostResources(cpuCount: 4, memoryBytes: 8 << 30),
+      operatingSystemMajor: 27)
+  }
+
   @Test func explicitResourceBundleRejectsDuplicateRolesAliasesAndNonemptyVariables() throws {
     let fixture = try QemuCreationFixture()
     defer { fixture.close() }
@@ -241,7 +259,8 @@ private struct QemuFileIdentity: Equatable {
     let destination = fixture.root.appendingPathComponent("new-vm")
     let witness = QemuCreationWitness()
     let platform = WitnessQemuPlatform(
-      actual: QemuCreationPlatform(resources: fixture.resources), witness: witness)
+      actual: QemuCreationPlatform(resources: fixture.resources, host: qemuCreationHost),
+      witness: witness)
     if ProcessInfo.processInfo.operatingSystemVersion.majorVersion
       < ReviewedQemuCreationResources.minimumHostMajorVersion
     {

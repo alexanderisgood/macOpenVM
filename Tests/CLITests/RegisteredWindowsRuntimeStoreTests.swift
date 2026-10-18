@@ -8,6 +8,9 @@ import VMStorage
 
 @testable import MacOpenVMCLI
 
+// File/ownership fixtures model a supported host, independently of CI hardware.
+private let registeredStoreTestHost = HostResources(cpuCount: 8, memoryBytes: 16 << 30)
+
 /// Synthetic backend evidence only; these tests exercise real files, permits and
 /// kernel leases, and never claim a Windows boot or initialized TPM is healthy.
 @MainActor private final class RegisteredStoreBackend: BackendSettlementSource {
@@ -173,13 +176,42 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
 }
 
 @Suite(.serialized) @MainActor struct RegisteredWindowsRuntimeStoreTests {
+  @Test(arguments: [2, 3])
+  func insufficientHostCapacityRejectsBeforeOwnershipOrFileChanges(cpuCount: Int) async throws {
+    let f = try await RegisteredStoreFiles()
+    defer { f.close() }
+    let before = try f.preservedFiles()
+    let limited = HostResources(cpuCount: cpuCount, memoryBytes: 16 << 30)
+    do {
+      _ = try RegisteredWindowsRuntimeStore(
+        configuration: f.configuration, lock: f.lock, host: limited)
+      Issue.record("An undersized host admitted the Windows CPU allocation.")
+    } catch let error as VMError {
+      #expect(error.code == .invalidConfiguration)
+      #expect(error.message == "CPU allocation must leave host capacity.")
+    }
+    #expect(try f.preservedFiles() == before)
+    #expect(try await VMFiles().readRuntimeIntent(in: f.directory) == nil)
+    #expect(await VMFiles().writerStatus(in: f.directory) == .held)
+  }
+
+  @Test func minimumSupportedInjectedHostStillUsesStrictValidation() async throws {
+    let f = try await RegisteredStoreFiles()
+    defer { f.close() }
+    let minimum = HostResources(cpuCount: 4, memoryBytes: 8 << 30)
+    let store = try RegisteredWindowsRuntimeStore(
+      configuration: f.configuration, lock: f.lock, host: minimum)
+    #expect(try await store.readOwnershipIntent(in: f.directory) == nil)
+    #expect(await VMFiles().writerStatus(in: f.directory) == .held)
+  }
+
   @Test(arguments: [UInt64(64 << 30), UInt64(96 << 30)])
   func neverInvokedCanSettleOnlyEmptyInitialTPMWithoutBootClaim(bytes: UInt64) async throws {
     let f = try await RegisteredStoreFiles(diskBytes: bytes)
     defer { f.close() }
     let probe = RegisteredSyncProbe()
     let store = try RegisteredWindowsRuntimeStore(
-      configuration: f.configuration, lock: f.lock,
+      configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost,
       synchronize: probe.synchronize)
     let owner = try await RecordedRuntimeOwner.open(
       in: f.directory, vmID: f.configuration.id,
@@ -203,7 +235,8 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
     let before = try f.preservedFiles()
     let probe = RegisteredSyncProbe()
     let store = try RegisteredWindowsRuntimeStore(
-      configuration: f.configuration, lock: f.lock, synchronize: probe.synchronize)
+      configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost,
+      synchronize: probe.synchronize)
     let owner = try await RecordedRuntimeOwner.open(
       in: f.directory, vmID: f.configuration.id,
       lock: f.lock, backend: RegisteredStoreBackend(), files: store)
@@ -222,7 +255,8 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
     let before = try f.preservedFiles()
     let probe = RegisteredSyncProbe()
     let store = try RegisteredWindowsRuntimeStore(
-      configuration: f.configuration, lock: f.lock, synchronize: probe.synchronize)
+      configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost,
+      synchronize: probe.synchronize)
     let captured = CapturedRegisteredStore(store)
     let owner = try await RecordedRuntimeOwner.open(
       in: f.directory, vmID: f.configuration.id,
@@ -269,7 +303,8 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
     let before = try f.preservedFiles()
     let probe = RegisteredSyncProbe()
     let store = try RegisteredWindowsRuntimeStore(
-      configuration: f.configuration, lock: f.lock, synchronize: probe.synchronize)
+      configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost,
+      synchronize: probe.synchronize)
     let owner = try await RecordedRuntimeOwner.open(
       in: f.directory, vmID: f.configuration.id,
       lock: f.lock, backend: RegisteredStoreBackend(), files: store)
@@ -288,7 +323,8 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
     let before = try f.preservedFiles()
     let probe = RegisteredSyncProbe()
     let store = try RegisteredWindowsRuntimeStore(
-      configuration: f.configuration, lock: f.lock, synchronize: probe.synchronize)
+      configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost,
+      synchronize: probe.synchronize)
     let backend = RegisteredStoreBackend(establishesRunning: true)
     let owner = try await RecordedRuntimeOwner.open(
       in: f.directory, vmID: f.configuration.id,
@@ -313,7 +349,8 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
   @Test func actualRegistrationAndWriterMustMatchBeforePermitReturns() async throws {
     let f = try await RegisteredStoreFiles()
     defer { f.close() }
-    let store = try RegisteredWindowsRuntimeStore(configuration: f.configuration, lock: f.lock)
+    let store = try RegisteredWindowsRuntimeStore(
+      configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost)
     await #expect(throws: VMError.self) {
       try await store.beginOwnership(in: f.directory, vmID: UUID(), lock: f.lock)
     }
@@ -339,7 +376,8 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
       a.close()
       b.close()
     }
-    let first = try RegisteredWindowsRuntimeStore(configuration: a.configuration, lock: a.lock)
+    let first = try RegisteredWindowsRuntimeStore(
+      configuration: a.configuration, lock: a.lock, host: registeredStoreTestHost)
     let captured = CapturedRegisteredStore(first)
     let owner = try await RecordedRuntimeOwner.open(
       in: a.directory, vmID: a.configuration.id,
@@ -350,7 +388,7 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
     #expect(receipt.backend.launchDisposition == .failedAttempt)
     let probe = RegisteredSyncProbe()
     let other = try RegisteredWindowsRuntimeStore(
-      configuration: b.configuration, lock: b.lock,
+      configuration: b.configuration, lock: b.lock, host: registeredStoreTestHost,
       synchronize: probe.synchronize)
     _ = try await other.beginOwnership(in: b.directory, vmID: b.configuration.id, lock: b.lock)
     let protected = try b.preservedFiles()
@@ -362,7 +400,8 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
     #expect(try b.preservedFiles() == protected)
     #expect(
       try Data(contentsOf: b.directory.appendingPathComponent("runtime-intent.json")) == before)
-    let unbegun = try RegisteredWindowsRuntimeStore(configuration: a.configuration, lock: a.lock)
+    let unbegun = try RegisteredWindowsRuntimeStore(
+      configuration: a.configuration, lock: a.lock, host: registeredStoreTestHost)
     await #expect(throws: VMError.self) {
       try await unbegun.commitOwnership(in: a.directory, receipt: receipt)
     }
@@ -373,7 +412,7 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
     defer { f.close() }
     let probe = RegisteredSyncProbe()
     let store = try RegisteredWindowsRuntimeStore(
-      configuration: f.configuration, lock: f.lock,
+      configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost,
       synchronize: probe.synchronize)
     let owner = try await RecordedRuntimeOwner.open(
       in: f.directory, vmID: f.configuration.id,
@@ -394,7 +433,7 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
     defer { f.close() }
     let probe = RegisteredSyncProbe(failureAt: boundary)
     let store = try RegisteredWindowsRuntimeStore(
-      configuration: f.configuration, lock: f.lock,
+      configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost,
       synchronize: probe.synchronize)
     let owner = try await RecordedRuntimeOwner.open(
       in: f.directory, vmID: f.configuration.id,
@@ -432,7 +471,7 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
       }
     }
     let store = try RegisteredWindowsRuntimeStore(
-      configuration: f.configuration, lock: f.lock,
+      configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost,
       synchronize: probe.synchronize)
     let owner = try await RecordedRuntimeOwner.open(
       in: f.directory, vmID: f.configuration.id,
@@ -462,7 +501,8 @@ private actor CapturedRegisteredStore: RecordedRuntimeStore {
       default:
         try await VMFiles().atomicWrite(Data([1]), at: f.tpm.appendingPathComponent(".lock"))
       }
-      let store = try RegisteredWindowsRuntimeStore(configuration: f.configuration, lock: f.lock)
+      let store = try RegisteredWindowsRuntimeStore(
+        configuration: f.configuration, lock: f.lock, host: registeredStoreTestHost)
       let owner = try await RecordedRuntimeOwner.open(
         in: f.directory, vmID: f.configuration.id,
         lock: f.lock, backend: RegisteredStoreBackend(), files: store)

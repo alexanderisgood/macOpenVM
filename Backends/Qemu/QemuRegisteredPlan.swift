@@ -337,7 +337,7 @@ public struct QemuRegisteredPlan: Sendable {
   ) async throws {
     _ = try storedState(
       configuration: configuration, in: directory, platformIdentity: platformIdentity,
-      resources: resources, lock: lock, verify: { try resources.verify() })
+      resources: resources, lock: lock, host: .current, verify: { try resources.verify() })
   }
   public static func prepare(
     configuration: VMConfiguration, in directory: URL, platformIdentity: Data,
@@ -345,27 +345,30 @@ public struct QemuRegisteredPlan: Sendable {
   ) async throws -> QemuRegisteredPlan {
     try prepare(
       configuration: configuration, in: directory, platformIdentity: platformIdentity,
-      resources: resources, endpoints: endpoints, lock: lock, verify: { try resources.verify() })
+      resources: resources, endpoints: endpoints, lock: lock, host: .current,
+      verify: { try resources.verify() })
   }
   // Package fixtures exercise the actual storage/writer checks while separately
   // testing real signature rejection. Production always uses actual verification.
   static func validateStoredState(
     configuration: VMConfiguration, in directory: URL,
     platformIdentity: Data, resources: ReviewedQemuLaunchResources, lock: VMLock,
+    host: HostResources = .current,
     verify: () throws -> Void
   ) throws {
     _ = try storedState(
       configuration: configuration, in: directory, platformIdentity: platformIdentity,
-      resources: resources, lock: lock, verify: verify)
+      resources: resources, lock: lock, host: host, verify: verify)
   }
   static func prepare(
     configuration: VMConfiguration, in directory: URL, platformIdentity: Data,
     resources: ReviewedQemuLaunchResources, endpoints: QemuRegisteredEndpoints, lock: VMLock,
+    host: HostResources = .current,
     verify: () throws -> Void
   ) throws -> QemuRegisteredPlan {
     let bytes = try storedState(
       configuration: configuration, in: directory, platformIdentity: platformIdentity,
-      resources: resources, lock: lock, verify: verify)
+      resources: resources, lock: lock, host: host, verify: verify)
     try endpoints.requireChildSocketsAbsent()
     return try QemuRegisteredPlan(
       configuration: configuration, directory: directory, endpoints: endpoints,
@@ -373,12 +376,13 @@ public struct QemuRegisteredPlan: Sendable {
   }
   private static func storedState(
     configuration: VMConfiguration, in directory: URL, platformIdentity: Data,
-    resources: ReviewedQemuLaunchResources, lock: VMLock, verify: () throws -> Void
+    resources: ReviewedQemuLaunchResources, lock: VMLock, host: HostResources,
+    verify: () throws -> Void
   ) throws -> Data {
-    guard HostResources.current.architecture == .arm64,
+    guard host.architecture == .arm64,
       ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27, lock.owns(directory)
     else { throw registeredQemuFailure() }
-    try ConfigurationValidator.validate(configuration, host: .current)
+    try ConfigurationValidator.validate(configuration, host: host)
     try QemuRegisteredPlan.validateConfiguration(
       configuration, in: directory, supportsShared: resources.supportsShared,
       supportImage: resources.supportImage)

@@ -202,6 +202,22 @@ private func finishWriting(_ descriptor: Int32) throws {
   guard shutdown(descriptor, SHUT_WR) == 0 else { throw RelayFixtureError.systemCall }
 }
 
+private func runBlockingFixtureIO<Value: Sendable>(
+  _ operation: @escaping @Sendable () throws -> Value
+) async throws -> Value {
+  try await withCheckedThrowingContinuation { continuation in
+    // These bounded poll loops must not occupy Swift's cooperative executor:
+    // a blocked writer needs its reader and the relay to be able to run.
+    Thread.detachNewThread {
+      do {
+        continuation.resume(returning: try operation())
+      } catch {
+        continuation.resume(throwing: error)
+      }
+    }
+  }
+}
+
 @Suite(.serialized)
 struct AgentCiphertextRelayTests {
   @Test(arguments: [false, true])
@@ -218,16 +234,16 @@ struct AgentCiphertextRelayTests {
         defer { Darwin.close(client) }
         let fromClient = Data((0..<65_536).map { UInt8(truncatingIfNeeded: $0 * 17 + 3) })
         let fromGuest = Data((0..<65_536).map { UInt8(truncatingIfNeeded: $0 * 31 + 7) })
-        async let clientWrite: Void = Task.detached {
+        async let clientWrite: Void = runBlockingFixtureIO {
           try writeAll(fromClient, to: client)
           try finishWriting(client)
-        }.value
-        async let guestWrite: Void = Task.detached {
+        }
+        async let guestWrite: Void = runBlockingFixtureIO {
           try writeAll(fromGuest, to: fixture.guestPeer)
           try finishWriting(fixture.guestPeer)
-        }.value
-        async let clientRead = Task.detached { try readBytes(from: client) }.value
-        async let guestRead = Task.detached { try readBytes(from: fixture.guestPeer) }.value
+        }
+        async let clientRead = runBlockingFixtureIO { try readBytes(from: client) }
+        async let guestRead = runBlockingFixtureIO { try readBytes(from: fixture.guestPeer) }
         let received = try await (clientRead, guestRead)
         try await clientWrite
         try await guestWrite

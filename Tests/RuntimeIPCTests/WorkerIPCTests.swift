@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import Darwin
+import Dispatch
 import Foundation
 import RuntimeIPC
 import Testing
@@ -74,7 +75,21 @@ private actor CommandProbe {
   }
 }
 
-/// Independent wire fixture. Only its detached script touches/actually closes
+/// Blocking socket fixtures must not occupy Swift's cooperative executor: the
+/// client/server tasks they await need that executor even on a one-core runner.
+private func rawIO<T: Sendable>(
+  _ operation: @escaping @Sendable () throws -> T
+) async throws -> T {
+  try await withCheckedThrowingContinuation { continuation in
+    DispatchQueue(label: "local.macOpenVM.test.raw-ipc", qos: .userInitiated).async {
+      do { continuation.resume(returning: try operation()) } catch {
+        continuation.resume(throwing: error)
+      }
+    }
+  }
+}
+
+/// Independent wire fixture. Only its queued script touches/actually closes
 /// descriptors; stop merely shuts down published descriptors under the lock.
 private final class RawPeer: @unchecked Sendable {
   private let lock = NSLock()
@@ -99,15 +114,17 @@ private final class RawPeer: @unchecked Sendable {
       listener = -1
       throw WorkerIPCError.posix(failure)
     }
-    task = Task.detached {
-      defer { self.finish() }
-      var item = pollfd(fd: value, events: Int16(POLLIN), revents: 0)
-      guard Darwin.poll(&item, 1, 2_000) > 0 else { throw WorkerIPCError.deadlineExceeded }
-      let accepted = Darwin.accept(value, nil, nil)
-      guard accepted >= 0 else { throw WorkerIPCError.posix(errno) }
-      try self.publish(accepted)
-      try configureRaw(accepted)
-      try script(accepted)
+    task = Task {
+      try await rawIO {
+        defer { self.finish() }
+        var item = pollfd(fd: value, events: Int16(POLLIN), revents: 0)
+        guard Darwin.poll(&item, 1, 2_000) > 0 else { throw WorkerIPCError.deadlineExceeded }
+        let accepted = Darwin.accept(value, nil, nil)
+        guard accepted >= 0 else { throw WorkerIPCError.posix(errno) }
+        try self.publish(accepted)
+        try configureRaw(accepted)
+        try script(accepted)
+      }
     }
   }
 
@@ -203,8 +220,15 @@ private func rawRead(_ fd: Int32, count: Int) throws -> [UInt8] {
     let received = result.withUnsafeMutableBytes {
       Darwin.recv(fd, $0.baseAddress?.advanced(by: offset), count - offset, 0)
     }
-    guard received > 0 else { throw WorkerIPCError.disconnected }
-    offset += received
+    if received > 0 {
+      offset += received
+      continue
+    }
+    if received == 0 { throw WorkerIPCError.disconnected }
+    if errno == EINTR { continue }
+    if errno == EAGAIN || errno == EWOULDBLOCK { throw WorkerIPCError.deadlineExceeded }
+    if errno == ECONNRESET || errno == ENOTCONN { throw WorkerIPCError.disconnected }
+    throw WorkerIPCError.posix(errno)
   }
   return result
 }
@@ -473,23 +497,25 @@ struct WorkerIPCTests {
     try await withServer {
       await probe.handle($0)
     } body: { _, url in
-      try await Task.detached {
+      let mutationFirstRead = try await rawIO {
         let fd = try rawConnect(url)
         defer { Darwin.close(fd) }
         var mutationFirst = statusFrame
         mutationFirst[56] = 3
         try rawWrite(fd, mutationFirst)
-        #expect(throws: WorkerIPCError.disconnected) { try rawRead(fd, count: 1) }
-      }.value
+        return Result { try rawRead(fd, count: 1) }
+      }
+      #expect(throws: WorkerIPCError.disconnected) { try mutationFirstRead.get() }
       #expect(await probe.commands.isEmpty)
-      try await Task.detached {
+      let repeatedIDRead = try await rawIO {
         let fd = try rawConnect(url)
         defer { Darwin.close(fd) }
         try rawWrite(fd, statusFrame)
         _ = try rawRead(fd, count: 68)
         try rawWrite(fd, statusFrame)  // repeated ID, not another operation
-        #expect(throws: WorkerIPCError.disconnected) { try rawRead(fd, count: 1) }
-      }.value
+        return Result { try rawRead(fd, count: 1) }
+      }
+      #expect(throws: WorkerIPCError.disconnected) { try repeatedIDRead.get() }
       #expect(await probe.commands == [.status])
     }
   }
@@ -499,7 +525,7 @@ struct WorkerIPCTests {
     try await withServer {
       await probe.handle($0)
     } body: { _, url in
-      try await Task.detached {
+      let excessRead = try await rawIO {
         var sockets: [Int32] = []
         defer { for fd in sockets { Darwin.close(fd) } }
         for _ in 0..<8 {
@@ -511,8 +537,9 @@ struct WorkerIPCTests {
         let excess = try rawConnect(url)
         defer { Darwin.close(excess) }
         try? rawWrite(excess, statusFrame)
-        #expect(throws: WorkerIPCError.disconnected) { try rawRead(excess, count: 1) }
-      }.value
+        return Result { try rawRead(excess, count: 1) }
+      }
+      #expect(throws: WorkerIPCError.disconnected) { try excessRead.get() }
       #expect(await probe.commands.count == 8)
     }
   }
@@ -574,7 +601,7 @@ struct WorkerIPCTests {
     try await withServer {
       await probe.handle($0)
     } body: { server, url in
-      let fd = try await Task.detached {
+      let fd = try await rawIO {
         let fd = try rawConnect(url)
         do {
           try rawWrite(fd, statusFrame)
@@ -584,20 +611,21 @@ struct WorkerIPCTests {
           Darwin.close(fd)
           throw error
         }
-      }.value
+      }
       defer { Darwin.close(fd) }
       let finish = Task { await server.finishWhenIdle() }
       // Endpoint removal occurs after finishing has been set, while the existing
       // stream remains connected and its read may already be awaiting a frame.
       try await eventually { !FileManager.default.fileExists(atPath: url.path) }
-      await Task.detached {
+      let lateMutationRead = try await rawIO {
         var lateMutation = statusFrame
         lateMutation[47] = 2
         lateMutation[55] = 7
         lateMutation[56] = 1
         try? rawWrite(fd, lateMutation)
-        #expect(throws: WorkerIPCError.disconnected) { try rawRead(fd, count: 1) }
-      }.value
+        return Result { try rawRead(fd, count: 1) }
+      }
+      #expect(throws: WorkerIPCError.disconnected) { try lateMutationRead.get() }
       await finish.value
       #expect(await probe.commands == [.status])
     }

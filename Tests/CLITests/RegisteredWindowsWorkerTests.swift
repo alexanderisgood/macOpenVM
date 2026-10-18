@@ -10,6 +10,9 @@ import VMStorage
 
 @testable import MacOpenVMCLI
 
+// File/ownership fixtures model a supported host, independently of CI hardware.
+private let registeredWorkerTestHost = HostResources(cpuCount: 8, memoryBytes: 16 << 30)
+
 /// Real private files/descriptors/locks/socket nodes only. No listener, child, guest or OS image.
 private struct WorkerFileFixture {
   let directory: URL
@@ -208,7 +211,8 @@ private struct WorkerFileFixture {
         qemu: qemu, tpm: tpm, qmpSocket: endpoints.qmpSocket, tpmSocket: endpoints.tpmSocket))
     let custody = RegisteredWorkerCustody(
       vmID: f.configuration.id, lock: f.lock, lease: lease, backend: backend,
-      store: try RegisteredWindowsRuntimeStore(configuration: f.configuration, lock: f.lock),
+      store: try RegisteredWindowsRuntimeStore(
+        configuration: f.configuration, lock: f.lock, host: registeredWorkerTestHost),
       records: records)
     for command in WorkerCommand.allCases {
       let response = await custody.handle(
@@ -394,7 +398,8 @@ private struct WorkerFileFixture {
   try await files.writeNewMetadata(
     Data("Public state marker".utf8), at: tpm.appendingPathComponent("tpm2-00.permall"))
   let backend = WorkerRecoveryBackend(partialStart: partialStart)
-  let store = try RegisteredWindowsRuntimeStore(configuration: f.configuration, lock: f.lock)
+  let store = try RegisteredWindowsRuntimeStore(
+    configuration: f.configuration, lock: f.lock, host: registeredWorkerTestHost)
   let custody = RegisteredWorkerCustody(
     vmID: f.configuration.id, lock: f.lock, lease: try f.lock.duplicateForInheritance(),
     backend: backend, store: store, records: try RegisteredWorkerRecords(directory: f.run))

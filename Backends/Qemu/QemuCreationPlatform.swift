@@ -8,14 +8,23 @@ import Foundation
 @MainActor public struct QemuCreationPlatform: VMCreationPlatform {
   public let backend = BackendID.qemuHVF
   public let resources: ReviewedQemuCreationResources
+  private let hostOverride: HostResources?
 
   public init(resources: ReviewedQemuCreationResources) {
     self.resources = resources
+    hostOverride = nil
+  }
+
+  // Internal fixture seam. Public construction rechecks the actual host on
+  // every validation, including the validation repeated by createIdentity.
+  init(resources: ReviewedQemuCreationResources, host: HostResources) {
+    self.resources = resources
+    hostOverride = host
   }
 
   public func validateHost(for configuration: VMConfiguration) throws {
     try Self.validateConfiguration(
-      configuration, host: .current,
+      configuration, host: hostOverride ?? .current,
       operatingSystemMajor: ProcessInfo.processInfo.operatingSystemVersion.majorVersion)
     try resources.verifyResourceFiles()
     // This file-only seam does not establish executable architecture, an actual
