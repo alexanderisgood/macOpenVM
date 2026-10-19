@@ -65,11 +65,13 @@ class LinuxAgentRetirementFaultTests(RetirementCase):
                     self.assertEqual(fixture.state()["moves"], target)
                     self.finish_interrupted(fixture, evidence, current)
 
-    def test_every_observed_file_directory_and_parent_flush_failure_is_recoverable(self):
+    def _check_observed_flush_partition(self, partition_index, partition_count):
         _, trace = self.retirement_trace()
         syncs = [call for call in trace if call[0] == "sync"]
         self.assertGreater(len(syncs), 20)
         for offset, call in enumerate(syncs, 1):
+            if (offset - 1) % partition_count != partition_index:
+                continue
             for after in (False, True):
                 with self.subTest(offset=offset, path=call[1], after=after):
                     fixture = self.fixture()
@@ -375,6 +377,30 @@ class LinuxAgentRetirementFaultTests(RetirementCase):
             self.assertEqual({name: self.tree_identity(fixture, path)
                               for name, path in fixture.archives(retirement_id).items()}, identities)
 
+
+
+def _observed_flush_partition_case(partition_index, partition_count, name):
+    def test(self):
+        self._check_observed_flush_partition(partition_index, partition_count)
+    test.__name__ = name
+    test.__qualname__ = "LinuxAgentRetirementFaultTests." + name
+    return test
+
+
+def _register_observed_flush_partitions():
+    # Registration is static. Each executed test observes the complete real
+    # trace, then takes its disjoint ordinal slice without guessing its size.
+    partition_count = 16
+    prefix = "test_every_observed_file_directory_and_parent_flush_failure_is_recoverable"
+    for partition_index in range(partition_count):
+        name = f"{prefix}_part_{partition_index + 1:02d}_of_{partition_count:02d}"
+        if hasattr(LinuxAgentRetirementFaultTests, name):
+            raise RuntimeError("Duplicate generated retirement test: " + name)
+        setattr(LinuxAgentRetirementFaultTests, name, _observed_flush_partition_case(
+            partition_index, partition_count, name))
+
+
+_register_observed_flush_partitions()
 
 
 if __name__ == "__main__":
