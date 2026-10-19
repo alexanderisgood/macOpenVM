@@ -24,6 +24,8 @@ be slow on macOS. CI runs these in sixteen isolated Linux shards; the remaining
 checks and both app builds run on macOS. To reproduce a Linux shard, run
 `python3 scripts/check-integration.py --group linux-agent --shard-index 0 --shard-count 16`.
 The default `./scripts/check.sh` still selects the complete integration suite.
+Recovery fault boundaries are individual tests so every boundary can be
+distributed across the matrix; each process verifies the complete trace inventory.
 
 ## Useful contributions
 

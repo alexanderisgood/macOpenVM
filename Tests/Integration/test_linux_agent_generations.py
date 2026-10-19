@@ -6,6 +6,7 @@ import os
 import subprocess
 import unittest
 import shutil
+import shlex
 import time
 
 from linux_agent_transaction_fixture import GenerationFixture, LEGACY, LEGACY_SHA
@@ -277,6 +278,19 @@ class LinuxAgentGenerationTests(unittest.TestCase):
 
     def test_missing_flock_refuses_before_state_or_lockfile_creation(self):
         f = self.f
+        # The manager resets PATH before prepending the fake commands. Isolate
+        # its private copy so a host-installed flock cannot satisfy the probe.
+        isolated_bin = f.base / "missing-flock-bin"
+        isolated_bin.mkdir(mode=0o700)
+        for name in ("awk", "cat", "cmp"):
+            source = shutil.which(name, path="/usr/sbin:/usr/bin:/sbin:/bin")
+            self.assertIsNotNone(source, f"Missing fixture bootstrap tool: {name}")
+            (isolated_bin / name).symlink_to(source)
+        manager = f.fixture.manager_script.read_text()
+        path_line = "PATH=/usr/sbin:/usr/bin:/sbin:/bin\n"
+        self.assertEqual(manager.count(path_line), 1)
+        f.fixture.manager_script.write_text(manager.replace(
+            path_line, f"PATH={shlex.quote(str(isolated_bin))}\n"))
         (f.commands / "flock").unlink()
         before = f.full_tree()
         result = f.fixture.install(success=False)

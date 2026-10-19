@@ -21,27 +21,55 @@ class LinuxAgentGenerationJournalTests(unittest.TestCase):
         getattr(f, operation)()
         return [call for call in f.state()["calls"][start:] if call[0] in ("mv", "sync")]
 
-    def test_before_after_every_journal_publication_retains_resumable_exact_prefix(self):
-        for operation in ("upgrade", "rollback"):
+    # Per-process cache contains only immutable numeric offset tuples. It is
+    # populated by actual test execution, never by import/discovery/--list.
+    _boundary_offsets_by_operation = {}
+
+    def _journal_boundary_offsets(self, operation, family):
+        cache = type(self)._boundary_offsets_by_operation
+        if operation not in cache:
             trace = self.transaction_trace(operation)
             moves = [call for call in trace if call[0] == "mv"]
-            offsets = [index for index, call in enumerate(moves, 1) if call[1].endswith("/transaction.next")]
-            self.assertEqual(len(offsets), 8)
-            for offset in offsets:
-                for after in (False, True):
-                    with self.subTest(operation=operation, offset=offset, after=after):
-                        f = self.fixture(); f.install()
-                        if operation == "rollback": f.upgrade()
-                        protected = f.protected()
-                        variable = "MVO_FAIL_AFTER_MOVE" if after else "MVO_FAIL_MOVE"
-                        getattr(f, operation)(extra_env={variable: str(f.state()["moves"] + offset)}, success=False)
-                        f.assert_generations_present(self)
-                        self.assertEqual(f.protected(), protected)
-                        source, target = (f.pin_a, f.pin_b) if operation == "upgrade" else (f.pin_b, f.pin_a)
-                        f.recover(source=source, target=target)
-                        self.assertEqual(f.current_pin(), target)
-                        self.assertEqual(f.protected(), protected)
-                        self.assertTrue(f.state()["running"])
+            publication = tuple(index for index, call in enumerate(moves, 1)
+                                if call[1].endswith("/transaction.next"))
+            syncs = [call for call in trace if call[0] == "sync"]
+            # Rollback first flushes its prior upgrade archive and archive parent.
+            skip = 2 if operation == "rollback" else 0
+            journal_flush = tuple(index for index, call in enumerate(syncs, 1)
+                                  if index > skip and
+                                  (call[1].endswith("/transaction.next") or
+                                   call[1].endswith("/macopenvm-agent.install-lock")))
+            sync_index = 0; pending = 0; namespace_flush = []
+            for call in trace:
+                if call[0] == "mv" and not call[1].endswith("/transaction.next"):
+                    pending = 2
+                elif call[0] == "sync":
+                    sync_index += 1
+                    if pending:
+                        namespace_flush.append(sync_index); pending -= 1
+            # Preserve the original complete trace inventories before selecting
+            # one deterministic ordinal. No hardcoded syscall offset is guessed.
+            self.assertEqual(len(publication), 8)
+            self.assertEqual(len(journal_flush), 16)
+            self.assertEqual(len(namespace_flush), 8)
+            cache[operation] = (publication, journal_flush, tuple(namespace_flush))
+        return cache[operation][family]
+
+    def _check_journal_publication_boundary(self, operation, boundary_index, after):
+        offset = self._journal_boundary_offsets(operation, 0)[boundary_index]
+        with self.subTest(operation=operation, offset=offset, after=after):
+            f = self.fixture(); f.install()
+            if operation == "rollback": f.upgrade()
+            protected = f.protected()
+            variable = "MVO_FAIL_AFTER_MOVE" if after else "MVO_FAIL_MOVE"
+            getattr(f, operation)(extra_env={variable: str(f.state()["moves"] + offset)}, success=False)
+            f.assert_generations_present(self)
+            self.assertEqual(f.protected(), protected)
+            source, target = (f.pin_a, f.pin_b) if operation == "upgrade" else (f.pin_b, f.pin_a)
+            f.recover(source=source, target=target)
+            self.assertEqual(f.current_pin(), target)
+            self.assertEqual(f.protected(), protected)
+            self.assertTrue(f.state()["running"])
 
     def test_before_after_each_rollback_namespace_rename_preserves_prior_upgrade_and_reverse_resume(self):
         baseline = self.fixture(); baseline.install(); baseline.upgrade()
@@ -67,53 +95,35 @@ class LinuxAgentGenerationJournalTests(unittest.TestCase):
                     self.assertEqual(f.protected(), protected)
                     self.assertEqual((f.journal.parent / "previous-transaction").read_bytes(), upgrade_record)
 
-    def test_each_journal_file_and_parent_flush_preserves_valid_resume_or_unjournaled_refusal(self):
-        for operation in ("upgrade", "rollback"):
-            trace = self.transaction_trace(operation)
-            syncs = [call for call in trace if call[0] == "sync"]
-            # Rollback first flushes its prior upgrade archive and archive parent.
-            skip = 2 if operation == "rollback" else 0
-            offsets = [index for index, call in enumerate(syncs, 1) if index > skip
-                       and (call[1].endswith("/transaction.next") or call[1].endswith("/macopenvm-agent.install-lock"))]
-            self.assertEqual(len(offsets), 16)
-            for offset in offsets:
-                for variable in ("MVO_FAIL_SYNC", "MVO_FAIL_AFTER_SYNC"):
-                    with self.subTest(operation=operation, sync=offset, boundary=variable):
-                        f = self.fixture(); f.install()
-                        if operation == "rollback": f.upgrade()
-                        protected = f.protected()
-                        getattr(f, operation)(extra_env={variable: str(f.state().get("syncs", 0) + offset)}, success=False)
-                        f.assert_generations_present(self)
-                        self.assertEqual(f.protected(), protected)
-                        source, target = (f.pin_a, f.pin_b) if operation == "upgrade" else (f.pin_b, f.pin_a)
-                        f.recover(source=source, target=target)
-                        self.assertEqual(f.current_pin(), target)
-                        self.assertEqual(f.protected(), protected)
+    def _check_journal_file_parent_flush_boundary(self, operation, boundary_index, after):
+        offset = self._journal_boundary_offsets(operation, 1)[boundary_index]
+        variable = "MVO_FAIL_AFTER_SYNC" if after else "MVO_FAIL_SYNC"
+        with self.subTest(operation=operation, sync=offset, boundary=variable):
+            f = self.fixture(); f.install()
+            if operation == "rollback": f.upgrade()
+            protected = f.protected()
+            getattr(f, operation)(extra_env={variable: str(f.state().get("syncs", 0) + offset)}, success=False)
+            f.assert_generations_present(self)
+            self.assertEqual(f.protected(), protected)
+            source, target = (f.pin_a, f.pin_b) if operation == "upgrade" else (f.pin_b, f.pin_a)
+            f.recover(source=source, target=target)
+            self.assertEqual(f.current_pin(), target)
+            self.assertEqual(f.protected(), protected)
 
-    def test_each_namespace_parent_flush_failure_preserves_the_journaled_postrename_prefix(self):
-        for operation in ("upgrade", "rollback"):
-            trace = self.transaction_trace(operation)
-            sync_index = 0; pending = 0; offsets = []
-            for call in trace:
-                if call[0] == "mv" and not call[1].endswith("/transaction.next"): pending = 2
-                elif call[0] == "sync":
-                    sync_index += 1
-                    if pending:
-                        offsets.append(sync_index); pending -= 1
-            self.assertEqual(len(offsets), 8)
-            for offset in offsets:
-                for variable in ("MVO_FAIL_SYNC", "MVO_FAIL_AFTER_SYNC"):
-                    with self.subTest(operation=operation, sync=offset, boundary=variable):
-                        f = self.fixture(); f.install()
-                        if operation == "rollback": f.upgrade()
-                        protected = f.protected()
-                        getattr(f, operation)(extra_env={variable: str(f.state().get("syncs", 0) + offset)}, success=False)
-                        f.assert_generations_present(self)
-                        self.assertEqual(f.protected(), protected)
-                        source, target = (f.pin_a, f.pin_b) if operation == "upgrade" else (f.pin_b, f.pin_a)
-                        f.recover(source=source, target=target)
-                        self.assertEqual(f.current_pin(), target)
-                        self.assertEqual(f.protected(), protected)
+    def _check_namespace_parent_flush_boundary(self, operation, boundary_index, after):
+        offset = self._journal_boundary_offsets(operation, 2)[boundary_index]
+        variable = "MVO_FAIL_AFTER_SYNC" if after else "MVO_FAIL_SYNC"
+        with self.subTest(operation=operation, sync=offset, boundary=variable):
+            f = self.fixture(); f.install()
+            if operation == "rollback": f.upgrade()
+            protected = f.protected()
+            getattr(f, operation)(extra_env={variable: str(f.state().get("syncs", 0) + offset)}, success=False)
+            f.assert_generations_present(self)
+            self.assertEqual(f.protected(), protected)
+            source, target = (f.pin_a, f.pin_b) if operation == "upgrade" else (f.pin_b, f.pin_a)
+            f.recover(source=source, target=target)
+            self.assertEqual(f.current_pin(), target)
+            self.assertEqual(f.protected(), protected)
 
     def test_unjournaled_staging_flush_failure_preserves_both_trees_and_refuses_recovery(self):
         trace = self.transaction_trace()
@@ -277,6 +287,40 @@ class LinuxAgentGenerationJournalTests(unittest.TestCase):
                     self.assertEqual(f.full_tree(), before)
                     self.assertEqual(f.service_mutations(), calls)
 
+
+
+def _journal_boundary_case(helper_name, operation, boundary_index, after, name):
+    # Factory arguments freeze every loop parameter in this method's own scope.
+    # Calling the factory performs no fixture, trace or subprocess operations.
+    def test(self):
+        getattr(self, helper_name)(operation, boundary_index, after)
+    test.__name__ = name
+    test.__qualname__ = "LinuxAgentGenerationJournalTests." + name
+    return test
+
+
+def _register_journal_boundary_tests():
+    specifications = (
+        ("test_before_after_every_journal_publication_retains_resumable_exact_prefix",
+         "_check_journal_publication_boundary", 8),
+        ("test_each_journal_file_and_parent_flush_preserves_valid_resume_or_unjournaled_refusal",
+         "_check_journal_file_parent_flush_boundary", 16),
+        ("test_each_namespace_parent_flush_failure_preserves_the_journaled_postrename_prefix",
+         "_check_namespace_parent_flush_boundary", 8),
+    )
+    for prefix, helper_name, count in specifications:
+        for operation in ("upgrade", "rollback"):
+            for boundary_index in range(count):
+                for after in (False, True):
+                    boundary = "after" if after else "before"
+                    name = f"{prefix}_{operation}_{boundary_index + 1:02d}_{boundary}"
+                    if hasattr(LinuxAgentGenerationJournalTests, name):
+                        raise RuntimeError("Duplicate generated journal test: " + name)
+                    setattr(LinuxAgentGenerationJournalTests, name,
+                            _journal_boundary_case(helper_name, operation, boundary_index, after, name))
+
+
+_register_journal_boundary_tests()
 
 if __name__ == "__main__":
     unittest.main()
