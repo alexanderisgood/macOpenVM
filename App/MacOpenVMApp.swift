@@ -381,6 +381,7 @@ struct DesktopVMTrashConfirmation: Equatable {
         creationGeneration = UUID()
         diskCapacityNotice = nil
         openHistoryAdvice = nil
+        startupBlocker = nil
         invalidateVMReview()
         if configuration?.id != oldValue?.id { clearGraphicsPreferenceSelection() }
         windowsWorker = nil
@@ -392,6 +393,7 @@ struct DesktopVMTrashConfirmation: Equatable {
   }
   private var selectionGeneration = UUID()
   @Published private var openHistoryAdvice: VMOpenHistoryAdvice?
+  @Published private var startupBlocker: VMStartupBlocker?
   @Published var backend: AppleVirtualMachine?
   @Published var state = VMState.stopped {
     didSet {
@@ -643,6 +645,7 @@ struct DesktopVMTrashConfirmation: Equatable {
         selectionGeneration = UUID()
         creationGeneration = UUID()
         openHistoryAdvice = nil
+        startupBlocker = nil
         invalidateVMReview()
         clearGraphicsPreferenceSelection()
         diskCapacityNotice = nil
@@ -695,6 +698,13 @@ struct DesktopVMTrashConfirmation: Equatable {
     return advice
   }
 
+  var currentStartupBlocker: VMStartupBlocker? {
+    guard let blocker = startupBlocker,
+      blocker.matches(configuration: configuration, at: selectedConfigurationURL)
+    else { return nil }
+    return blocker
+  }
+
   var hardwareOpenHistoryAdvice: VMOpenHistoryAdvice? {
     editorOpenHistoryAdvice(hardwareAdmission, configuration: hardwareConfiguration)
   }
@@ -739,7 +749,9 @@ struct DesktopVMTrashConfirmation: Equatable {
       "When Windows asks for a network driver, choose Install driver and select drivers/netkvm on the driver disc."
   }
   var canStartSelected: Bool {
-    guard let configuration, SavedVMStartEligibility.permits(configuration) else { return false }
+    guard currentStartupBlocker == nil,
+      let configuration, SavedVMStartEligibility.permits(configuration)
+    else { return false }
     if configuration.guest == .linux && configuration.backend == .appleVz { return true }
     return configuration.guest == .windows11 && configuration.backend == .qemuHVF
       && configuration.architecture == .arm64 && configuration.boot == .efi
@@ -2421,7 +2433,7 @@ struct DesktopVMTrashConfirmation: Equatable {
   }
 
   var canRecheckWindowsReadiness: Bool {
-    configuration?.guest == .windows11 && directory != nil
+    currentStartupBlocker == nil && configuration?.guest == .windows11 && directory != nil
       && (state == .stopped || state == .failed)
       && !isBusy && !needsOwnershipRecovery && windowsRuntime == nil
       && !showingLibrary && !creating && !editingHardware && !editingNetwork
@@ -2803,6 +2815,7 @@ struct DesktopVMTrashConfirmation: Equatable {
         if errorGeneration == selectionErrorGeneration { errorMessage = nil }
         library.remember(c, at: url)
         if self.configuration == c, selectedConfigurationURL == url {
+          startupBlocker = VMStartupBlocker(configuration: c, at: url, intent: report.intent)
           openHistoryAdvice =
             destination == .review
             ? nil : VMOpenHistoryAdvice(configuration: c, at: url, history: report.history)
@@ -3351,54 +3364,41 @@ private struct DesktopView: View {
     VMGlassGroup {
       ScrollView {
         VStack(alignment: .leading, spacing: 24) {
-          HStack(alignment: .top, spacing: 20) {
-            VStack(alignment: .leading, spacing: 8) {
-              Text("Your virtual machines")
-                .font(.largeTitle.weight(.semibold)).accessibilityAddTraits(.isHeader)
-              Text("Create or open a VM, then continue in its own guest display.")
-                .font(.callout).vmSupportingText()
-            }
+          HStack(alignment: .center, spacing: 20) {
+            Text("Virtual machines")
+              .font(.largeTitle.weight(.semibold)).accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
-            VMGlassBadge(title: "Experimental", symbol: "flask")
+            if session.configuration != nil {
+              newMachineMenu
+              Button("Open…", systemImage: "folder", action: session.chooseVM)
+                .vmGlassControl().disabled(session.isBusy)
+                .accessibilityLabel("Open another virtual machine")
+            }
           }
           if let configuration = session.configuration {
             VMOpenHistoryAdviceView(
               advice: session.currentOpenHistoryAdvice, dismiss: session.dismissOpenHistoryAdvice)
             selectedMachine(configuration)
+            SavedVMLibrarySummary(
+              library: session.library, canOpen: session.canShowLibrary, open: session.showLibrary)
           } else {
             SavedVMLibrarySummary(
               library: session.library, canOpen: session.canShowLibrary, open: session.showLibrary)
             VMContentCard {
-              Label("Choose an ARM64 installation image", systemImage: "desktopcomputer")
+              Label("Open or create a VM", systemImage: "desktopcomputer")
                 .font(.title2.weight(.semibold)).accessibilityAddTraits(.isHeader)
               Text(
-                "Choose your installation image and a new destination. Hardware defaults leave room for your Mac, and networking starts disconnected."
+                "Continue with an existing virtual machine, or create one from your installation image."
               )
               .font(.callout).vmSupportingText()
               HStack(spacing: 12) {
-                Button("New Windows VM…", systemImage: "plus", action: session.showWindowsCreation)
-                  .vmGlassControl(prominent: true).disabled(session.isBusy)
-                Button("New Linux VM…", systemImage: "plus", action: session.showLinuxCreation)
-                  .vmGlassControl().disabled(session.isBusy)
                 Button("Open VM…", systemImage: "folder", action: session.chooseVM)
-                  .vmGlassControl().disabled(session.isBusy)
+                  .vmGlassControl(prominent: true).disabled(session.isBusy)
+                newMachineMenu
               }
             }
           }
-          VMContentCard("On this Mac") {
-            Label("Windows 11 ARM64 · primary target", systemImage: "desktopcomputer")
-              .font(.callout.weight(.medium))
-            Text(
-              "Windows VM creation and startup use the verified development backend on macOS 27 or later. Guided installation remains experimental."
-            )
-            .font(.callout).vmSupportingText()
-            Divider()
-            Label("ARM64 Linux · native virtualization", systemImage: "cpu")
-              .font(.callout.weight(.medium))
-            Text(session.capabilitySummary).font(.callout).vmSupportingText()
-            Text("Supply your own installation image. No operating-system media is bundled.")
-              .font(.callout).vmSupportingText()
-          }
+          hostDetails
         }
         .frame(maxWidth: 780, alignment: .leading)
         .padding(32)
@@ -3408,161 +3408,74 @@ private struct DesktopView: View {
     .background(Color(nsColor: .windowBackgroundColor))
   }
 
+  private var newMachineMenu: some View {
+    Menu {
+      Button("Windows VM…", action: session.showWindowsCreation)
+        .accessibilityLabel("Create a Windows 11 ARM64 virtual machine")
+      Button("Linux VM…", action: session.showLinuxCreation)
+        .accessibilityLabel("Create an ARM64 Linux virtual machine")
+    } label: {
+      Label("New VM", systemImage: "plus")
+    }
+    .menuStyle(.button).vmGlassControl().fixedSize().disabled(session.isBusy)
+  }
+
+  private var hostDetails: some View {
+    DisclosureGroup {
+      VStack(alignment: .leading, spacing: 12) {
+        Text(
+          "Windows 11 ARM64 requires the verified development runtime and macOS 27 or later. Guided installation is experimental."
+        )
+        Text(session.capabilitySummary)
+        Text("Supply your own installation image. No operating-system media is bundled.")
+      }
+      .font(.callout).vmSupportingText().padding(.top, 8)
+    } label: {
+      Label("About this Mac", systemImage: "info.circle")
+        .font(.callout).vmSupportingText()
+    }
+  }
+
   private func selectedMachine(_ configuration: VMConfiguration) -> some View {
     VMContentCard {
       HStack(alignment: .top, spacing: 18) {
         Image(systemName: "desktopcomputer")
-          .font(.system(size: 32, weight: .medium)).foregroundStyle(Color.accentColor)
+          .font(.system(size: 36, weight: .medium)).foregroundStyle(Color.accentColor)
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 6) {
-          Text(configuration.name).font(.title2.weight(.semibold))
+          Text(configuration.name).font(.largeTitle.weight(.semibold))
             .accessibilityAddTraits(.isHeader)
-          Text("Selected VM").font(.callout).vmSupportingText()
+          Text(configuration.guest == .windows11 ? "Windows 11 ARM64" : "Linux ARM64")
+            .font(.callout).vmSupportingText()
         }
         Spacer(minLength: 0)
-        VMGlassBadge(
-          title: session.isBusy
-            ? "Finishing operation" : session.state == .failed ? "Needs attention" : "Selected",
-          symbol: session.isBusy
-            ? "hourglass" : session.state == .failed ? "exclamationmark.circle" : "checkmark.circle"
-        )
+        VMGlassBadge(title: selectedMachineStatus.title, symbol: selectedMachineStatus.symbol)
       }
-      HStack(spacing: 28) {
-        machineMetric("CPUs", value: "\(configuration.cpuCount)")
-        machineMetric(
-          "Memory",
-          value: configuration.memoryBytes % 1_073_741_824 == 0
-            ? "\(configuration.memoryBytes / 1_073_741_824) GiB"
-            : "\(configuration.memoryBytes / 1_048_576) MiB")
-        machineMetric("Disk capacity", value: "\(configuration.diskBytes / 1_073_741_824) GiB")
-      }
-      Divider()
-      if !SavedVMStartEligibility.permits(configuration) {
-        Label(
-          "This Mac cannot start the saved configuration. Review Hardware Settings and this Mac’s capabilities before starting.",
-          systemImage: "exclamationmark.triangle"
-        )
-        .font(.callout).fixedSize(horizontal: false, vertical: true)
-      }
-      LabeledContent("Networking") {
-        Text(configuration.network == .shared ? "Shared · experimental" : "Disconnected")
-      }.font(.callout)
-      LabeledContent("Installation image") {
-        Text(
-          configuration.installationMedia.map { URL(fileURLWithPath: $0).lastPathComponent }
-            ?? "Detached"
-        )
-        .lineLimit(1).truncationMode(.middle)
-        .help(configuration.installationMedia ?? "No installation image is attached")
-      }.font(.callout)
-      LabeledContent(
-        session.usesWindowsDriverDisc
-          ? "Windows driver disc · experimental" : "Tools image · experimental"
-      ) {
-        Text(
-          configuration.supportMedia.map { URL(fileURLWithPath: $0).lastPathComponent }
-            ?? "Detached"
-        )
-        .lineLimit(1).truncationMode(.middle)
-        .help(configuration.supportMedia ?? "No tools image is attached")
-      }.font(.callout)
-      HStack(spacing: 12) {
-        Button("Review…", systemImage: "doc.text.magnifyingglass", action: session.showVMReview)
+      if let blocker = session.currentStartupBlocker {
+        VStack(alignment: .leading, spacing: 8) {
+          Label(blocker.title, systemImage: "exclamationmark.triangle")
+            .font(.headline).accessibilityAddTraits(.isHeader)
+          Text(blocker.message).font(.callout).fixedSize(horizontal: false, vertical: true)
+          Button(
+            "Review VM…", systemImage: "doc.text.magnifyingglass", action: session.showVMReview
+          )
           .vmGlassControl().disabled(!session.canReviewSelectedVM)
-          .accessibilityLabel("Review selected VM files and recorded metadata")
+          .accessibilityLabel("Review selected VM files and session record")
+        }
+        .accessibilityElement(children: .contain)
       }
       HStack(spacing: 12) {
-        Button("Start VM", systemImage: "play.fill", action: session.start)
+        Button("Start", systemImage: "play.fill", action: session.start)
           .vmGlassControl(prominent: true).keyboardShortcut(.return)
           .disabled(!session.canRequestStart)
-        Button(
-          configuration.installationMedia == nil ? "Attach Image…" : "Change Image…",
-          systemImage: "opticaldisc", action: session.chooseInstallationMedia
-        )
-        .vmGlassControl().disabled(session.isBusy)
-        .accessibilityLabel("Choose an installation image")
-        if configuration.installationMedia != nil {
-          Button("Detach", systemImage: "eject") { session.changeInstallationMedia(nil) }
-            .vmGlassControl().disabled(session.isBusy)
-            .accessibilityLabel("Detach the installation image")
-        }
+          .accessibilityLabel("Start \(configuration.name)")
+        selectedMachineSettings(configuration)
       }
-      if configuration.guest == .windows11 {
-        WindowsReadinessView(
-          readiness: session.windowsLaunchReadiness,
-          canRecheck: session.canRecheckWindowsReadiness,
-          recheck: session.recheckWindowsReadiness)
-        HStack(spacing: 12) {
-          Button("Graphics…", systemImage: "display", action: session.showGraphicsSettings)
-            .vmGlassControl().disabled(!session.canEditGraphicsSettings)
-            .accessibilityLabel("Windows graphics settings")
-          Text(session.windowsGraphicsSummary).font(.callout).vmSupportingText()
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        if let warning = session.graphicsPreferencesWarning {
-          Label(warning, systemImage: "exclamationmark.triangle")
-            .font(.callout).fixedSize(horizontal: false, vertical: true)
-            .accessibilityLabel("Remembered graphics settings: \(warning)")
-        }
-      } else if !session.canStartSelected && SavedVMStartEligibility.permits(configuration) {
-        Text(
-          "Hardware settings are available. Starting this VM through the library is still pending backend verification."
-        )
-        .font(.callout).vmSupportingText()
-      }
-      HStack(spacing: 12) {
-        Button(
-          "Disk Capacity…", systemImage: "externaldrive", action: session.showDiskCapacitySettings
-        )
-        .vmGlassControl().disabled(!session.canEditDiskCapacity)
-        .accessibilityLabel("Expand disk capacity, experimental")
-        Text("Expand the virtual disk while this VM is stopped.")
-          .font(.callout).vmSupportingText().fixedSize(horizontal: false, vertical: true)
-      }
-      HStack(spacing: 12) {
-        Button("Hardware…", systemImage: "cpu", action: session.showHardwareSettings)
-          .vmGlassControl().disabled(session.isBusy)
-          .accessibilityLabel("Hardware settings")
-        Button("Copy VM… · Experimental", systemImage: "doc.on.doc", action: session.chooseCopyVM)
-          .vmGlassControl().disabled(!session.canCopySelected)
-          .help("Copy a stopped native Linux VM. The new copy starts disconnected.")
-        Button(
-          session.usesWindowsDriverDisc
-            ? "Attach Driver Disc · Experimental"
-            : configuration.supportMedia == nil ? "Attach Tools…" : "Change Tools…",
-          systemImage: "opticaldisc", action: session.chooseSupportMedia
-        )
-        .vmGlassControl().disabled(session.isBusy)
-        .accessibilityLabel(
-          session.usesWindowsDriverDisc
-            ? "Attach the reviewed Windows driver disc, experimental" : "Choose a tools image")
-        if configuration.supportMedia != nil {
-          Button(
-            session.usesWindowsDriverDisc ? "Detach Driver Disc" : "Detach Tools",
-            systemImage: "eject"
-          ) {
-            session.changeSupportMedia(nil)
-          }
-          .vmGlassControl().disabled(session.isBusy)
-          .accessibilityLabel(
-            session.usesWindowsDriverDisc
-              ? "Detach the Windows driver disc" : "Detach the tools image")
-        }
-      }
-      if session.usesWindowsDriverDisc, configuration.supportMedia != nil, session.canStartSelected
-      {
-        Text(session.windowsDriverDiscGuidance)
-          .font(.callout).vmSupportingText()
-      }
-      HStack(spacing: 12) {
-        Button(
-          "Networking… · Experimental", systemImage: "network", action: session.showNetworkSettings
-        )
-        .vmGlassControl().disabled(!session.canEditNetworkSettings)
-        .accessibilityLabel("Networking settings, experimental")
-        .help("Edit networking while this VM is stopped. Changes apply on its next start.")
-        Text("Changes apply on the next start.")
-          .font(.callout).vmSupportingText()
+      selectedMachineWarnings(configuration)
+      if let warning = session.graphicsPreferencesWarning, configuration.guest == .windows11 {
+        Label(warning, systemImage: "exclamationmark.triangle")
+          .font(.callout).fixedSize(horizontal: false, vertical: true)
+          .accessibilityLabel("Remembered graphics settings: \(warning)")
       }
       if let notice = session.diskCapacityNotice {
         Label(notice, systemImage: "checkmark.circle").font(.callout).vmSupportingText()
@@ -3575,6 +3488,179 @@ private struct DesktopView: View {
             .font(.callout).vmSupportingText()
         }.accessibilityElement(children: .combine)
       }
+      Divider()
+      selectedMachineDetails(configuration)
+    }
+  }
+
+  private var selectedMachineStatus: (title: String, symbol: String) {
+    if session.needsOwnershipRecovery { return ("Needs recovery", "exclamationmark.triangle") }
+    if session.currentStartupBlocker != nil { return ("Needs review", "exclamationmark.triangle") }
+    if session.isBusy { return ("Working…", "hourglass") }
+    if session.state == .failed { return ("Needs attention", "exclamationmark.circle") }
+    return session.state == .stopped
+      ? ("Stopped", "stop.circle") : ("Selected", "checkmark.circle")
+  }
+
+  @ViewBuilder private func selectedMachineWarnings(_ configuration: VMConfiguration) -> some View {
+    if session.needsOwnershipRecovery {
+      Label(
+        "This VM needs recovery. Keep its files in place and review its status before starting.",
+        systemImage: "exclamationmark.triangle"
+      )
+      .font(.callout).fixedSize(horizontal: false, vertical: true)
+    }
+    if !SavedVMStartEligibility.permits(configuration) {
+      Label(
+        "This Mac cannot start the saved configuration. Review Hardware Settings before starting.",
+        systemImage: "exclamationmark.triangle"
+      )
+      .font(.callout).fixedSize(horizontal: false, vertical: true)
+    }
+    if configuration.guest == .windows11 {
+      if session.windowsLaunchReadiness != .ready {
+        WindowsReadinessView(
+          readiness: session.windowsLaunchReadiness,
+          canRecheck: session.canRecheckWindowsReadiness,
+          recheck: session.recheckWindowsReadiness)
+      }
+    } else if !session.canStartSelected && SavedVMStartEligibility.permits(configuration) {
+      Text(
+        "Hardware settings are available. Starting this VM through the library is still pending backend verification."
+      )
+      .font(.callout).vmSupportingText()
+    }
+  }
+
+  private func selectedMachineSettings(_ configuration: VMConfiguration) -> some View {
+    Menu {
+      Button("Hardware…", systemImage: "cpu", action: session.showHardwareSettings)
+        .disabled(session.isBusy).accessibilityLabel("Hardware settings")
+      if configuration.guest == .windows11 {
+        Button("Graphics…", systemImage: "display", action: session.showGraphicsSettings)
+          .disabled(!session.canEditGraphicsSettings)
+          .accessibilityLabel("Windows graphics settings")
+      }
+      Button(
+        "Networking… · Experimental", systemImage: "network", action: session.showNetworkSettings
+      )
+      .disabled(!session.canEditNetworkSettings)
+      .accessibilityLabel("Networking settings, experimental")
+      .help("Edit networking while this VM is stopped. Changes apply on its next start.")
+      Button(
+        "Disk Capacity…", systemImage: "externaldrive", action: session.showDiskCapacitySettings
+      )
+      .disabled(!session.canEditDiskCapacity)
+      .accessibilityLabel("Expand disk capacity, experimental")
+      .help("Expand the virtual disk while this VM is stopped.")
+      Divider()
+      Menu("Installation image") {
+        Button(
+          configuration.installationMedia == nil ? "Attach Image…" : "Change Image…",
+          systemImage: "opticaldisc", action: session.chooseInstallationMedia
+        )
+        .disabled(session.isBusy).accessibilityLabel("Choose an installation image")
+        if configuration.installationMedia != nil {
+          Button("Detach Image", systemImage: "eject") { session.changeInstallationMedia(nil) }
+            .disabled(session.isBusy).accessibilityLabel("Detach the installation image")
+        }
+      }
+      Menu(
+        session.usesWindowsDriverDisc
+          ? "Windows driver disc · Experimental" : "Tools image · Experimental"
+      ) {
+        Button(
+          session.usesWindowsDriverDisc
+            ? "Attach Driver Disc…"
+            : configuration.supportMedia == nil ? "Attach Tools…" : "Change Tools…",
+          systemImage: "opticaldisc", action: session.chooseSupportMedia
+        )
+        .disabled(session.isBusy)
+        .accessibilityLabel(
+          session.usesWindowsDriverDisc
+            ? "Attach the reviewed Windows driver disc, experimental" : "Choose a tools image")
+        if configuration.supportMedia != nil {
+          Button(
+            session.usesWindowsDriverDisc ? "Detach Driver Disc" : "Detach Tools",
+            systemImage: "eject"
+          ) {
+            session.changeSupportMedia(nil)
+          }
+          .disabled(session.isBusy)
+          .accessibilityLabel(
+            session.usesWindowsDriverDisc
+              ? "Detach the Windows driver disc" : "Detach the tools image")
+        }
+      }
+      Divider()
+      Button(
+        "Review VM Files…", systemImage: "doc.text.magnifyingglass", action: session.showVMReview
+      )
+      .disabled(!session.canReviewSelectedVM)
+      .accessibilityLabel("Review selected VM files and recorded metadata")
+      Button("Copy VM… · Experimental", systemImage: "doc.on.doc", action: session.chooseCopyVM)
+        .disabled(!session.canCopySelected)
+        .help("Copy a stopped native Linux VM. The new copy starts disconnected.")
+    } label: {
+      Label("Settings", systemImage: "slider.horizontal.3")
+    }
+    .menuStyle(.button).vmGlassControl().fixedSize()
+    .accessibilityLabel("Settings and file actions for \(configuration.name)")
+  }
+
+  private func selectedMachineDetails(_ configuration: VMConfiguration) -> some View {
+    DisclosureGroup {
+      VStack(alignment: .leading, spacing: 16) {
+        HStack(spacing: 28) {
+          machineMetric("CPUs", value: "\(configuration.cpuCount)")
+          machineMetric(
+            "Memory",
+            value: configuration.memoryBytes % 1_073_741_824 == 0
+              ? "\(configuration.memoryBytes / 1_073_741_824) GiB"
+              : "\(configuration.memoryBytes / 1_048_576) MiB")
+          machineMetric("Disk capacity", value: "\(configuration.diskBytes / 1_073_741_824) GiB")
+        }
+        LabeledContent("Networking") {
+          Text(configuration.network == .shared ? "Shared · experimental" : "Disconnected")
+        }.font(.callout)
+        LabeledContent("Installation image") {
+          Text(
+            configuration.installationMedia.map { URL(fileURLWithPath: $0).lastPathComponent }
+              ?? "Detached"
+          )
+          .lineLimit(1).truncationMode(.middle)
+          .help(configuration.installationMedia ?? "No installation image is attached")
+        }.font(.callout)
+        LabeledContent(
+          session.usesWindowsDriverDisc
+            ? "Windows driver disc · experimental" : "Tools image · experimental"
+        ) {
+          Text(
+            configuration.supportMedia.map { URL(fileURLWithPath: $0).lastPathComponent }
+              ?? "Detached"
+          )
+          .lineLimit(1).truncationMode(.middle)
+          .help(configuration.supportMedia ?? "No tools image is attached")
+        }.font(.callout)
+        if configuration.guest == .windows11 {
+          LabeledContent("Graphics") {
+            Text(session.windowsGraphicsSummary).fixedSize(horizontal: false, vertical: true)
+          }.font(.callout)
+          if session.windowsLaunchReadiness == .ready {
+            WindowsReadinessView(
+              readiness: session.windowsLaunchReadiness,
+              canRecheck: session.canRecheckWindowsReadiness,
+              recheck: session.recheckWindowsReadiness)
+          }
+        }
+        if session.usesWindowsDriverDisc, configuration.supportMedia != nil,
+          session.canStartSelected
+        {
+          Text(session.windowsDriverDiscGuidance).font(.callout).vmSupportingText()
+        }
+      }.padding(.top, 12)
+    } label: {
+      Text("VM details").font(.callout.weight(.medium))
     }
   }
 

@@ -18,9 +18,17 @@ struct CLIInterruptionRecoveryRequest: Sendable {
   let processEvidence: URL
 }
 
+struct CLIAbandonedOwnerRecoveryRequest: Sendable {
+  let selection: CLIInterruptionSelection
+  let metadataSHA256: String
+  let ownerExitEvidence: URL
+  let noOtherRuntimeEvidence: URL
+}
+
 enum CLIInterruptionRequest: Sendable {
   case inspect(CLIInterruptionSelection)
   case recover(CLIInterruptionRecoveryRequest)
+  case recoverAbandonedOwner(CLIAbandonedOwnerRecoveryRequest)
 }
 
 struct CLIInterruptionCustodyReport: Encodable, Sendable {
@@ -63,17 +71,27 @@ struct CLIInterruptionCustodyReport: Encodable, Sendable {
 
 @MainActor enum InterruptedWindowsCLI {
   static let acknowledgement = "observed-reboot-and-reviewed-processes"
+  static let abandonedOwnerAcknowledgement = "reviewed-owner-exit-and-no-other-runtime"
   static let selectionKeys: Set<String> = [
     "directory", "expected-vm", "expected-session", "run-name",
   ]
   static let recoveryKeys: Set<String> = selectionKeys.union([
     "expected-metadata-sha256", "reboot-evidence", "process-evidence", "acknowledge-host-reboot",
   ])
+  static let abandonedOwnerRecoveryKeys: Set<String> = selectionKeys.union([
+    "expected-metadata-sha256", "owner-exit-evidence", "no-other-runtime-evidence",
+    "acknowledge-owner-exit",
+  ])
 
   static func parse(command: String, options: [String: String]) throws -> CLIInterruptionRequest {
-    guard command == "inspect-interrupted-windows" || command == "recover-interrupted-windows",
-      Set(options.keys)
-        == (command == "inspect-interrupted-windows" ? selectionKeys : recoveryKeys),
+    let required: Set<String>
+    switch command {
+    case "inspect-interrupted-windows": required = selectionKeys
+    case "recover-interrupted-windows": required = recoveryKeys
+    case "recover-abandoned-windows-owner": required = abandonedOwnerRecoveryKeys
+    default: throw failure()
+    }
+    guard Set(options.keys) == required,
       let directory = options["directory"], let rawVM = options["expected-vm"],
       let rawSession = options["expected-session"], let run = options["run-name"]
     else { throw failure() }
@@ -89,6 +107,21 @@ struct CLIInterruptionCustodyReport: Encodable, Sendable {
     let selection = CLIInterruptionSelection(
       directory: try localPath(directory), vmID: vm, sessionID: session, runName: run)
     if command == "inspect-interrupted-windows" { return .inspect(selection) }
+    if command == "recover-abandoned-windows-owner" {
+      guard options["acknowledge-owner-exit"] == abandonedOwnerAcknowledgement,
+        let digest = options["expected-metadata-sha256"], digest.utf8.count == 64,
+        digest.allSatisfy({ "0123456789abcdef".contains($0) }),
+        let ownerExit = options["owner-exit-evidence"],
+        let processes = options["no-other-runtime-evidence"]
+      else { throw failure() }
+      let ownerExitURL = try localPath(ownerExit)
+      let processURL = try localPath(processes)
+      guard ownerExitURL.path != processURL.path else { throw failure() }
+      return .recoverAbandonedOwner(
+        .init(
+          selection: selection, metadataSHA256: digest,
+          ownerExitEvidence: ownerExitURL, noOtherRuntimeEvidence: processURL))
+    }
     guard options["acknowledge-host-reboot"] == acknowledgement,
       let digest = options["expected-metadata-sha256"], digest.utf8.count == 64,
       digest.allSatisfy({ "0123456789abcdef".contains($0) }),
@@ -135,6 +168,24 @@ struct CLIInterruptionCustodyReport: Encodable, Sendable {
           owner,
           .init(
             vmID: selection.vmID, interruptedSessionID: selection.sessionID))
+      }
+    case .recoverAbandonedOwner(let request):
+      let ownerExit = try readEvidence(request.ownerExitEvidence)
+      let processes = try readEvidence(request.noOtherRuntimeEvidence)
+      let selection = request.selection
+      do {
+        return .recovered(
+          try await owner.recoverAbandonedOwner(
+            in: selection.directory, expectedVMID: selection.vmID,
+            expectedSessionID: selection.sessionID, runName: selection.runName,
+            expectedMetadataSHA256: request.metadataSHA256,
+            ownerExitObservation: ownerExit, processObservation: processes,
+            acknowledgement: .reviewedOwnerExitAndNoOtherRuntime))
+      } catch {
+        guard owner.custodyRetained else { throw error }
+        return .custodyRequired(
+          owner,
+          .init(vmID: selection.vmID, interruptedSessionID: selection.sessionID))
       }
     }
   }

@@ -521,7 +521,9 @@ struct DesktopWindowsTermination: Sendable {
     configuration: VMConfiguration, in directory: URL,
     displayEvaluation: ReviewedQemu2DDisplay? = nil,
     acceleratedDisplay: ReviewedQemuAcceleratedDisplay? = nil,
-    producerCapture: CaptureCapability? = nil
+    producerCapture: CaptureCapability? = nil,
+    storageCapacity: WindowsRuntimeStorageAdmission.CapacityProvider =
+      WindowsRuntimeStorageAdmission.readCapacity
   ) async throws -> UUID? {
     try requireCaptureSelection(
       displayEvaluation: displayEvaluation,
@@ -537,6 +539,10 @@ struct DesktopWindowsTermination: Sendable {
     let intent = try await files.readRuntimeIntent(in: directory)
     guard intent == nil || (intent?.vmID == configuration.id && intent?.state == .settled)
     else { throw desktopWindowsFailure() }
+    // Sample the VM's actual volume before launch creates a run directory or
+    // parent. The worker repeats this check before it mints a runtime permit.
+    try await WindowsRuntimeStorageAdmission.requireCapacity(
+      in: directory, capacity: storageCapacity)
     let project = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
       .deletingLastPathComponent()
     try await QemuRegisteredAdmission.validateStoredState(

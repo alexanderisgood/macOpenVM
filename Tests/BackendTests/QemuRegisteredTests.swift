@@ -431,6 +431,32 @@ private struct RegisteredFixture {
     #expect(try FileManager.default.contentsOfDirectory(atPath: root.path).isEmpty)
   }
 
+  @Test(arguments: [false, true])
+  func systemDiskForwardsGuestDiscardAndKeepsBootMediaReadOnly(shared: Bool) throws {
+    let f = try RegisteredFixture()
+    defer { f.close() }
+    let endpoints = try QemuRegisteredEndpoints(directory: f.sockets)
+    let base = shared ? try f.sharedResources() : f.resources
+    let support = try f.supportImage()
+    let resources = try f.withSupport(support, base: base)
+    var configuration = f.configuration
+    configuration.network = shared ? .shared : .disconnected
+    configuration.supportMedia = support.url.path
+    let arguments = try QemuRegisteredPlan.arguments(
+      configuration: configuration, directory: f.vm, resources: resources, endpoints: endpoints).0
+    let drives = arguments.indices.filter { arguments[$0] == "-drive" }.map { arguments[$0 + 1] }
+    // A comma-bearing disk name stays literal while reclaim applies only to
+    // the writable system disk. Firmware and both ISO carriers stay read-only.
+    let system =
+      "if=none,id=system,format=raw,cache=none,discard=unmap,file=\(f.vm.path)/disk,,readonly=on.raw"
+    #expect(drives.count == 4)
+    #expect(drives.filter { $0.hasPrefix("if=none,id=system,") } == [system])
+    #expect(drives.filter { $0.contains(",discard=") } == [system])
+    #expect(drives.filter { $0 != system }.allSatisfy { $0.contains(",readonly=on,") })
+    #expect(!arguments.contains { $0.contains("detect-zeroes=") })
+    #expect(!arguments.contains("-snapshot"))
+  }
+
   @Test func configurationProducesOfflineArgumentsWithLiteralCommaSpaceAndUnicodePaths() throws {
     let f = try RegisteredFixture()
     defer { f.close() }
@@ -438,6 +464,9 @@ private struct RegisteredFixture {
     let first = try QemuRegisteredPlan.arguments(
       configuration: f.configuration, directory: f.vm, resources: f.resources.creation,
       endpoints: endpoints)
+    #expect(
+      first.0.contains(
+        "if=none,id=system,format=raw,cache=none,discard=unmap,file=\(f.vm.path)/disk,,readonly=on.raw"))
     #expect(first.0.contains("none") && !first.0.contains("-netdev"))
     #expect(first.0.contains(where: { $0.contains("file=\(f.vm.path)/disk,,readonly=on.raw") }))
     #expect(first.0.contains(where: { $0.contains("firmware,,readonly=off.fd") }))

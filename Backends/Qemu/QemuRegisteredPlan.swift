@@ -200,7 +200,8 @@ public struct QemuRegisteredPlan: Sendable {
       "-device", "qemu-xhci,id=xhci0", "-device", "usb-kbd,id=keyboard0,bus=xhci0.0", "-device",
       "usb-mouse,id=relative-pointer0,bus=xhci0.0", "-device",
       "usb-tablet,id=pointer0,bus=xhci0.0",
-      "-drive", "if=none,id=system,format=raw,cache=none,file=\(QemuPlan.escape(disk))",
+      // Forward guest-issued TRIM so the host can reclaim sparse disk blocks.
+      "-drive", "if=none,id=system,format=raw,cache=none,discard=unmap,file=\(QemuPlan.escape(disk))",
       "-device",
       "nvme,drive=system,serial=\(serial)",
       "-k", keymap.path, "-vnc", "unix:\(endpoints.displaySocket.path),share=force-shared",

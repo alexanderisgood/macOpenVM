@@ -10,27 +10,37 @@ struct SavedVMLibrarySummary: View {
 
   var body: some View {
     if !library.entries.isEmpty || library.errorMessage != nil {
-      VMContentCard("Saved virtual machines") {
-        ForEach(library.entries) { entry in
-          HStack(spacing: 12) {
-            Image(systemName: "desktopcomputer").accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-              Text(entry.name).font(.headline).lineLimit(2)
-              Text(entry.guest == .windows11 ? "Windows 11 ARM64" : "Linux ARM64")
-                .font(.caption).vmSupportingText()
-            }
-            Spacer(minLength: 0)
+      VMContentCard {
+        HStack(spacing: 16) {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Saved virtual machines").font(.headline).accessibilityAddTraits(.isHeader)
+            Text(summary).font(.caption).vmSupportingText()
           }
+          Spacer(minLength: 0)
+          Button("Browse Library", systemImage: "square.stack", action: open)
+            .vmGlassControl().disabled(!canOpen)
+            .help("Choose a saved VM without starting it")
+        }
+        if !library.entries.isEmpty {
+          Text(preview).font(.callout).vmSupportingText().lineLimit(2)
         }
         if let error = library.errorMessage {
           Label(error, systemImage: "exclamationmark.triangle")
             .font(.callout).fixedSize(horizontal: false, vertical: true)
         }
-        Button("Open VM Library", systemImage: "square.stack", action: open)
-          .vmGlassControl(prominent: true).disabled(!canOpen)
-          .help("Choose a saved VM without starting it")
       }
     }
+  }
+
+  private var summary: String {
+    if library.entries.isEmpty { return "Saved list unavailable" }
+    return library.entries.count == 1 ? "1 saved VM" : "\(library.entries.count) saved VMs"
+  }
+
+  private var preview: String {
+    let names = library.entries.prefix(3).map(\.name).joined(separator: " · ")
+    let remaining = library.entries.count - 3
+    return remaining > 0 ? "\(names) · \(remaining) more" : names
   }
 }
 
@@ -54,15 +64,15 @@ struct VMLibraryView: View {
             .vmGlassControl().keyboardShortcut(.cancelAction)
         }
         HStack(spacing: 12) {
-          Button("New Windows…", systemImage: "plus") {
-            session.requestLibraryNavigation(.newWindows)
+          Menu {
+            Button("Windows VM…") { session.requestLibraryNavigation(.newWindows) }
+              .accessibilityLabel("Create a Windows 11 ARM64 VM")
+            Button("Linux VM…") { session.requestLibraryNavigation(.newLinux) }
+              .accessibilityLabel("Create an ARM64 Linux VM")
+          } label: {
+            Label("New VM", systemImage: "plus")
           }
-          .vmGlassControl(prominent: true)
-          .accessibilityLabel("Create a Windows 11 ARM64 VM")
-          Button("New Linux…", systemImage: "plus") {
-            session.requestLibraryNavigation(.newLinux)
-          }
-          .vmGlassControl().accessibilityLabel("Create an ARM64 Linux VM")
+          .menuStyle(.button).vmGlassControl().fixedSize()
           Button("Open VM…", systemImage: "folder") {
             session.requestLibraryNavigation(.open)
           }
@@ -122,9 +132,8 @@ struct VMLibraryView: View {
       } else if session.isBusy {
         Text("Close the library to return to the current VM or wait for its operation to finish.")
       } else {
-        Text("Open selects a VM without starting it. Use Actions for settings and library options.")
+        Text("Open a VM, then choose Start. Settings and library options are in Actions.")
       }
-      Text("Remove from Library keeps all VM files. Move to Trash asks for confirmation.")
     }
     .font(.caption).vmSupportingText()
   }
@@ -184,14 +193,16 @@ struct VMLibraryView: View {
         Image(systemName: "desktopcomputer").font(.title2).accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 6) {
           Text(entry.name).font(.headline).lineLimit(2).help(entry.name)
-          Text(path)
-            .font(.caption).vmSupportingText().lineLimit(2).truncationMode(.middle)
-            .textSelection(.enabled).help(path).accessibilityLabel("Location: \(path)")
           Label(status.title, systemImage: status.symbol).font(.caption.weight(.medium))
           if let guidance = status.guidance {
             Text(guidance).font(.caption).vmSupportingText()
               .fixedSize(horizontal: false, vertical: true)
           }
+          DisclosureGroup("Location") {
+            Text(path)
+              .vmSupportingText().fixedSize(horizontal: false, vertical: true)
+              .textSelection(.enabled).help(path).accessibilityLabel("Location: \(path)")
+          }.font(.caption)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         VStack(alignment: .trailing, spacing: 8) {
@@ -237,8 +248,10 @@ struct VMLibraryView: View {
     Divider()
     Button("Remove from Library") { library.forget(entry) }
       .disabled(session.trashOperationInProgress)
+      .help("Remove this entry from the library and keep all VM files")
     Button("Move to Trash… · Experimental") { session.moveSavedVMToTrash(entry) }
       .disabled(!session.canMoveSavedVMToTrash(entry))
+      .help("Review and confirm before moving this VM to Trash")
   }
 
   private func clearSearch() {

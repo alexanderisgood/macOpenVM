@@ -35,6 +35,10 @@ import VMStorage
     guard configuration.id == initial.id, lock.owns(directory) else {
       throw registeredWorkerFailure()
     }
+    // The App's earlier reading is advisory to this process. Check this VM's
+    // actual volume again before records, retained custody, intent or children.
+    // A low-space refusal here needs no uncertain-owner recovery lifetime.
+    try await WindowsRuntimeStorageAdmission.requireCapacity(in: directory)
     let records = try RegisteredWorkerPreflight.prepare(
       directory: directory, runDirectory: runDirectory,
       endpointDirectory: endpointDirectory, lock: lock)

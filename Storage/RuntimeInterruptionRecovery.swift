@@ -4,13 +4,56 @@ import Darwin
 import Foundation
 
 /// Explicit operator evidence is retained verbatim; it is not a backend/reaping receipt.
-package struct RuntimeInterruptionEvidence: Encodable, Equatable, Sendable {
-  package let rebootObservation: Data
-  package let processObservation: Data
+package enum RuntimeInterruptionEvidence: Encodable, Equatable, Sendable {
+  case hostReboot(rebootObservation: Data, processObservation: Data)
+  case abandonedOwner(ownerExitObservation: Data, processObservation: Data)
 
   package init(rebootObservation: Data, processObservation: Data) {
-    self.rebootObservation = rebootObservation
-    self.processObservation = processObservation
+    self = .hostReboot(rebootObservation: rebootObservation, processObservation: processObservation)
+  }
+
+  package init(ownerExitObservation: Data, processObservation: Data) {
+    self = .abandonedOwner(
+      ownerExitObservation: ownerExitObservation, processObservation: processObservation)
+  }
+
+  package var basis: String {
+    switch self {
+    case .hostReboot: "operator-observed-host-reboot-and-reviewed-processes"
+    case .abandonedOwner: "operator-reviewed-owner-exit-and-no-other-runtime"
+    }
+  }
+
+  package var isBoundedNonempty: Bool {
+    let observation: Data
+    let processes: Data
+    switch self {
+    case .hostReboot(let reboot, let process):
+      observation = reboot
+      processes = process
+    case .abandonedOwner(let ownerExit, let process):
+      observation = ownerExit
+      processes = process
+    }
+    return !observation.isEmpty && observation.count <= 65_536
+      && !processes.isEmpty && processes.count <= 65_536
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case rebootObservation, ownerExitObservation, processObservation
+  }
+
+  package func encode(to encoder: any Encoder) throws {
+    var values = encoder.container(keyedBy: CodingKeys.self)
+    switch self {
+    case .hostReboot(let reboot, let process):
+      // Preserve the existing reboot archive's exact evidence shape.
+      try values.encode(reboot, forKey: .rebootObservation)
+      try values.encode(process, forKey: .processObservation)
+    case .abandonedOwner(let ownerExit, let process):
+      try values.encode(ownerExit, forKey: .ownerExitObservation)
+      try values.encode(process, forKey: .processObservation)
+    }
   }
 }
 
@@ -200,7 +243,7 @@ private final class InterruptionClaim: @unchecked Sendable {
 private struct InterruptionArchive: Encodable, Sendable {
   let schemaVersion = 1
   let scope = "macopenvm-explicit-operator-interruption-recovery"
-  let basis = "operator-observed-host-reboot-and-reviewed-processes"
+  let basis: String
   let recoveryID: UUID
   let oldSessionNormallySettled = false
   let oldChildReapingProved = false
@@ -208,6 +251,17 @@ private struct InterruptionArchive: Encodable, Sendable {
   let prior: RuntimeInterruptionSnapshot
   let evidence: RuntimeInterruptionEvidence
   let newFailedHistory: Data
+
+  init(
+    recoveryID: UUID, prior: RuntimeInterruptionSnapshot, evidence: RuntimeInterruptionEvidence,
+    newFailedHistory: Data
+  ) {
+    basis = evidence.basis
+    self.recoveryID = recoveryID
+    self.prior = prior
+    self.evidence = evidence
+    self.newFailedHistory = newFailedHistory
+  }
 }
 
 extension VMFiles {
@@ -254,9 +308,7 @@ extension VMFiles {
   ) throws -> String {
     try lease.reserve()
     try Task.checkCancellation()
-    guard !failedHistory.isEmpty, failedHistory.count <= 4096,
-      !evidence.rebootObservation.isEmpty, evidence.rebootObservation.count <= 65_536,
-      !evidence.processObservation.isEmpty, evidence.processObservation.count <= 65_536
+    guard !failedHistory.isEmpty, failedHistory.count <= 4096, evidence.isBoundedNonempty
     else { throw interruptionFailure(.invalidConfiguration) }
     let old = lease.snapshot
     let anchor = try lease.checkedAnchor()

@@ -33,7 +33,8 @@ import VMStorage
     let options = try parse(Array(arguments.dropFirst()))
     try validateOptions(options, command: command)
     switch command {
-    case "inspect-interrupted-windows", "recover-interrupted-windows":
+    case "inspect-interrupted-windows", "recover-interrupted-windows",
+      "recover-abandoned-windows-owner":
       try await InterruptedWindowsCLI.run(command: command, options: options)
     case "probe": try output(HostProbe.capture())
     case "storage-capacity":
@@ -740,6 +741,7 @@ import VMStorage
       "growth-transaction", "acknowledge-schema2-incompatibility",
       "expected-vm", "run-name", "expected-metadata-sha256", "reboot-evidence",
       "process-evidence", "acknowledge-host-reboot",
+      "owner-exit-evidence", "no-other-runtime-evidence", "acknowledge-owner-exit",
       "plan", "approval", "terminal", "shutdown-record", "run-directory", "record", "record-sha256",
       "endpoint-directory",
       "expected-session", "confirm-data-loss", "frames", "agent-channel",
@@ -772,6 +774,10 @@ import VMStorage
       "recover-interrupted-windows": [
         "directory", "expected-vm", "expected-session", "run-name", "expected-metadata-sha256",
         "reboot-evidence", "process-evidence", "acknowledge-host-reboot",
+      ],
+      "recover-abandoned-windows-owner": [
+        "directory", "expected-vm", "expected-session", "run-name", "expected-metadata-sha256",
+        "owner-exit-evidence", "no-other-runtime-evidence", "acknowledge-owner-exit",
       ],
       "agent-tls-lab": ["socket", "credentials", "vm-id"],
       "agent-keychain-public-roundtrip-lab": [
@@ -932,6 +938,7 @@ import VMStorage
     macOpenVM experimental CLI
       inspect-interrupted-windows --directory /VM-directory --expected-vm UUID --expected-session UUID --run-name run-HEX32 (read-only exact interruption inspection; never recovers)
       recover-interrupted-windows --directory /VM-directory --expected-vm UUID --expected-session UUID --run-name run-HEX32 --expected-metadata-sha256 HEX64 --reboot-evidence /private/reboot.json --process-evidence /private/processes.txt --acknowledge-host-reboot observed-reboot-and-reviewed-processes (explicit operator recovery; old facts archived, new failed transaction; ambiguous failure retains custody and this process refuses exit)
+      recover-abandoned-windows-owner --directory /VM-directory --expected-vm UUID --expected-session UUID --run-name run-HEX32 --expected-metadata-sha256 HEX64 --owner-exit-evidence /private/owner-exit.txt --no-other-runtime-evidence /private/processes.txt --acknowledge-owner-exit reviewed-owner-exit-and-no-other-runtime (explicit operator owner-exit review, including same boot; no reboot, old reaping or guest shutdown proof; old facts archived, new failed transaction; ambiguous failure retains custody and this process refuses exit)
       set-linux-boot-arguments --directory /VM-directory --kernel-arguments 'arguments' (stopped direct-kernel Linux only)
       set-hardware --directory /VM-directory --cpus 4 --memory-mib 8192 (stopped VM; applies at next start)
       set-network --directory /VM-directory --network disconnected|shared (stopped VM; shared native Linux or reviewed experimental Windows ARM64; applies at next start)

@@ -129,6 +129,134 @@ import VMStorage
     try #require(predicate())
   }
 
+  private func writeIntent(
+    _ intent: RuntimeIntentInspectionStatus, in fixture: Fixture
+  ) async throws -> Data {
+    let bytes: Data
+    if intent == .invalid {
+      bytes = Data("{invalid session record".utf8)
+    } else {
+      let record: [String: Any] = [
+        "schemaVersion": 1,
+        "vmID": (intent == .identityMismatch ? UUID() : fixture.configuration.id).uuidString,
+        "sessionID": UUID().uuidString,
+        "state": intent == .unsettled ? "unsettled" : "settled",
+      ]
+      bytes = try JSONSerialization.data(withJSONObject: record)
+    }
+    try await VMFiles().atomicWrite(
+      bytes,
+      at: fixture.registration.deletingLastPathComponent().appendingPathComponent(
+        RuntimeIntent.filename))
+    return bytes
+  }
+
+  @Test(arguments: [RuntimeIntentInspectionStatus.unsettled, .invalid, .identityMismatch])
+  func interruptedSelectionCannotUseCheckAgainAsRecoveryOrBlockAnotherLocation(
+    intent: RuntimeIntentInspectionStatus
+  ) async throws {
+    let f = try await fixture()
+    defer { try? FileManager.default.removeItem(at: f.root) }
+    let intentBytes = try await writeIntent(intent, in: f)
+    // Equal declarative identity at another location is navigation metadata,
+    // not a second runtime or reconstructed ownership authority.
+    try await VMFiles().atomicWrite(
+      ConfigurationCodec.encode(f.configuration), at: f.otherRegistration)
+    let firstRegistration = try Data(contentsOf: f.registration)
+    let otherRegistration = try Data(contentsOf: f.otherRegistration)
+    let inspector = ControlledUnavailableReadiness()
+    defer { inspector.releaseAll() }
+    let (s, owner) = try await session(f, inspector: inspector)
+    let blocker = try #require(s.currentStartupBlocker)
+    #expect(blocker.intent == intent)
+    #expect(blocker.matches(configuration: f.configuration, at: f.registration))
+    #expect(!blocker.matches(configuration: f.configuration, at: f.otherRegistration))
+    var changed = f.configuration
+    changed.name = "Changed selection"
+    #expect(!blocker.matches(configuration: changed, at: f.registration))
+    // A read-only classification must not fabricate retained runtime custody.
+    #expect(!s.needsOwnershipRecovery && !s.isActive && !s.isBusy)
+    #expect(!s.canStartSelected && !s.canRequestStart && !s.canRecheckWindowsReadiness)
+    s.recheckWindowsReadiness()
+    #expect(inspector.requests.count == 1 && !s.preparing)
+    #expect(s.currentStartupBlocker == blocker)
+
+    try await s.qualificationSelectVM(at: f.otherRegistration, expectedID: f.configuration.id)
+    #expect(s.configuration == f.configuration && s.selectedConfigurationURL == f.otherRegistration)
+    #expect(s.currentStartupBlocker == nil && s.canRecheckWindowsReadiness)
+    s.recheckWindowsReadiness()
+    try await wait { !s.preparing }
+    #expect(inspector.requests.count == 3)
+    #expect(inspector.requests.last?.configurationURL == f.otherRegistration)
+    #expect(s.currentStartupBlocker == nil && !s.needsOwnershipRecovery && !s.isActive)
+    #expect(try Data(contentsOf: f.registration) == firstRegistration)
+    #expect(try Data(contentsOf: f.otherRegistration) == otherRegistration)
+    #expect(
+      try Data(
+        contentsOf: f.registration.deletingLastPathComponent().appendingPathComponent(
+          RuntimeIntent.filename)) == intentBytes)
+    withExtendedLifetime(owner) {}
+  }
+
+  @Test(arguments: ["clear", "configuration-aba"])
+  func changingTheConfigurationCannotResurrectAStaleStartupBlocker(change: String) async throws {
+    let f = try await fixture()
+    defer { try? FileManager.default.removeItem(at: f.root) }
+    let intentBytes = try await writeIntent(.unsettled, in: f)
+    let inspector = ControlledUnavailableReadiness()
+    defer { inspector.releaseAll() }
+    let (s, owner) = try await session(f, inspector: inspector)
+    try #require(s.currentStartupBlocker != nil)
+    if change == "clear" {
+      s.configuration = nil
+    } else {
+      var replacement = f.configuration
+      replacement.name = "Temporary selection"
+      s.configuration = replacement
+      s.configuration = f.configuration
+    }
+    #expect(s.currentStartupBlocker == nil)
+    #expect(!s.needsOwnershipRecovery && !s.isActive)
+    #expect(
+      try Data(
+        contentsOf: f.registration.deletingLastPathComponent().appendingPathComponent(
+          RuntimeIntent.filename)) == intentBytes)
+    withExtendedLifetime(owner) {}
+  }
+
+  @Test func interruptedLinuxSelectionHasAnIndependentStartGate() async throws {
+    let f = try await fixture()
+    defer { try? FileManager.default.removeItem(at: f.root) }
+    var linux = VMConfiguration(
+      name: "Linux selection", guest: .linux, backend: .appleVz,
+      cpuCount: 1, memoryBytes: 512 << 20, diskBytes: 1 << 30)
+    linux.id = f.configuration.id
+    for registration in [f.registration, f.otherRegistration] {
+      try await VMFiles().atomicWrite(ConfigurationCodec.encode(linux), at: registration)
+    }
+    let intentBytes = try await writeIntent(.unsettled, in: f)
+    let inspector = ControlledUnavailableReadiness()
+    _ = NSApplication.shared
+    let s = DesktopSession(
+      library: VMLibrary(preferences: ReadinessCancellationPreferences()),
+      graphicsPreferences: WindowsGraphicsPreferenceStore(
+        preferences: MemoryWindowsGraphicsPreferences()),
+      windowsReadinessInspection: inspector)
+    let owner = window()
+    s.window = owner
+    try await s.qualificationSelectVM(at: f.registration, expectedID: linux.id)
+    #expect(s.currentStartupBlocker?.intent == .unsettled && !s.canStartSelected)
+    try await s.qualificationSelectVM(at: f.otherRegistration, expectedID: linux.id)
+    #expect(s.currentStartupBlocker == nil)
+    #expect(s.canStartSelected == SavedVMStartEligibility.permits(linux))
+    #expect(inspector.requests.isEmpty && !s.needsOwnershipRecovery && !s.isActive)
+    #expect(
+      try Data(
+        contentsOf: f.registration.deletingLastPathComponent().appendingPathComponent(
+          RuntimeIntent.filename)) == intentBytes)
+    withExtendedLifetime(owner) {}
+  }
+
   @Test(arguments: ["owner-aba", "preparation-aba"])
   func cancelledOwnedCheckBecomesRetryableAndFreshCheckRemainsFailClosed(change: String)
     async throws

@@ -11,6 +11,8 @@ import Testing
 private let cliInterruptionRun = "run-0123456789abcdef0123456789abcdef"
 private let cliInterruptionReboot = Data(
   "GENERATED FIXTURE: explicit operator reboot observation".utf8)
+private let cliInterruptionOwnerExit = Data(
+  "GENERATED FIXTURE: operator reviewed owner exit within the current boot; no reaping proof".utf8)
 private let cliInterruptionProcesses = Data(
   "GENERATED FIXTURE: operator reviewed process observation".utf8)
 
@@ -132,6 +134,20 @@ private func cliSelectionArguments(_ fixture: CLIInterruptionFixture) -> [String
   ]
 }
 
+@MainActor private func cliAbandonedOwnerArguments(
+  _ fixture: CLIInterruptionFixture, digest: String
+) throws -> [String] {
+  let ownerExit = fixture.directory.appendingPathComponent("owner-exit-observation.txt")
+  let processes = fixture.directory.appendingPathComponent("no-other-runtime-observation.txt")
+  try writeCLIInterruptionFixture(cliInterruptionOwnerExit, to: ownerExit)
+  try writeCLIInterruptionFixture(cliInterruptionProcesses, to: processes)
+  return cliSelectionArguments(fixture) + [
+    "--expected-metadata-sha256", digest, "--owner-exit-evidence", ownerExit.path,
+    "--no-other-runtime-evidence", processes.path,
+    "--acknowledge-owner-exit", InterruptedWindowsCLI.abandonedOwnerAcknowledgement,
+  ]
+}
+
 @Suite @MainActor struct InterruptedWindowsCLITests {
   @Test func inspectionAndRecoveryHaveSeparateExplicitArgumentRoutes() throws {
     let selected = [
@@ -190,6 +206,48 @@ private func cliSelectionArguments(_ fixture: CLIInterruptionFixture) -> [String
     }
   }
 
+  @Test(arguments: [
+    "old-command", "reboot-fields", "reboot-ack", "extra-reboot", "missing-ack",
+    "same-evidence", "relative-evidence", "unknown", "duplicate", "old-process-field",
+    "inspection-command", "bad-digest",
+  ])
+  func abandonedOwnerCommandCannotMixRebootBasisOrMalformedEvidence(kind: String) throws {
+    var command = "recover-abandoned-windows-owner"
+    var options = [
+      "directory": "/private/tmp/generated.macopenvm",
+      "expected-vm": "12345678-1234-1234-1234-123456789ABC",
+      "expected-session": "22345678-1234-1234-1234-123456789ABC",
+      "run-name": cliInterruptionRun, "expected-metadata-sha256": String(repeating: "a", count: 64),
+      "owner-exit-evidence": "/private/tmp/generated-owner-exit.txt",
+      "no-other-runtime-evidence": "/private/tmp/generated-processes.txt",
+      "acknowledge-owner-exit": InterruptedWindowsCLI.abandonedOwnerAcknowledgement,
+    ]
+    switch kind {
+    case "old-command": command = "recover-interrupted-windows"
+    case "reboot-fields":
+      options.removeValue(forKey: "owner-exit-evidence")
+      options.removeValue(forKey: "no-other-runtime-evidence")
+      options.removeValue(forKey: "acknowledge-owner-exit")
+      options["reboot-evidence"] = "/private/tmp/generated-reboot.txt"
+      options["process-evidence"] = "/private/tmp/generated-processes.txt"
+      options["acknowledge-host-reboot"] = InterruptedWindowsCLI.acknowledgement
+    case "reboot-ack": options["acknowledge-owner-exit"] = InterruptedWindowsCLI.acknowledgement
+    case "extra-reboot": options["reboot-evidence"] = "/private/tmp/generated-reboot.txt"
+    case "missing-ack": options.removeValue(forKey: "acknowledge-owner-exit")
+    case "same-evidence": options["no-other-runtime-evidence"] = options["owner-exit-evidence"]
+    case "relative-evidence": options["owner-exit-evidence"] = "relative.txt"
+    case "unknown": options["force-unstick"] = "yes"
+    case "old-process-field":
+      options["process-evidence"] = options.removeValue(forKey: "no-other-runtime-evidence")
+    case "inspection-command": command = "inspect-interrupted-windows"
+    case "bad-digest": options["expected-metadata-sha256"] = String(repeating: "A", count: 64)
+    default: break
+    }
+    var arguments = options.keys.sorted().flatMap { ["--" + $0, options[$0]!] }
+    if kind == "duplicate" { arguments += ["--owner-exit-evidence", "/private/tmp/second.txt"] }
+    #expect(throws: VMError.self) { _ = try cliParsed(command, arguments) }
+  }
+
   @Test func actualInspectNeverRecoversOrReadsEvidence() async throws {
     let fixture = try cliInterruptionFixture()
     defer { try? FileManager.default.removeItem(at: fixture.directory) }
@@ -230,12 +288,59 @@ private func cliSelectionArguments(_ fixture: CLIInterruptionFixture) -> [String
     withExtendedLifetime(lock) {}
   }
 
-  @Test func actualUncertainRouteRetainsOwnerAndCancellationCannotOpenExitHold() async throws {
+  @Test func actualAbandonedOwnerRouteArchivesExactEvidenceWithoutRebootClaim() async throws {
     let fixture = try cliInterruptionFixture()
     defer { try? FileManager.default.removeItem(at: fixture.directory) }
     let observed = try await cliInspection(fixture)
-    let arguments = try cliRecoveryArguments(fixture, digest: observed.metadataSHA256)
-    let request = try cliParsed("recover-interrupted-windows", arguments)
+    let arguments = try cliAbandonedOwnerArguments(fixture, digest: observed.metadataSHA256)
+    let request = try cliParsed("recover-abandoned-windows-owner", arguments)
+    guard case .recoverAbandonedOwner(let parsed) = request else {
+      Issue.record("Wrong owner-exit argument route")
+      return
+    }
+    #expect(
+      parsed.selection.vmID == fixture.vmID && parsed.selection.sessionID == fixture.sessionID)
+    let owner = RegisteredWindowsInterruptionRecovery()
+    let outcome = try await InterruptedWindowsCLI.execute(request, makeOwner: { owner })
+    guard case .recovered(let result) = outcome else {
+      Issue.record("Wrong owner-exit execution route")
+      return
+    }
+    #expect(result.newOutcome == .failed && result.recoverySessionID != fixture.sessionID)
+    #expect(!result.oldSessionNormallySettled && !result.oldChildReapingProved)
+    #expect(!owner.custodyRetained)
+    let archiveData = try Data(
+      contentsOf: fixture.directory.appendingPathComponent(result.archiveFile))
+    let archive = try #require(
+      try JSONSerialization.jsonObject(with: archiveData) as? [String: Any])
+    #expect(archive["basis"] as? String == "operator-reviewed-owner-exit-and-no-other-runtime")
+    let evidence = try #require(archive["evidence"] as? [String: Any])
+    #expect(Set(evidence.keys) == ["ownerExitObservation", "processObservation"])
+    #expect(
+      Data(base64Encoded: try #require(evidence["ownerExitObservation"] as? String))
+        == cliInterruptionOwnerExit)
+    #expect(
+      Data(base64Encoded: try #require(evidence["processObservation"] as? String))
+        == cliInterruptionProcesses)
+    let lock = try VMLock(directory: fixture.directory, expectedVMID: fixture.vmID)
+    withExtendedLifetime(lock) {}
+  }
+
+  @Test(arguments: [false, true])
+  func actualUncertainRouteRetainsOwnerAndCancellationCannotOpenExitHold(
+    abandonedOwner: Bool
+  ) async throws {
+    let fixture = try cliInterruptionFixture()
+    defer { try? FileManager.default.removeItem(at: fixture.directory) }
+    let observed = try await cliInspection(fixture)
+    let arguments: [String]
+    if abandonedOwner {
+      arguments = try cliAbandonedOwnerArguments(fixture, digest: observed.metadataSHA256)
+    } else {
+      arguments = try cliRecoveryArguments(fixture, digest: observed.metadataSHA256)
+    }
+    let request = try cliParsed(
+      abandonedOwner ? "recover-abandoned-windows-owner" : "recover-interrupted-windows", arguments)
     let owner = RegisteredWindowsInterruptionRecovery(fault: .afterPending)
     let outcome = try await InterruptedWindowsCLI.execute(request, makeOwner: { owner })
     guard case .custodyRequired(let retained, let report) = outcome else {
@@ -244,7 +349,9 @@ private func cliSelectionArguments(_ fixture: CLIInterruptionFixture) -> [String
     }
     #expect(retained === owner && owner.custodyRetained)
     #expect(!report.ordinaryExitAllowed && !report.oldSessionNormallySettled)
-    let keeper = CLIInterruptionExitHold.shared
+    // The actual hold implementation, scoped per parallel case so its exact
+    // counter/continuation assertions cannot race another recovery basis.
+    let keeper = CLIInterruptionExitHold()
     let priorCount = keeper.retainedCount
     let blocked = Task { @MainActor in await keeper.refuseExit(owning: retained) }
     for _ in 0..<64 {

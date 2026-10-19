@@ -10,8 +10,14 @@ import Testing
 private let interruptionRun = "run-0123456789abcdef0123456789abcdef"
 private let interruptionReboot = Data(
   "GENERATED FIXTURE: explicit operator reboot observation".utf8)
+private let interruptionOwnerExit = Data(
+  "GENERATED FIXTURE: operator reviewed owner exit in the current boot; no reaping proof".utf8)
 private let interruptionProcesses = Data(
   "GENERATED FIXTURE: operator reviewed process observation".utf8)
+
+enum InterruptionRecoveryTestBasis: CaseIterable, Equatable, Sendable {
+  case hostReboot, abandonedOwner
+}
 
 private struct InterruptionFixture {
   let directory: URL
@@ -100,13 +106,22 @@ private func interruptionFixture(diskBytes: UInt64 = 1_073_741_824) throws -> In
 
 @MainActor private func recoverInterruption(
   _ fixture: InterruptionFixture, owner: RegisteredWindowsInterruptionRecovery,
-  digest: String
+  digest: String, basis: InterruptionRecoveryTestBasis = .hostReboot
 ) async throws -> RuntimeInterruptionRecoveryResult {
-  try await owner.recover(
-    in: fixture.directory, expectedVMID: fixture.vmID, expectedSessionID: fixture.sessionID,
-    runName: interruptionRun, expectedMetadataSHA256: digest,
-    rebootObservation: interruptionReboot, processObservation: interruptionProcesses,
-    acknowledgement: .observedHostRebootAndReviewedNoOtherRuntime)
+  switch basis {
+  case .hostReboot:
+    return try await owner.recover(
+      in: fixture.directory, expectedVMID: fixture.vmID, expectedSessionID: fixture.sessionID,
+      runName: interruptionRun, expectedMetadataSHA256: digest,
+      rebootObservation: interruptionReboot, processObservation: interruptionProcesses,
+      acknowledgement: .observedHostRebootAndReviewedNoOtherRuntime)
+  case .abandonedOwner:
+    return try await owner.recoverAbandonedOwner(
+      in: fixture.directory, expectedVMID: fixture.vmID, expectedSessionID: fixture.sessionID,
+      runName: interruptionRun, expectedMetadataSHA256: digest,
+      ownerExitObservation: interruptionOwnerExit, processObservation: interruptionProcesses,
+      acknowledgement: .reviewedOwnerExitAndNoOtherRuntime)
+  }
 }
 
 private func interruptionArchives(_ fixture: InterruptionFixture) throws -> [String] {
@@ -183,8 +198,29 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
 }
 
 @Suite @MainActor struct RuntimeInterruptionRecoveryTests {
-  @Test(arguments: ["directoryDevice", "diskDevice"])
-  func completedLegacyGrowthDeviceMismatchRefusesBeforeRecoveryCustody(field: String) async throws {
+  @Test func rebootEvidenceEncodingRemainsExactAndOwnerExitHasItsOwnField() throws {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.sortedKeys]
+    let processes = Data("process".utf8)
+    let reboot = RuntimeInterruptionEvidence(
+      rebootObservation: Data("reboot".utf8), processObservation: processes)
+    let ownerExit = RuntimeInterruptionEvidence(
+      ownerExitObservation: Data("owner-exit".utf8), processObservation: processes)
+    #expect(
+      try encoder.encode(reboot)
+        == Data(
+          "{\"processObservation\":\"cHJvY2Vzcw==\",\"rebootObservation\":\"cmVib290\"}".utf8))
+    #expect(
+      try encoder.encode(ownerExit)
+        == Data(
+          "{\"ownerExitObservation\":\"b3duZXItZXhpdA==\",\"processObservation\":\"cHJvY2Vzcw==\"}"
+            .utf8))
+  }
+
+  @Test(arguments: ["directoryDevice", "diskDevice"], InterruptionRecoveryTestBasis.allCases)
+  func completedLegacyGrowthDeviceMismatchRefusesBeforeRecoveryCustody(
+    field: String, basis: InterruptionRecoveryTestBasis
+  ) async throws {
     let fixture = try interruptionFixture(diskBytes: 1_073_742_848)
     defer { try? FileManager.default.removeItem(at: fixture.directory) }
     let growth = try completedInterruptionGrowth(fixture)
@@ -211,7 +247,8 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
     var diskBefore = stat()
     try #require(lstat(fixture.directory.appendingPathComponent("disk.raw").path, &diskBefore) == 0)
     await #expect(throws: VMError.self) {
-      _ = try await recoverInterruption(fixture, owner: owner, digest: observed.metadataSHA256)
+      _ = try await recoverInterruption(
+        fixture, owner: owner, digest: observed.metadataSHA256, basis: basis)
     }
     #expect(!owner.custodyRetained)
     try expectInterruptionLeaseAvailable(fixture)
@@ -261,7 +298,10 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
     }
   }
 
-  @Test func explicitRecoveryArchivesExactOldFactsAndPublishesNewFailedSession() async throws {
+  @Test(arguments: InterruptionRecoveryTestBasis.allCases)
+  func explicitRecoveryArchivesExactOldFactsAndPublishesNewFailedSession(
+    basis: InterruptionRecoveryTestBasis
+  ) async throws {
     let fixture = try interruptionFixture()
     defer { try? FileManager.default.removeItem(at: fixture.directory) }
     let owner = RegisteredWindowsInterruptionRecovery()
@@ -272,7 +312,7 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
     var diskBefore = stat()
     try #require(lstat(fixture.directory.appendingPathComponent("disk.raw").path, &diskBefore) == 0)
     let result = try await recoverInterruption(
-      fixture, owner: owner, digest: observed.metadataSHA256)
+      fixture, owner: owner, digest: observed.metadataSHA256, basis: basis)
     #expect(result.recoverySessionID != fixture.sessionID && result.newOutcome == .failed)
     #expect(!result.oldSessionNormallySettled && !result.oldChildReapingProved)
     #expect(result.operatorAttestedInterruption && !owner.custodyRetained)
@@ -288,7 +328,11 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
       contentsOf: fixture.directory.appendingPathComponent(result.archiveFile))
     let archive = try #require(
       try JSONSerialization.jsonObject(with: archiveBytes) as? [String: Any])
-    #expect(archive["basis"] as? String == "operator-observed-host-reboot-and-reviewed-processes")
+    let expectedBasis =
+      basis == .hostReboot
+      ? "operator-observed-host-reboot-and-reviewed-processes"
+      : "operator-reviewed-owner-exit-and-no-other-runtime"
+    #expect(archive["basis"] as? String == expectedBasis)
     #expect(archive["oldSessionNormallySettled"] as? Bool == false)
     #expect(archive["oldChildReapingProved"] as? Bool == false)
     #expect(archive["oldBackendQuiescenceReceipt"] as? Bool == false)
@@ -303,9 +347,12 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
       #expect(Data(base64Encoded: try #require(row["bytes"] as? String)) == bytes)
     }
     let evidence = try #require(archive["evidence"] as? [String: Any])
+    let observationKey = basis == .hostReboot ? "rebootObservation" : "ownerExitObservation"
+    let expectedObservation = basis == .hostReboot ? interruptionReboot : interruptionOwnerExit
+    #expect(Set(evidence.keys) == [observationKey, "processObservation"])
     #expect(
-      Data(base64Encoded: try #require(evidence["rebootObservation"] as? String))
-        == interruptionReboot)
+      Data(base64Encoded: try #require(evidence[observationKey] as? String))
+        == expectedObservation)
     #expect(
       Data(base64Encoded: try #require(evidence["processObservation"] as? String))
         == interruptionProcesses)
@@ -320,11 +367,18 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
     var diskAfter = stat()
     try #require(lstat(fixture.directory.appendingPathComponent("disk.raw").path, &diskAfter) == 0)
     #expect(diskAfter.st_ino == diskBefore.st_ino && diskAfter.st_size == diskBefore.st_size)
+    #expect(diskAfter.st_dev == diskBefore.st_dev)
+    #expect(diskAfter.st_mtimespec.tv_sec == diskBefore.st_mtimespec.tv_sec)
+    #expect(diskAfter.st_mtimespec.tv_nsec == diskBefore.st_mtimespec.tv_nsec)
+    #expect(diskAfter.st_ctimespec.tv_sec == diskBefore.st_ctimespec.tv_sec)
+    #expect(diskAfter.st_ctimespec.tv_nsec == diskBefore.st_ctimespec.tv_nsec)
     let ordinary = try VMLock(directory: fixture.directory, expectedVMID: fixture.vmID)
     withExtendedLifetime(ordinary) {}
   }
 
-  @Test func positiveExistingWriterAlwaysBlocksRecovery() async throws {
+  @Test(arguments: InterruptionRecoveryTestBasis.allCases)
+  func positiveExistingWriterAlwaysBlocksRecovery(basis: InterruptionRecoveryTestBasis) async throws
+  {
     let fixture = try interruptionFixture()
     defer { try? FileManager.default.removeItem(at: fixture.directory) }
     let owner = RegisteredWindowsInterruptionRecovery()
@@ -334,15 +388,20 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
     defer { close(fd) }
     try #require(flock(fd, LOCK_EX | LOCK_NB) == 0)
     await #expect(throws: VMError.self) {
-      _ = try await recoverInterruption(fixture, owner: owner, digest: observed.metadataSHA256)
+      _ = try await recoverInterruption(
+        fixture, owner: owner, digest: observed.metadataSHA256, basis: basis)
     }
     try expectOriginalInterruption(fixture)
     #expect(try interruptionArchives(fixture).isEmpty)
     #expect(!owner.custodyRetained)
   }
 
-  @Test(arguments: ["contents", "same-bytes-new-inode", "writer-new-inode"])
-  func changedObservationCannotBeAdopted(kind: String) async throws {
+  @Test(
+    arguments: ["contents", "same-bytes-new-inode", "writer-new-inode"],
+    InterruptionRecoveryTestBasis.allCases)
+  func changedObservationCannotBeAdopted(
+    kind: String, basis: InterruptionRecoveryTestBasis
+  ) async throws {
     let fixture = try interruptionFixture()
     defer { try? FileManager.default.removeItem(at: fixture.directory) }
     let owner = RegisteredWindowsInterruptionRecovery()
@@ -361,7 +420,8 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
     let replacement = kind == "contents" ? original + Data(" ".utf8) : original
     try writeInterruptionFixture(replacement, to: path)
     await #expect(throws: VMError.self) {
-      _ = try await recoverInterruption(fixture, owner: owner, digest: observed.metadataSHA256)
+      _ = try await recoverInterruption(
+        fixture, owner: owner, digest: observed.metadataSHA256, basis: basis)
     }
     try expectOriginalInterruption(fixture)
     #expect(try Data(contentsOf: path) == replacement)
@@ -485,9 +545,9 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
     }
   }
 
-  @Test(arguments: RuntimeInterruptionFault.allCases)
+  @Test(arguments: RuntimeInterruptionFault.allCases, InterruptionRecoveryTestBasis.allCases)
   func everyCommitBoundaryIsOneShotAndRetainsCustodyAfterFailure(
-    point: RuntimeInterruptionFault
+    point: RuntimeInterruptionFault, basis: InterruptionRecoveryTestBasis
   ) async throws {
     let fixture = try interruptionFixture()
     defer { try? FileManager.default.removeItem(at: fixture.directory) }
@@ -495,7 +555,8 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
     let owner = RegisteredWindowsInterruptionRecovery(fault: point, recoveryID: id)
     let observed = try await inspectInterruption(fixture, owner: owner)
     await #expect(throws: VMError.self) {
-      _ = try await recoverInterruption(fixture, owner: owner, digest: observed.metadataSHA256)
+      _ = try await recoverInterruption(
+        fixture, owner: owner, digest: observed.metadataSHA256, basis: basis)
     }
     #expect(owner.custodyRetained)
     try expectInterruptionLeaseHeld(fixture)
@@ -514,8 +575,38 @@ private func expectInterruptionLeaseAvailable(_ fixture: InterruptionFixture) th
     }
     #expect(try interruptionArchives(fixture).count == 1)
     await #expect(throws: VMError.self) {
-      _ = try await recoverInterruption(fixture, owner: owner, digest: observed.metadataSHA256)
+      // Changing the acknowledgement basis cannot reopen a one-shot owner.
+      _ = try await recoverInterruption(
+        fixture, owner: owner, digest: observed.metadataSHA256,
+        basis: basis == .hostReboot ? .abandonedOwner : .hostReboot)
     }
+  }
+
+  @Test(arguments: ["empty-owner", "empty-processes", "oversized-owner", "oversized-processes"])
+  func abandonedOwnerRequiresBothBoundedObservationsBeforeCustody(kind: String) async throws {
+    let fixture = try interruptionFixture()
+    defer { try? FileManager.default.removeItem(at: fixture.directory) }
+    let owner = RegisteredWindowsInterruptionRecovery()
+    let observed = try await inspectInterruption(fixture, owner: owner)
+    let ownerExit =
+      kind == "empty-owner"
+      ? Data()
+      : kind == "oversized-owner" ? Data(repeating: 65, count: 65_537) : interruptionOwnerExit
+    let processes =
+      kind == "empty-processes"
+      ? Data()
+      : kind == "oversized-processes" ? Data(repeating: 65, count: 65_537) : interruptionProcesses
+    await #expect(throws: VMError.self) {
+      _ = try await owner.recoverAbandonedOwner(
+        in: fixture.directory, expectedVMID: fixture.vmID, expectedSessionID: fixture.sessionID,
+        runName: interruptionRun, expectedMetadataSHA256: observed.metadataSHA256,
+        ownerExitObservation: ownerExit, processObservation: processes,
+        acknowledgement: .reviewedOwnerExitAndNoOtherRuntime)
+    }
+    #expect(!owner.custodyRetained)
+    #expect(try interruptionArchives(fixture).isEmpty)
+    try expectOriginalInterruption(fixture)
+    try expectInterruptionLeaseAvailable(fixture)
   }
 
   @Test(arguments: ["scope", "vm", "session"])
