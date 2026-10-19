@@ -1,7 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-./scripts/swift.sh test --jobs "${MACOPENVM_TEST_JOBS:-2}"
+# Lease tests inspect process-wide descriptor custody and must not share a
+# process with unrelated spawning suites. Both commands are required.
+./scripts/swift.sh test --jobs "${MACOPENVM_TEST_JOBS:-2}" --skip LeaseSpawnTests
+./scripts/swift.sh test --skip-build --jobs "${MACOPENVM_TEST_JOBS:-2}" --filter LeaseSpawnTests
 xcrun swift-format lint --strict --recursive App Core Backends Storage RuntimeIPC GuestAgent CLI Tests Benchmarks/ProcessMonitor Package.swift
 python3 GuestAgent/Protocol/generate.py --check
 python3 scripts/sbom.py --check

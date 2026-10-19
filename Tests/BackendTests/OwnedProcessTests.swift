@@ -89,28 +89,40 @@ private enum OwnedFixtureError: Error {
     }
   }
 
-  @Test(
-    .enabled(
-      if: FileManager.default.isExecutableFile(atPath: "/usr/bin/python3"),
-      "Requires the existing system Python for a local inherited-pipe fixture."))
-  func terminalStatusPrecedesInheritedPipeEOF() async throws {
+  @Test func terminalStatusPrecedesInheritedPipeEOF() async throws {
     try await withFixture { fixture in
+      let release = try fixture.makeControlPipe()
+      defer {
+        fixture.closeDescriptor(release.read)
+        fixture.closeDescriptor(release.write)
+      }
+      // The descendant retains both output pipes until explicit release. This
+      // observation window does not depend on interpreter startup or a sleep.
       let process = fixture.makeProcess(
-        executable: "/usr/bin/python3",
+        executable: "/bin/sh",
         arguments: [
-          "-c", "import os,time; pid=os.fork(); time.sleep(1) if pid==0 else None; os._exit(0)",
-        ])
+          "-c",
+          "(printf 'pipe-holder-ready\\n'; printf 'pipe-holder-ready\\n' >&2; IFS= read -r release <&7; exit 0) & exit 0",
+        ], inheritedDescriptors: [.init(source: release.read, target: 7)])
       try await process.launch()
+      fixture.closeDescriptor(release.read)
+      let marker = Data("pipe-holder-ready\n".utf8)
       let deadline = ContinuousClock.now.advanced(by: .seconds(3))
       var state = await process.snapshot()
-      while state.termination == nil && ContinuousClock.now < deadline {
+      while (state.termination == nil || state.stdout.range(of: marker) == nil
+        || state.stderr.range(of: marker) == nil) && ContinuousClock.now < deadline
+      {
         try await Task.sleep(for: .milliseconds(10))
         state = await process.snapshot()
       }
       #expect(state.termination?.status == 0)
+      #expect(state.termination?.reason == .exit)
+      #expect(state.stdout.range(of: marker) != nil && state.stderr.range(of: marker) != nil)
       #expect(state.isActive)
       #expect(!state.stdoutCapture.eof && !state.stderrCapture.eof)
+      fixture.closeDescriptor(release.write)
       let result = try await process.wait()
+      #expect(result.termination.status == 0 && result.termination.reason == .exit)
       #expect(result.stdout.eof && result.stderr.eof)
       #expect(!(await process.snapshot()).isActive)
     }
@@ -228,6 +240,21 @@ private final class OwnedProcessFixture {
     descriptors.insert(descriptor)
     guard flock(descriptor, LOCK_EX | LOCK_NB) == 0 else { throw OwnedFixtureError.posix(errno) }
     return descriptor
+  }
+
+  func makeControlPipe() throws -> (read: Int32, write: Int32) {
+    var ends: [Int32] = [-1, -1]
+    guard Darwin.pipe(&ends) == 0 else { throw OwnedFixtureError.posix(errno) }
+    guard fcntl(ends[0], F_SETFD, FD_CLOEXEC) == 0,
+      fcntl(ends[1], F_SETFD, FD_CLOEXEC) == 0
+    else {
+      let failure = errno
+      Darwin.close(ends[0])
+      Darwin.close(ends[1])
+      throw OwnedFixtureError.posix(failure)
+    }
+    descriptors.formUnion(ends)
+    return (ends[0], ends[1])
   }
 
   func closeDescriptor(_ descriptor: Int32) {

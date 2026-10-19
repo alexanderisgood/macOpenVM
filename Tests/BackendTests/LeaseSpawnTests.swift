@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import Darwin
+import Dispatch
 import Foundation
 import Testing
 
@@ -17,7 +18,7 @@ private enum LeaseFixtureError: Error {
       let lease = try fixture.acquireLease()
       let flags = fcntl(lease, F_GETFD)
       let child = try await fixture.spawnFake(source: lease)
-      try child.awaitReady()
+      try await child.awaitReady()
       #expect(fcntl(lease, F_GETFD) == flags && flags & FD_CLOEXEC != 0)
       fixture.closeDescriptor(lease)
       #expect(try fixture.anotherWriterIsBusy())
@@ -32,8 +33,8 @@ private enum LeaseFixtureError: Error {
       let lease = try fixture.acquireLease()
       let first = try await fixture.spawnFake(source: lease)
       let second = try await fixture.spawnFake(source: lease)
-      try first.awaitReady()
-      try second.awaitReady()
+      try await first.awaitReady()
+      try await second.awaitReady()
       fixture.closeDescriptor(lease)
       #expect(try fixture.anotherWriterIsBusy())
       try first.release()
@@ -55,7 +56,7 @@ private enum LeaseFixtureError: Error {
       let checks =
         "\nfor fd in range(3,128):\n if fd != 40:\n  try: value=os.fstat(fd)\n  except OSError: continue\n  assert (value.st_dev,value.st_ino) not in [lease_identity, (\(info.st_dev),\(info.st_ino))]\n"
       let child = try await fixture.spawnFake(source: lease, checks: checks)
-      try child.awaitReady()
+      try await child.awaitReady()
       try child.release()
       try await expectSuccess(child.process)
       #expect(fcntl(unrelated, F_GETFD) == 0)
@@ -67,7 +68,7 @@ private enum LeaseFixtureError: Error {
       let lease = try fixture.acquireLease()
       let same = try fixture.duplicate(lease, minimum: 40)
       let child = try await fixture.spawnFake(source: same, target: same)
-      try child.awaitReady()
+      try await child.awaitReady()
       #expect(fcntl(same, F_GETFD) & FD_CLOEXEC != 0)
       fixture.closeDescriptor(same)
       fixture.closeDescriptor(lease)
@@ -82,7 +83,7 @@ private enum LeaseFixtureError: Error {
     try await withFixture { fixture in
       let lease = try fixture.acquireLease()
       let child = try await fixture.spawnFake(source: lease)
-      try child.awaitReady()
+      try await child.awaitReady()
       fixture.closeDescriptor(lease)
       let waiter = Task { [process = child.process] in try await process.wait() }
       waiter.cancel()
@@ -106,8 +107,8 @@ private enum LeaseFixtureError: Error {
       let first = try await fixture.spawnFake(
         source: lease, checks: "\nimport signal\nsignal.signal(signal.SIGTERM, signal.SIG_IGN)\n")
       let second = try await fixture.spawnFake(source: lease)
-      try first.awaitReady()
-      try second.awaitReady()
+      try await first.awaitReady()
+      try await second.awaitReady()
       fixture.closeDescriptor(lease)
       #expect(try fixture.anotherWriterIsBusy())
       try await first.process.terminate()
@@ -190,7 +191,7 @@ private enum LeaseFixtureError: Error {
     try await withFixture { fixture in
       let lease = try fixture.acquireLease()
       let child = try await fixture.spawnFake(source: lease)
-      try child.awaitReady()
+      try await child.awaitReady()
       try await awaitRegistration(child.process)
       try child.release()
       try await expectSuccess(child.process)
@@ -204,7 +205,7 @@ private enum LeaseFixtureError: Error {
     try await withFixture { fixture in
       let lease = try fixture.acquireLease()
       let child = try await fixture.spawnFake(source: lease)
-      try child.awaitReady()
+      try await child.awaitReady()
       try await awaitRegistration(child.process)
       let before = await child.process.observationDiagnostics()
       let waiter = Task { [process = child.process] in try await process.wait() }
@@ -228,7 +229,7 @@ private enum LeaseFixtureError: Error {
       let lease = try fixture.acquireLease()
       let child = try await fixture.spawnFake(
         source: lease, mode: .omittedRegistration(deadline: .milliseconds(50)))
-      try child.awaitReady()
+      try await child.awaitReady()
       fixture.closeDescriptor(lease)
       let waiter = Task { [process = child.process] in try await process.wait() }
       try await awaitUncertainty(child.process)
@@ -249,7 +250,7 @@ private enum LeaseFixtureError: Error {
       let lease = try fixture.acquireLease()
       let child = try await fixture.spawnFake(
         source: lease, mode: .shortExitReconciliation(deadline: .milliseconds(100)))
-      try child.awaitReady()
+      try await child.awaitReady()
       try await awaitRegistration(child.process)
       let before = await child.process.observationDiagnostics()
       await child.process.receiveExitHintForObservationTest()
@@ -451,18 +452,29 @@ private final class LeaseFixture {
   }
 
   func makeGate() throws -> (read: Int32, write: Int32) {
-    var gate: [Int32] = [-1, -1]
-    guard pipe(&gate) == 0 else { throw LeaseFixtureError.posix(errno) }
-    guard fcntl(gate[0], F_SETFD, FD_CLOEXEC) == 0,
-      fcntl(gate[1], F_SETFD, FD_CLOEXEC) == 0
-    else {
-      let code = errno
-      Darwin.close(gate[0])
-      Darwin.close(gate[1])
-      throw LeaseFixtureError.posix(code)
-    }
+    let gate = try closeOnExecPipe()
     descriptors.formUnion(gate)
     return (gate[0], gate[1])
+  }
+
+  /// No fixture pipe is deliberately inheritable while spawn suspends. On older
+  /// systems, apply CLOEXEC before any await; macOS 27 creates it atomically.
+  private func closeOnExecPipe() throws -> [Int32] {
+    var pair: [Int32] = [-1, -1]
+    if #available(macOS 27, *) {
+      guard Darwin.pipe2(&pair, O_CLOEXEC) == 0 else { throw LeaseFixtureError.posix(errno) }
+    } else {
+      guard Darwin.pipe(&pair) == 0 else { throw LeaseFixtureError.posix(errno) }
+      guard fcntl(pair[0], F_SETFD, FD_CLOEXEC) == 0,
+        fcntl(pair[1], F_SETFD, FD_CLOEXEC) == 0
+      else {
+        let code = errno
+        Darwin.close(pair[0])
+        Darwin.close(pair[1])
+        throw LeaseFixtureError.posix(code)
+      }
+    }
+    return pair
   }
 
   func spawnDirect(
@@ -487,13 +499,14 @@ private final class LeaseFixture {
   ) async throws
     -> LeaseFakeChild
   {
-    var control: [Int32] = [-1, -1]
-    var ready: [Int32] = [-1, -1]
-    guard pipe(&control) == 0 else { throw LeaseFixtureError.posix(errno) }
-    guard pipe(&ready) == 0 else {
+    let control = try closeOnExecPipe()
+    let ready: [Int32]
+    do {
+      ready = try closeOnExecPipe()
+    } catch {
       Darwin.close(control[0])
       Darwin.close(control[1])
-      throw LeaseFixtureError.posix(errno)
+      throw error
     }
     let null = Darwin.open("/dev/null", O_RDWR | O_CLOEXEC)
     guard null >= 0 else {
@@ -589,11 +602,56 @@ private final class LeaseFakeChild {
     self.ready = FileHandle(fileDescriptor: ready, closeOnDealloc: true)
   }
 
-  func awaitReady() throws {
-    var descriptor = pollfd(fd: ready.fileDescriptor, events: Int16(POLLIN), revents: 0)
-    guard Darwin.poll(&descriptor, 1, 3000) > 0,
-      try ready.read(upToCount: 5) == Data("ready".utf8)
-    else { throw LeaseFixtureError.notReady }
+  /// The caller retains the pipe until this queue finishes. Cancellation cannot
+  /// release/recycle its descriptor while a blocking fixture read still uses it.
+  func awaitReady() async throws {
+    let descriptor = ready.fileDescriptor
+    let deadline = ContinuousClock.now.advanced(by: .seconds(3))
+    try await withCheckedThrowingContinuation { (completion: CheckedContinuation<Void, Error>) in
+      DispatchQueue(label: "local.macOpenVM.test.lease-ready", qos: .userInitiated).async {
+        do {
+          try Self.readReady(descriptor, deadline: deadline)
+          completion.resume()
+        } catch { completion.resume(throwing: error) }
+      }
+    }
+  }
+
+  private static func readReady(_ descriptor: Int32, deadline: ContinuousClock.Instant) throws {
+    let flags = fcntl(descriptor, F_GETFL)
+    guard flags >= 0, fcntl(descriptor, F_SETFL, flags | O_NONBLOCK) == 0 else {
+      throw LeaseFixtureError.posix(errno)
+    }
+    var bytes = [UInt8](repeating: 0, count: 5)
+    var offset = 0
+    while offset < bytes.count {
+      let remaining = ContinuousClock.now.duration(to: deadline).components
+      let milliseconds =
+        Double(remaining.seconds) * 1_000
+        + Double(remaining.attoseconds) / 1_000_000_000_000_000
+      guard milliseconds > 0 else { throw LeaseFixtureError.notReady }
+      var item = pollfd(fd: descriptor, events: Int16(POLLIN), revents: 0)
+      let result = Darwin.poll(&item, 1, Int32(max(1, min(3_000, milliseconds.rounded(.up)))))
+      if result < 0 {
+        if errno == EINTR { continue }
+        throw LeaseFixtureError.posix(errno)
+      }
+      guard result > 0, ContinuousClock.now < deadline else { throw LeaseFixtureError.notReady }
+      let remainingBytes = bytes.count - offset
+      let count = bytes.withUnsafeMutableBytes {
+        Darwin.read(descriptor, $0.baseAddress?.advanced(by: offset), remainingBytes)
+      }
+      if count > 0 {
+        offset += count
+      } else if count == 0 {
+        throw LeaseFixtureError.notReady
+      } else if errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK {
+        throw LeaseFixtureError.posix(errno)
+      }
+    }
+    guard ContinuousClock.now < deadline, bytes == Array("ready".utf8) else {
+      throw LeaseFixtureError.notReady
+    }
   }
 
   func release() throws {

@@ -3,7 +3,7 @@ on: [push, pull_request]
 permissions:
   contents: read
 concurrency:
-  group: source-check-${{ github.ref }}
+  group: source-check-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 jobs:
   macos:
