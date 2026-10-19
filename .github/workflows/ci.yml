@@ -13,6 +13,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_27.app/Contents/Developer
       MACOPENVM_BUILD_JOBS: 2
       MACOPENVM_TEST_JOBS: 2
+      MACOPENVM_INTEGRATION_GROUP: main
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Record toolchain and require the modern build SDK
@@ -35,3 +36,15 @@ jobs:
         run: ./scripts/build.sh release
       - name: Guest and hardware gates
         run: echo 'SKIP real guest/UI/device tests; private runtime, OS media and interactive hardware are not supplied. Source CI does not qualify Windows acceleration, HDR or FPS.'
+  linux-agent:
+    name: Linux agent recovery (${{ matrix.shard }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Exhaustive private filesystem and recovery fixtures
+        run: python3 scripts/check-integration.py --group linux-agent --shard-index ${{ matrix.shard }} --shard-count 4

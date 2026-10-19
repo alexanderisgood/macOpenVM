@@ -6,7 +6,7 @@ xcrun swift-format lint --strict --recursive App Core Backends Storage RuntimeIP
 python3 GuestAgent/Protocol/generate.py --check
 python3 scripts/sbom.py --check
 python3 -m unittest discover -s Benchmarks -p 'test_*.py'
-python3 -m unittest discover -s Tests/Integration -p 'test_*.py'
+python3 scripts/check-integration.py --group "${MACOPENVM_INTEGRATION_GROUP:-all}"
 shopt -s nullglob
 results=(Benchmarks/results/*.json)
 if test "${#results[@]}" -gt 0; then python3 Benchmarks/validate_result.py "${results[@]}"; fi

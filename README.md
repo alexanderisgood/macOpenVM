@@ -7,7 +7,7 @@ Virtualization framework. This is a **source-only alpha**, with incomplete featu
 **Build requirement: macOS SDK 27 and Swift 6.4 (Xcode 27 or Command Line Tools 27).**
 The macOS 14 deployment target is separate from the build SDK requirement.
 Local development used Command Line Tools 27, macOS SDK 27 and Swift 6.4. CI
-targets an ARM64 Xcode 27 runner; public CI validation is pending.
+targets an ARM64 Xcode 27 runner; see the [current checks](https://github.com/alexanderisgood/macOpenVM/actions/workflows/ci.yml).
 
 ![Private Windows development VM over VNC](docs/images/windows-development.jpg)
 
@@ -47,7 +47,7 @@ separate prerequisites; a skip does not qualify that feature.
 
 The clean public source copy passed 1,319 Swift tests on Apple silicon with
 CLT 27/SDK 27/Swift 6.4. Strict formatting, generated protocol/SPDX checks, 33 portable benchmark tests
-and signed debug/release bundles also passed. Public CI remains pending.
+and signed debug/release bundles also passed. See the [hosted checks](https://github.com/alexanderisgood/macOpenVM/actions/workflows/ci.yml) for current CI results.
 Older compiler/toolchain support is unqualified for this alpha.
 The [release notes](docs/release.md) describe this source preview's limits.
 

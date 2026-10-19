@@ -13,7 +13,7 @@ with Xcode 27.0.
 
 A clean public source copy passed 1,319 Swift tests on Apple silicon with the
 local toolchain above. Strict formatting, generated protocol/SPDX checks, 33 portable benchmark
-tests and signed debug/release builds also passed. Public CI remains pending.
+tests and signed debug/release builds also passed. See the [hosted checks](https://github.com/alexanderisgood/macOpenVM/actions/workflows/ci.yml) for current CI results.
 Older compiler/toolchain support is unqualified; initial Xcode 26.6 runs found
 compiler compatibility failures. The current CI uses the verified Xcode 27
 toolchain family and retains the complete source-check suite.

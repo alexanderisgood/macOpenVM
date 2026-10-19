@@ -157,7 +157,7 @@ else: fail()
 
 class LinuxAgentSetupTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="mvo-agent-setup-", dir="/private/tmp")
+        self.temporary = tempfile.TemporaryDirectory(prefix="mvo-agent-setup-", dir="/private/tmp" if sys.platform == "darwin" else "/tmp")
         self.addCleanup(self.temporary.cleanup)
         self.base = Path(self.temporary.name)
         self.sysroot = self.base / "root"

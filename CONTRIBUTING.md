@@ -11,13 +11,19 @@ and Python 3. The deployment target is macOS 14; building against an older SDK
 does not provide the glass UI APIs used by the source. Local development used
 Command Line Tools 27, macOS SDK 27 and Swift 6.4. CI targets ARM64 macOS 27 with Xcode 27.0.
 The clean source copy passed 1,319 Swift tests, portable benchmark tests,
-format/protocol/inventory checks and signed debug/release builds. Public CI
-remains pending; older compiler/toolchain support is unqualified.
+format/protocol/inventory checks and signed debug/release builds. See the [hosted checks](https://github.com/alexanderisgood/macOpenVM/actions/workflows/ci.yml)
+for current CI results; older compiler/toolchain support is unqualified.
 
 Run `./scripts/check.sh`, then `./scripts/build.sh debug` and
 `./scripts/build.sh release`. Describe the toolchain, results and explicit skips
 in your pull request. Native guest, GPU and hardware tests require their documented
 prerequisites and explicit opt-in. Prefer generated fixtures for routine tests.
+
+The full check includes exhaustive Linux agent recovery fault matrices and can
+be slow on macOS. CI runs these in four isolated Linux shards; the remaining
+checks and both app builds run on macOS. To reproduce a Linux shard, run
+`python3 scripts/check-integration.py --group linux-agent --shard-index 0 --shard-count 4`.
+The default `./scripts/check.sh` still selects the complete integration suite.
 
 ## Useful contributions
 
