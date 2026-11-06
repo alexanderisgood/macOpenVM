@@ -22,11 +22,23 @@ Linux boot and desktop experiments have run locally. Windows has run in a privat
 development environment, but its pinned runtime is not reproducible from this
 public source snapshot. See the [feature matrix](FEATURE_MATRIX.md).
 
-No operating-system media, VM data, firmware, driver binaries, build products
-or private Windows runtime is supplied. Obtain any external software and licenses
-separately. Windows HDR is unavailable; the included HDR host code is an inactive
-foundation. Sustained 120 FPS, near-native performance and FPS-neutral sharpening
-are not qualified.
+The source tree contains no operating-system media, VM data, firmware, driver
+binaries, build products or private Windows runtime. Windows HDR is unavailable.
+The included HDR host code is an inactive foundation. Sustained 120 FPS,
+near-native performance and FPS-neutral sharpening are not qualified.
+
+## Windows 11 ARM64 guest drivers
+
+The separate [VirtIO driver preview](https://github.com/alexanderisgood/macOpenVM/releases/tag/windows-arm64-virtio-0.1.302-1)
+provides the upstream NetKVM network, VirtIO serial and VirtIO GPU 2D display
+packages as a ZIP with their licenses and checksums. The guest needs the matching
+virtual device for each driver. This download contains guest drivers only. The
+Windows installer and the experimental Windows host runtime are separate prerequisites.
+
+Accelerated graphics requires a compatible host runtime and a separate Neptune
+driver. The [upstream Neptune v0.4 release](https://github.com/osy/kvm-guest-drivers-windows/releases/tag/v0.4)
+provides the ARM64X package for the matching wire protocol 2 host. See
+[graphics protocol pairing](docs/adr/0057-graphics-protocol-pairing.md) for compatibility.
 
 ## Build and check
 

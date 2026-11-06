@@ -37,11 +37,12 @@ Original app and CLI code is [Apache-2.0](../LICENSE). Upstream patches and the
 public certificate fixture retain their own file licenses and attribution; see
 [NOTICE](../NOTICE). Review licenses for any additional dependency or artifact.
 
-The snapshot excludes operating-system media, VM data, firmware and driver
+The source snapshot excludes operating-system media, VM data, firmware, driver
 binaries, private Windows runtime files, build products and private development
-history. A user supplies their own lawfully obtained external software and
-licenses. The current Windows development runtime is not reproducible from this
-source snapshot.
+history. The [Windows 11 ARM64 VirtIO driver preview](https://github.com/alexanderisgood/macOpenVM/releases/tag/windows-arm64-virtio-0.1.302-1)
+is a separate release asset with upstream source and license information. A user
+supplies their own Windows installation media and license. The current Windows
+development runtime is not reproducible from this source snapshot.
 
 The Windows screenshot shows a private development VM using VNC. Its required
 binaries are excluded. It does not establish FPS, native GPU performance or HDR.

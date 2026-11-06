@@ -443,7 +443,8 @@ private struct RegisteredFixture {
     configuration.network = shared ? .shared : .disconnected
     configuration.supportMedia = support.url.path
     let arguments = try QemuRegisteredPlan.arguments(
-      configuration: configuration, directory: f.vm, resources: resources, endpoints: endpoints).0
+      configuration: configuration, directory: f.vm, resources: resources, endpoints: endpoints
+    ).0
     let drives = arguments.indices.filter { arguments[$0] == "-drive" }.map { arguments[$0 + 1] }
     // A comma-bearing disk name stays literal while reclaim applies only to
     // the writable system disk. Firmware and both ISO carriers stay read-only.
@@ -466,7 +467,8 @@ private struct RegisteredFixture {
       endpoints: endpoints)
     #expect(
       first.0.contains(
-        "if=none,id=system,format=raw,cache=none,discard=unmap,file=\(f.vm.path)/disk,,readonly=on.raw"))
+        "if=none,id=system,format=raw,cache=none,discard=unmap,file=\(f.vm.path)/disk,,readonly=on.raw"
+      ))
     #expect(first.0.contains("none") && !first.0.contains("-netdev"))
     #expect(first.0.contains(where: { $0.contains("file=\(f.vm.path)/disk,,readonly=on.raw") }))
     #expect(first.0.contains(where: { $0.contains("firmware,,readonly=off.fd") }))

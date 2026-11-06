@@ -2,8 +2,10 @@ macOpenVM
 Copyright 2026 macOpenVM contributors
 
 Original project code is licensed under Apache-2.0.
-External dependencies retain their own licenses. No operating-system media,
-QEMU binary, firmware, Windows driver or guest-agent binary is included.
+External dependencies retain their own licenses. The source tree contains no
+operating-system media, QEMU binary, firmware, Windows driver or guest-agent
+binary. The separate Windows ARM64 VirtIO release asset carries its upstream
+BSD notices.
 
 Included source patches retain file-specific upstream licenses. The patch map,
 complete license texts and copyright notices are in LICENSES/patches/. These
