@@ -88,6 +88,7 @@ struct RfbQualificationPresentation: Sendable {
   private var sharedReplacementStream: SharedFrameClient?
   private var sharedCleanup: Task<Void, Never>?
   private var sharedDisabled = false
+  private var preferredConsole = WindowsDisplayConsole.gpu
   private var sharedRecovery = SharedDisplayRecovery()
   private var consoleSelection = GuestDisplayConsoleSelection()
   private var sharedFrameInfo: (epoch: UUID, sequence: UInt64, size: PixelSize)?
@@ -172,6 +173,7 @@ struct RfbQualificationPresentation: Sendable {
     currentLaunchGeneration: @escaping @MainActor @Sendable () -> UUID?,
     displayConsoleSelection: Bool = false,
     nativeResolutionEvaluation: Bool = false,
+    initialConsole: WindowsDisplayConsole = .gpu,
     arguments: [String] = CommandLine.arguments,
     hostPointerCapture: GuestHostPointerCapture = .shared
   ) throws {
@@ -192,6 +194,7 @@ struct RfbQualificationPresentation: Sendable {
     self.registeredContext = registeredContext
     canSelectDisplayConsole = displayConsoleSelection
     canMatchMacResolution = nativeResolutionEvaluation
+    preferredConsole = initialConsole
     currentRegisteredLaunchGeneration = currentLaunchGeneration
     selected = false
     directoryPath = nil
@@ -205,7 +208,7 @@ struct RfbQualificationPresentation: Sendable {
 
   func connectDisplay(retryShared: Bool = true) async {
     if retryShared {
-      sharedDisabled = false
+      sharedDisabled = canSelectDisplayConsole && preferredConsole == .firmware
       sharedRecovery = SharedDisplayRecovery()
       consoleError = nil
     }
@@ -243,11 +246,11 @@ struct RfbQualificationPresentation: Sendable {
         return
       }
       displayConnected = true
-      if canMatchMacResolution && canSelectDisplayConsole {
-        for symbol in WindowsDisplayConsole.gpu.chord {
+      if canSelectDisplayConsole && (canMatchMacResolution || preferredConsole == .firmware) {
+        for symbol in preferredConsole.chord {
           try await peer.sendKey(keySym: symbol, down: true)
         }
-        for symbol in WindowsDisplayConsole.gpu.chord.reversed() {
+        for symbol in preferredConsole.chord.reversed() {
           try await peer.sendKey(keySym: symbol, down: false)
         }
       }
@@ -1231,6 +1234,7 @@ struct RfbQualificationPresentation: Sendable {
           for symbol in WindowsDisplayConsole.gpu.chord.reversed() {
             try await client.sendKey(keySym: symbol, down: false)
           }
+          self.preferredConsole = .gpu
         }
         try await client.requestDesktopSize(requested)
         let deadline = ContinuousClock.now + .seconds(5)
@@ -1302,6 +1306,7 @@ struct RfbQualificationPresentation: Sendable {
         for symbol in console.chord.reversed() {
           try await client.sendKey(keySym: symbol, down: false)
         }
+        self.preferredConsole = console
         if selection.sharedAction == .retryAdmittedRoute {
           // Explicit GPU selection authorizes one ordinary display retry. Closing
           // the old pending incremental read guarantees a fresh first framebuffer

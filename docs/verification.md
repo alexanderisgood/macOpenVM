@@ -67,3 +67,10 @@ Executed narrow native procedures are in evidence/linux-native-2026-10-06.md,
 evidence/storage-and-build-2026-10-06.md and
 evidence/linux-network-and-serial-2026-10-06.md. The explicit serial/NAT contract
 is Tests/Integration/native_serial.py; it is not a silent substitute for all N1/D4.
+# Guest tools installer acceptance
+
+GT1: one visible Mac entry prepares the matching disc through stopped media admission.
+GT2: all payload hashes pass before driver mutation; mismatches and missing files fail closed.
+GT3: install only present matching devices; show package result and device health separately.
+GT4: keep Windows signature enforcement, restore graphics recovery settings, never force restart.
+GT5: exercise native ARM64 installer, network and accelerated graphics, and existing media regressions.

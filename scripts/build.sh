@@ -17,6 +17,7 @@ mkdir -p build/macOpenVM.app/Contents/MacOS build/macOpenVM.app/Contents/Resourc
 cp "$binary_directory/macOpenVMDesktop" build/macOpenVM.app/Contents/MacOS/macOpenVM
 cp LICENSE NOTICE build/macOpenVM.app/Contents/Resources/
 cp packaging/PrivacyInfo.xcprivacy build/macOpenVM.app/Contents/Resources/
+python3 scripts/package-guest-tools.py
 cp "$binary_directory/macopenvm" build/bin/macopenvm
 worker_staging=$(mktemp "$PWD/build/macOpenVM.app/Contents/MacOS/.macopenvm-worker.XXXXXX")
 cp "$binary_directory/macopenvm" "$worker_staging"

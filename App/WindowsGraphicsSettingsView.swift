@@ -88,7 +88,7 @@ import SwiftUI
                   "This graphics option currently uses English (UK) keyboard mapping and experimental audio playback."
                 )
                 Text(
-                  "The matching graphics driver disc is separate. Saving these settings does not attach a disc, install Windows drivers or verify driver health."
+                  "After saving, choose Machine → Install Guest Tools to prepare the matching graphics and network drivers together."
                 )
                 Text(
                   "Use the supplied driver disc and check the active display device in Windows. View → Display → Firmware Display remains available for recovery."

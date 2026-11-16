@@ -16,13 +16,13 @@ extension QemuRegisteredCatalog {
     let previousCarrier = try previousAcceleratedDisplaySupportImage(projectRoot: projectRoot)
     let carrier: ReviewedQemuSupportImage?
     if let path = configuration.supportMedia {
-      if path == currentCarrier.url.path {
-        carrier = currentCarrier
-      } else if path == previousCarrier.url.path {
-        carrier = previousCarrier
-      } else {
+      let carriers =
+        try QemuGuestToolsCatalog.images(for: .accelerated, projectRoot: projectRoot)
+        + [currentCarrier, previousCarrier]
+      guard let selected = carriers.first(where: { $0.url.path == path }) else {
         throw registeredQemuFailure()
       }
+      carrier = selected
     } else {
       carrier = nil
     }

@@ -9,14 +9,41 @@ This is currently a source-only alpha: the public repository does not yet supply
 the complete Windows host runtime. These steps apply when the reviewed Windows
 runtime and its driver disc are available in your development installation.
 
+## Install the drivers together
+
+With a development app that bundles Guest Tools, shut down Windows and open
+**Machine → Install Guest Tools**. Choose your graphics mode in **Graphics
+Settings** first, then **Prepare Guest Tools → Start Windows**. The app attaches
+the matching disc and starts on the setup display, which works before installing
+the graphics driver.
+
+In Windows, choose the Guest Tools AutoPlay action, or open **File Explorer →
+This PC → macOpenVM Guest Tools → Install macOpenVM Tools**. Choose **Install**
+and approve the administrator prompt. The installer checks the packaged files,
+installs the matching drivers together and reports each result. Restart Windows
+if requested, then select **Show Windows GPU Display** in the Mac's Guest Tools
+window. No command prompt or individual INF selection is needed at the desktop.
+
+The accelerated profile includes the signed Neptune guest package paired with
+macOpenVM's modified QEMU/Metal runtime. The basic VirtIO display package is a
+different profile; installing it does not enable acceleration. Experimental HDR
+driver builds are not included. Source builds can prepare these optional discs
+using the [Guest Tools build instructions](guest-tools-build.md).
+
+If graphics is **not detected**, installation is incomplete. Choose **Restart**
+from Windows' Start menu and run the installer again. If it remains missing,
+check the VM's Graphics Settings. An unattached optional guest-communication
+device is reported separately; attaching a tools disc does not create that device.
+
 ## Get through “Let’s connect you to a network”
 
 1. **Enable networking.** Stop the VM. In macOpenVM choose **Machine → Networking
    Settings**, select **Shared**, then **Save**. This gives Windows outbound access
    to your local network and the internet. **Disconnected** creates no adapter;
    installing a driver alone will not connect it.
-2. **Attach the driver disc.** While stopped, choose **Machine → Attach Windows
-   Driver Disc**. The app selects the matching reviewed disc. Start the VM.
+2. **Attach the driver disc.** While stopped, choose **Machine → Install Guest
+   Tools → Prepare Guest Tools**. The app selects the matching reviewed disc.
+   Choose **Start Windows**.
 3. **Install NetKVM.** In Windows choose **Install driver**, browse to the driver
    disc, open **drivers → netkvm**, and select that folder. Keep **Include
    subfolders** selected if shown. Wait for Windows to install the driver and
@@ -43,9 +70,9 @@ or open the [driver release page, licenses and checksums](https://github.com/ale
 
 The ZIP contains drivers, licenses and checksums. It is **not an ISO** and cannot
 be attached through the driver-disc command. Download it on the Mac if Windows
-has no connection. The current source preview does not yet turn that download
-into an app-managed driver disc; the reviewed development disc is a separate
-prerequisite. Do not rename the ZIP to `.iso`.
+has no connection. The standalone download is separate from the bundled Guest
+Tools installer. Source contributors must explicitly build the reviewed discs
+before packaging them. Do not rename the ZIP to `.iso`.
 
 ## If a step fails
 

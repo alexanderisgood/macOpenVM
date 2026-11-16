@@ -17,7 +17,8 @@ import tempfile
 SOURCE_DIRECTORIES = ("App", "Backends", "CLI", "Core", "Storage", "RuntimeIPC", "GuestAgent")
 SOURCE_PATTERNS = ("*.swift", "*.c", "*.h", "*.m", "*.mm", "*.modulemap")
 RECIPE_FILES = ("Package.swift", "scripts/build.sh", "scripts/swift.sh", "scripts/build_manifest.py",
-                "packaging/virtualization.entitlements", "packaging/PrivacyInfo.xcprivacy", "LICENSE", "NOTICE", "dependencies.json")
+                "packaging/virtualization.entitlements", "packaging/PrivacyInfo.xcprivacy", "LICENSE", "NOTICE", "dependencies.json",
+                "scripts/build-guest-tools.py", "scripts/package-guest-tools.py", "packaging/guest-tools-pins.json")
 SOURCE_SCOPE = "Production Swift, C/Objective-C, headers/modulemaps and guest agent schema, Package.swift, build/signing recipe, entitlement, licenses and dependency inventory"
 ENTITLEMENTS = {"com.apple.security.virtualization": True}
 WORKER_SCOPE = "macopenvm-bundled-worker"

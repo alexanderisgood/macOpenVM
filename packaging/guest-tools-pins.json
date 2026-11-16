@@ -1,0 +1,14 @@
+{
+  "accelerated": {
+    "bytes": 7055360,
+    "sha256": "830cc06e072b4b0bd09314b8aca4355ef93676718166265c950af600c4a46ce6"
+  },
+  "basic": {
+    "bytes": 921600,
+    "sha256": "ee29b3ee84a07c4c2a11b395397a474d0d59679da111d7b6d36a04d9eba90281"
+  },
+  "display": {
+    "bytes": 921600,
+    "sha256": "cce95cb18e0359e481104dc0f74ada85b19ede60df20a56645aa5d4a1322a2bf"
+  }
+}

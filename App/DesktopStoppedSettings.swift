@@ -96,13 +96,9 @@ struct NativeDesktopWindowsDriverDiscPreparation: DesktopWindowsDriverDiscPrepar
     try await Task.detached(priority: .utility) {
       let project = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         .deletingLastPathComponent()
-      let reviewed =
-        try accelerated
-        ? QemuRegisteredCatalog.acceleratedDisplaySupportImage(projectRoot: project)
-        : displayExperiment
-          ? QemuRegisteredCatalog.displayDriverSupportImage(projectRoot: project)
-          : QemuRegisteredCatalog.networkDriverSupportImage(projectRoot: project)
-      try reviewed.verify()
+      let profile: QemuGuestToolsCatalog.Profile =
+        accelerated ? .accelerated : displayExperiment ? .display : .basic
+      let reviewed = try QemuGuestToolsCatalog.preparedImage(for: profile, projectRoot: project)
       return reviewed.url
     }.value
   }

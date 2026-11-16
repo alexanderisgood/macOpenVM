@@ -95,6 +95,7 @@ import Virtualization
     .windowStyle(.hiddenTitleBar)
     .commands {
       CommandGroup(replacing: .help) {
+        WindowsGuestToolsButton()
         WindowsSetupGuideButton()
       }
       CommandGroup(replacing: .newItem) {
@@ -167,6 +168,7 @@ import Virtualization
                 session.configuration?.installationMedia == nil || session.isBusy
                   || session.showingLibrary)
             Divider()
+            WindowsGuestToolsButton().disabled(!session.usesWindowsDriverDisc)
             Button(
               session.usesWindowsDriverDisc
                 ? "Attach Windows Driver Disc · Experimental" : "Attach Tools Image…",
@@ -227,6 +229,10 @@ import Virtualization
       WindowsSetupGuide(session: session)
     }
     .defaultSize(width: 660, height: 680)
+    Window("Install Guest Tools", id: "windows-guest-tools") {
+      WindowsGuestToolsView(session: session)
+    }
+    .defaultSize(width: 640, height: 720)
   }
 }
 
@@ -754,6 +760,27 @@ struct DesktopVMTrashConfirmation: Equatable {
     }
     return
       "When Windows asks for a network driver, choose Install driver and select drivers/netkvm on the driver disc."
+  }
+  @Published private var guestToolsFailure: (vmID: UUID, message: String)?
+  var guestToolsPreparationError: String? {
+    guestToolsFailure?.vmID == configuration?.id ? guestToolsFailure?.message : nil
+  }
+  var guestToolsHasGraphics: Bool {
+    acceleratedDisplayEvaluation || displayEvaluation != nil || nativeDisplayEvaluation
+  }
+  var canPrepareGuestTools: Bool {
+    usesWindowsDriverDisc && !isBusy && !showingLibrary && !creating
+      && stoppedSettingsRuntimeIsIdle && stoppedSettingsAdmission() != nil
+  }
+  var guestToolsDiscIsSelected: Bool {
+    guard let selected = configuration?.supportMedia else { return false }
+    let project = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+      .deletingLastPathComponent()
+    let profile: QemuGuestToolsCatalog.Profile =
+      acceleratedDisplayEvaluation
+      ? .accelerated : guestToolsHasGraphics ? .display : .basic
+    return (try? QemuGuestToolsCatalog.images(for: profile, projectRoot: project))?
+      .contains(where: { $0.url.path == selected }) == true
   }
   var canStartSelected: Bool {
     guard currentStartupBlocker == nil,
@@ -1439,6 +1466,7 @@ struct DesktopVMTrashConfirmation: Equatable {
     else { return }
     let accelerated = acceleratedDisplayEvaluation
     let displayExperiment = displayEvaluation != nil || nativeDisplayEvaluation
+    guestToolsFailure = nil
     preparing = true
     Task { [self] in
       defer { preparing = false }
@@ -1453,6 +1481,10 @@ struct DesktopVMTrashConfirmation: Equatable {
           image, support: true, in: directory, original: original, request: request)
       } catch {
         guard mediaAdmissionIsCurrent(request) else { return }
+        guestToolsFailure = (
+          original.id,
+          "Guest Tools are missing or could not be verified. Install a macOpenVM build that includes its matching tools, then try again."
+        )
         surfaceStoppedSettingsError(
           "The driver disc could not be prepared. Preserve the VM and reopen it before retrying.",
           editorPresented: false)
@@ -2880,7 +2912,10 @@ struct DesktopVMTrashConfirmation: Equatable {
     }
   }
 
-  private func startWindows(_ selected: VMConfiguration, in directory: URL) {
+  private func startWindows(
+    _ selected: VMConfiguration, in directory: URL,
+    initialConsole: WindowsDisplayConsole = .gpu
+  ) {
     guard canStartSelected, !isBusy, let worker = windowsWorker else { return }
     let requestedDisplay: ReviewedQemu2DDisplay?
     let acceleratedDisplay: ReviewedQemuAcceleratedDisplay?
@@ -2986,7 +3021,8 @@ struct DesktopVMTrashConfirmation: Equatable {
           },
           displayConsoleSelection: requestedDisplay != nil
             && (acceleratedDisplay == nil || acceleratedDisplay?.separateFirmware == true),
-          nativeResolutionEvaluation: acceleratedDisplay != nil)
+          nativeResolutionEvaluation: acceleratedDisplay != nil,
+          initialConsole: initialConsole)
         showingLibrary = false
         errorMessage = nil
       } catch {
@@ -3001,6 +3037,21 @@ struct DesktopVMTrashConfirmation: Equatable {
         show(error)
       }
     }
+  }
+
+  func startForGuestTools() -> Bool {
+    guard canRequestStart, let selected = configuration, let directory,
+      selected.guest == .windows11, selected.backend == .qemuHVF,
+      window?.contentView != nil
+    else { return false }
+    startWindows(selected, in: directory, initialConsole: .firmware)
+    if preparing { window?.makeKeyAndOrderFront(nil) }
+    return preparing
+  }
+
+  func showGuestToolsDisplay(_ console: WindowsDisplayConsole) {
+    windowsDisplay?.selectDisplayConsole(console)
+    window?.makeKeyAndOrderFront(nil)
   }
 
   func start() {
@@ -3478,7 +3529,7 @@ private struct DesktopView: View {
           .accessibilityLabel("Start \(configuration.name)")
         selectedMachineSettings(configuration)
         if session.usesWindowsDriverDisc {
-          WindowsSetupGuideButton().vmGlassControl()
+          WindowsGuestToolsButton().vmGlassControl()
         }
       }
       selectedMachineWarnings(configuration)

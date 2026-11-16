@@ -37,8 +37,12 @@ public enum QemuRegisteredCatalog {
     case .shared: selected = try sharedEvaluation(projectRoot: projectRoot)
     }
     guard let path = configuration.supportMedia else { return selected }
-    let carrier = try networkDriverSupportImage(projectRoot: projectRoot)
-    guard path == carrier.url.path else { throw registeredQemuFailure() }
+    let carriers =
+      try QemuGuestToolsCatalog.images(for: .basic, projectRoot: projectRoot)
+      + [networkDriverSupportImage(projectRoot: projectRoot)]
+    guard let carrier = carriers.first(where: { $0.url.path == path }) else {
+      throw registeredQemuFailure()
+    }
     return try ReviewedQemuLaunchResources(
       creation: selected.creation,
       libraries: selected.libraries, qemuImports: selected.qemuImports,
@@ -57,11 +61,12 @@ public enum QemuRegisteredCatalog {
     let selected = try registeredEvaluation(for: base, projectRoot: projectRoot)
     let support: ReviewedQemuSupportImage?
     if let path = configuration.supportMedia {
-      let carriers = try [
-        displayDriverSupportImage(projectRoot: projectRoot),
-        legacyDisplayDriverSupportImage(projectRoot: projectRoot),
-        networkDriverSupportImage(projectRoot: projectRoot),
-      ]
+      let carriers =
+        try QemuGuestToolsCatalog.images(for: .display, projectRoot: projectRoot) + [
+          displayDriverSupportImage(projectRoot: projectRoot),
+          legacyDisplayDriverSupportImage(projectRoot: projectRoot),
+          networkDriverSupportImage(projectRoot: projectRoot),
+        ]
       guard let carrier = carriers.first(where: { $0.url.path == path }) else {
         throw registeredQemuFailure()
       }

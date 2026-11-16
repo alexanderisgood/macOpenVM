@@ -32,3 +32,7 @@ The development checkout passed 1,336 Swift tests. The macOS job in
 passed its source checks and debug/release builds. Linux recovery shards, real
 guest acceptance and controlled graphics comparisons are separate results. See
 [contributing](CONTRIBUTING.md) and [release scope](docs/release.md).
+
+Windows guest-tools preparation and the native ARM64 combined installer are under
+qualification; network, communication and profile-matched graphics share one UI. See
+[ADR 65](docs/adr/0065-guest-tools-installer.md). Not yet qualified for release.

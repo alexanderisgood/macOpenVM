@@ -22,8 +22,18 @@ struct WindowsSetupGuideButton: View {
       VStack(alignment: .leading, spacing: 20) {
         Text("Windows Setup & Drivers").font(.largeTitle.weight(.semibold))
           .accessibilityAddTraits(.isHeader)
-        Text("Use your Windows 11 ARM64 ISO. The network driver is on the separate driver disc.")
+        Text("Use your Windows 11 ARM64 ISO. Guest Tools supplies the matching drivers separately.")
           .font(.callout).vmSupportingText()
+        VMContentCard("Install all matching drivers") {
+          WindowsGuestToolsButton()
+          Text(
+            "Prepare Guest Tools, start Windows, then open Install macOpenVM Tools on its disc. Choose Install once to set up networking, guest communication when available, and the graphics driver for this VM."
+          )
+          Text(
+            "If graphics says Not detected, setup is incomplete. Choose Restart in Windows, then retry. The steps below help when Windows Setup needs networking before you reach the desktop."
+          )
+          .font(.callout).vmSupportingText()
+        }
         if let configuration = session.configuration, session.usesWindowsDriverDisc {
           VMContentCard("Selected VM: \(configuration.name)") {
             LabeledContent("Networking") {
@@ -47,7 +57,7 @@ struct WindowsSetupGuideButton: View {
         }
         VMContentCard("2. Attach the driver disc") {
           Text(
-            "While the VM is stopped, choose Machine → Attach Windows Driver Disc. Then start the VM."
+            "While the VM is stopped, choose Machine → Install Guest Tools → Prepare Guest Tools. Then start Windows."
           )
           Text(
             "The app selects the matching disc when it is available. You do not need to find a folder on your Mac."

@@ -36,7 +36,7 @@ enum WindowsLaunchReadiness: Equatable, Sendable {
       case .reviewedRuntimeUnavailable:
         "Restore the matching reviewed runtime files for this development build, then check again. The app cannot substitute an unverified runtime."
       case .incompatibleSupportDisc:
-        "Detach the driver disc and check again. Use the matching disc supplied for this Windows runtime; detaching does not remove installed Windows drivers."
+        "Open Machine → Install Guest Tools and choose Prepare Guest Tools to attach the disc for these graphics settings. You can also detach the old disc; installed Windows drivers are preserved."
       case .sharedRuntimeUnavailable:
         "Choose Disconnected in Networking Settings, or restore the matching runtime for shared networking, then check again."
       }
