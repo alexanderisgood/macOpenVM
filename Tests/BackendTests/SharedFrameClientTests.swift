@@ -650,7 +650,10 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
   }
 
   @Test func nativeAnd4KReadOnlyPoolsRemainValidAfterProducerExit() async throws {
-    for size in [PixelSize(width: 3456, height: 2168), PixelSize(width: 3840, height: 2160)] {
+    for size in [
+      PixelSize(width: 321, height: 241), PixelSize(width: 1920, height: 1080),
+      PixelSize(width: 3456, height: 2168), PixelSize(width: 3840, height: 2160),
+    ] {
       let stride = (size.width * 4 + 255) & ~255
       let bytes =
         (stride * size.height + Int(getpagesize()) - 1) / Int(getpagesize()) * Int(getpagesize())
@@ -668,23 +671,25 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
           try sharedSend(
             fd, attach, descriptors: [pool.descriptors.0, pool.descriptors.1], fragment: true)
           guard try rfbRead(fd, 80) == sharedKind(attach, 4) else { throw RfbPeerError.wire }
-          for sequence in UInt64(1)...2 {
+          for sequence in UInt64(1)...4 {
             let frame = sharedWire(
               3, sequence: sequence, generation: sequence + 4,
               width: UInt32(size.width), height: UInt32(size.height), stride: UInt32(stride),
-              bytes: UInt32(bytes), slot: UInt32(sequence - 1), format: 1, sent: 123)
+              bytes: UInt32(bytes), slot: UInt32((sequence - 1) % 2), format: 1, sent: 123)
             try rfbWrite(fd, frame, fragmented: true)
             // Neither receipt nor a caller trying nextFrame permits early reuse.
             try rfbExpectQuiet(fd, milliseconds: 30)
             guard try rfbRead(fd, 80) == sharedKind(frame, 4) else { throw RfbPeerError.wire }
-            if sequence == 1 {
+            if sequence < 4 {
               guard try rfbRead(fd, 80) == sharedWire(5) else { throw RfbPeerError.wire }
             }
           }
         },
         body: { client in
           try await client.connect()
-          for sequence in UInt64(1)...2 {
+          let renderer = try await SharedFrameMetalRenderer()
+          defer { renderer.close() }
+          for sequence in UInt64(1)...4 {
             let frame = try await client.nextFrame()
             #expect(frame.size == size)
             #expect(frame.sequence == sequence)
@@ -693,9 +698,8 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
               #expect(
                 mvo_fixture_check(
                   raw.bindMemory(to: UInt8.self).baseAddress, raw.count,
-                  UInt32(sequence - 1), 0, 0, 0) == 1)
+                  UInt32((sequence - 1) % 2), 0, 0, 0) == 1)
             }
-            let renderer = try await SharedFrameMetalRenderer()
             // A hidden native layer must still finish the actual GPU copy so
             // the producer can reuse its slot, without acquiring a drawable.
             _ = try await renderer.present(
@@ -703,12 +707,11 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
               viewport: CGRect(x: 0, y: 0, width: size.width, height: size.height))
             #expect(await renderer.drawableRequestsForValidation() == 0)
             let rendered = try await renderer.renderGeneratedValidation(frame, updateCache: false)
-            renderer.close()
             rendered.withUnsafeBytes { raw in
               #expect(
                 mvo_fixture_check(
                   raw.bindMemory(to: UInt8.self).baseAddress, raw.count,
-                  UInt32(sequence - 1), size.width, size.height, stride) == 1)
+                  UInt32((sequence - 1) % 2), size.width, size.height, stride) == 1)
             }
             await #expect(throws: (any Error).self) { _ = try await client.nextFrame() }
             try await Task.sleep(for: .milliseconds(60))

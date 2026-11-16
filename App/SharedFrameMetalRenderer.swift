@@ -23,7 +23,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
   private var sharpeningEnabled = false
   private var drawableSize = CGSize.zero
   private var cache: (any MTLTexture)?
-  private var imports: [ObjectIdentifier: any MTLTexture] = [:]
+  private var imports: [ObjectIdentifier: any MTLBuffer] = [:]
   private var closed = false
   private let acquire = DispatchQueue(
     label: "local.macOpenVM.metal-drawable", qos: .userInteractive,
@@ -443,11 +443,10 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
   private static func pixelSize(_ size: CGSize) -> CGSize {
     CGSize(width: size.width.rounded(.up), height: size.height.rounded(.up))
   }
-  private func importTexture(_ frame: SharedFrame) throws -> any MTLTexture {
+  private func importBuffer(_ frame: SharedFrame) throws -> any MTLBuffer {
     let key = ObjectIdentifier(frame.mapping)
     if let existing = imports[key] { return existing }
-    guard frame.rowBytes % device.minimumLinearTextureAlignment(for: .bgra8Unorm) == 0,
-      frame.mapping.byteCount <= device.maxBufferLength
+    guard frame.mapping.byteCount <= device.maxBufferLength
     else { throw Failure.geometry }
     let mapping = frame.mapping
     let buffer: (any MTLBuffer)? = mapping.withUnsafeBytes { bytes in
@@ -458,16 +457,11 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
         deallocator: { _, _ in _ = mapping })
     }
     guard let buffer else { throw Failure.unavailable }
-    let desc = MTLTextureDescriptor.texture2DDescriptor(
-      pixelFormat: .bgra8Unorm,
-      width: frame.size.width, height: frame.size.height, mipmapped: false)
-    desc.storageMode = .shared
-    desc.usage = [.shaderRead]
-    guard let texture = buffer.makeTexture(descriptor: desc, offset: 0, bytesPerRow: frame.rowBytes)
-    else { throw Failure.unavailable }
+    // The producer already supplies a padded BGRA buffer. A direct buffer blit
+    // avoids a linear-texture view and its device-specific alignment constraint.
     if imports.count >= 2 { imports.removeAll() }
-    imports[key] = texture
-    return texture
+    imports[key] = buffer
+    return buffer
   }
   private static let shader = """
     #include <metal_stdlib>
@@ -562,7 +556,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
     init(_ value: any MTLRenderPipelineState) { self.value = value }
   }
   private func encodeSharedCopy(_ frame: SharedFrame, command: any MTLCommandBuffer) throws {
-    let source = try importTexture(frame)
+    let source = try importBuffer(frame)
     if cache?.width != frame.size.width || cache?.height != frame.size.height {
       let desc = MTLTextureDescriptor.texture2DDescriptor(
         pixelFormat: .bgra8Unorm,
@@ -573,7 +567,8 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
     }
     guard let cache, let blit = command.makeBlitCommandEncoder() else { throw Failure.unavailable }
     blit.copy(
-      from: source, sourceSlice: 0, sourceLevel: 0, sourceOrigin: MTLOrigin(),
+      from: source, sourceOffset: 0, sourceBytesPerRow: frame.rowBytes,
+      sourceBytesPerImage: frame.rowBytes * frame.size.height,
       sourceSize: MTLSize(width: frame.size.width, height: frame.size.height, depth: 1),
       to: cache, destinationSlice: 0, destinationLevel: 0, destinationOrigin: MTLOrigin())
     blit.endEncoding()

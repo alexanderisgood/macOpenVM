@@ -13,6 +13,8 @@ replace a clean public build or native acceptance on another Mac.
 | Storage and lifecycle | Identity, ownership, stopped operations and failure checks implemented | Not power-loss or universal filesystem qualification |
 | Windows 11 ARM64 | Runs in a private development environment | Pinned Windows runtime, firmware and drivers are not supplied |
 | Windows accelerated graphics | Private GPU experiments and host display code | Reproducible public runtime recipe unfinished |
+| Windows resource defaults | App/CLI share host-sized CPU/RAM recommendations; hardware editor can apply them | Capacity and override tests pass; live workload tuning remains pending |
+| Shared display copy | Direct buffer-to-texture blit; generated padded/1080p/native/4K pixel tests | Tested on one M5 Pro; no Windows FPS or cross-device support claim |
 | VNC display and input | Host implementation and generated tests | Screenshot uses a private Windows environment |
 | Integer scaling | Backing-pixel viewport geometry implemented | Host presentation setting; no guest resolution change |
 | Light sharpening | Optional and off by default | Measurable GPU cost; FPS neutrality unqualified |

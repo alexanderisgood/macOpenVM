@@ -23,6 +23,8 @@ never silently pass. Tests/mock backends do not establish guest integration.
 | D10 | Keychain absent/locked/denied does not reset it, weaken pairing or block unrelated boot; no repeat Mac password or credentials in files/media/logs |
 | A1 | VoiceOver library/assistant/settings/errors, keyboard-only workflows, high contrast/light-dark/reduced motion/Reduce Transparency; native Liquid Glass on 26+ and equivalent 14–25 fallback; audit on each supported host |
 | G1 | Guest renderer/API correctness plus separate render/transport/presentation timings, median/p95 input and frame stalls at applied native mode |
+| W1 | Windows app/CLI recommendations agree; cover 8–128 GiB host capacities, explicit overrides and rejected insufficient resources; recommendation changes only a draft until save/create |
+| G2 | Shared display copies preserve visible pixels for padded odd widths, 1080p, native and 4K buffers; reuse both producer slots, preserve read-only mappings and acknowledge only after GPU completion; report generated copy timings separately from G1 |
 
 Unit/contract tests must include invalid transition/resource/schema/path cases,
 round trips, cancellation and stale completion, storage faults and bounded imports.

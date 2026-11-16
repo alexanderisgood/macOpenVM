@@ -15,7 +15,7 @@ import Testing
   ]
 
   private func windows() -> WindowsCreationDraft {
-    let draft = WindowsCreationDraft()
+    let draft = WindowsCreationDraft(host: host)
     draft.media = URL(fileURLWithPath: "/private/tmp/windows-arm64.iso")
     draft.parent = URL(fileURLWithPath: "/private/tmp/VMs", isDirectory: true)
     return draft
@@ -56,8 +56,8 @@ import Testing
         draft[keyPath: field] = corrected[index]
         let prepared = try draft.prepared(host: host)
         #expect(draft.numericError(host: host) == nil)
-        #expect(prepared.configuration.cpuCount == (index == 0 ? 4 : 2))
-        #expect(prepared.configuration.memoryBytes == UInt64(index == 1 ? 6 : 4) << 30)
+        #expect(prepared.configuration.cpuCount == 4)
+        #expect(prepared.configuration.memoryBytes == UInt64(index == 1 ? 6 : 8) << 30)
         #expect(prepared.configuration.diskBytes == UInt64(index == 2 ? 128 : 64) << 30)
         #expect(prepared.configuration.network == .disconnected)
       }

@@ -17,7 +17,7 @@ import SwiftUI
     self.session = session
     nonce = session.creationDraftNonce
     self.resources = resources
-    _draft = StateObject(wrappedValue: WindowsCreationDraft())
+    _draft = StateObject(wrappedValue: WindowsCreationDraft(host: .current))
   }
 
   var body: some View {
@@ -80,6 +80,8 @@ import SwiftUI
                 TextField("Disk capacity (GiB)", text: $draft.diskGiBText)
                   .accessibilityLabel("Disk capacity in GiB").frame(width: 140)
               }
+              Text("Initial CPU and memory values are sized for this Mac and can be adjusted.")
+                .font(.caption).vmSupportingText()
               Text("Windows needs at least 2 virtual CPUs, 4 GiB memory and a 64 GiB disk.")
                 .font(.caption).vmSupportingText()
               if let message = draft.numericError(host: host) {

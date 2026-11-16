@@ -8,7 +8,7 @@ import Testing
 @MainActor @Suite struct WindowsCreationDraftTests {
   private let host = HostResources(cpuCount: 8, memoryBytes: 16 * 1_073_741_824)
   private func draft() -> WindowsCreationDraft {
-    let draft = WindowsCreationDraft()
+    let draft = WindowsCreationDraft(host: host)
     draft.media = URL(fileURLWithPath: "/private/tmp/windows-arm64.iso")
     draft.parent = URL(fileURLWithPath: "/private/tmp/VMs", isDirectory: true)
     return draft
@@ -26,10 +26,45 @@ import Testing
     #expect(first.configuration.kernel == nil && first.configuration.initialRamdisk == nil)
     #expect(first.configuration.installationMedia == "/private/tmp/windows-arm64.iso")
     #expect(
-      first.configuration.cpuCount == 2 && first.configuration.memoryBytes == 4 * 1_073_741_824)
+      first.configuration.cpuCount == 4 && first.configuration.memoryBytes == 8 * 1_073_741_824)
     #expect(first.configuration.diskBytes == 64 * 1_073_741_824)
     #expect(first.destination.path == "/private/tmp/VMs/My Windows VM.macopenvm")
   }
+  @Test(arguments: [
+    (8, 8, 4, 4), (8, 16, 4, 8), (10, 24, 5, 12),
+    (18, 48, 8, 16), (32, 128, 8, 16),
+  ])
+  func defaultsScaleWithHostCapacity(cpu: Int, ramGiB: Int, expectedCPU: Int, expectedGiB: Int)
+    throws
+  {
+    let host = HostResources(cpuCount: cpu, memoryBytes: UInt64(ramGiB) << 30)
+    let draft = WindowsCreationDraft(host: host)
+    draft.media = URL(fileURLWithPath: "/private/tmp/windows-arm64.iso")
+    draft.parent = URL(fileURLWithPath: "/private/tmp/VMs", isDirectory: true)
+    let prepared = try draft.prepared(host: host).configuration
+    #expect(prepared.cpuCount == expectedCPU)
+    #expect(prepared.memoryBytes == UInt64(expectedGiB) << 30)
+    #expect(prepared.cpuCount <= host.cpuCount - 2)
+    #expect(prepared.memoryBytes <= host.memoryBytes / 2)
+    // Explicit edits remain the next-start values, including an 85 GiB disk.
+    draft.cpuCountText = "2"
+    draft.memoryGiBText = "4"
+    draft.diskGiBText = "85"
+    let edited = try draft.prepared(host: host).configuration
+    #expect(edited.cpuCount == 2 && edited.memoryBytes == 4 << 30)
+    #expect(edited.diskBytes == 85 << 30)
+  }
+
+  @Test func insufficientHostsStillRejectRecommendedValues() {
+    for host in [
+      HostResources(cpuCount: 2, memoryBytes: 8 << 30),
+      HostResources(cpuCount: 8, memoryBytes: 4 << 30),
+    ] {
+      let draft = WindowsCreationDraft(host: host)
+      #expect(draft.numericError(host: host) != nil)
+    }
+  }
+
   @Test func invalidSelectionsAndPathComponentsCannotPrepareAConfiguration() {
     for fault in ["media", "parent", "remote", "name", "control", "parent-traversal"] {
       let draft = draft()

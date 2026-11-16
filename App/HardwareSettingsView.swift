@@ -49,6 +49,11 @@ import SwiftUI
           Text("Leave at least two CPUs and half of the memory available to your Mac.")
             .font(.caption).vmSupportingText()
           if configuration.guest == .windows11 {
+            Button("Use recommended allocation") {
+              let recommendation = host.recommendedWindowsHardware
+              draft.cpuCountText = String(recommendation.cpuCount)
+              draft.memoryMiBText = String(recommendation.memoryBytes / 1_048_576)
+            }.vmGlassControl()
             Text("Windows requires at least 2 CPUs and 4,096 MiB of memory.")
               .font(.caption).vmSupportingText()
           }

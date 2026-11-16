@@ -560,11 +560,14 @@ import VMStorage
           throw bad("The experimental Windows creation profile starts offline from an ARM64 ISO.")
         }
       }
+      let recommendation = HostResources.current.recommendedWindowsHardware
       var c = VMConfiguration(
         name: options["name"] ?? (windows ? "Windows 11 VM" : "Linux VM"),
         guest: windows ? .windows11 : .linux, backend: windows ? .qemuHVF : .appleVz,
-        cpuCount: try integer(options, "cpus", fallback: 2),
-        memoryBytes: try bytes(options, "memory-mib", multiplier: 1_048_576, fallback: 4096),
+        cpuCount: try integer(options, "cpus", fallback: windows ? recommendation.cpuCount : 2),
+        memoryBytes: try bytes(
+          options, "memory-mib", multiplier: 1_048_576,
+          fallback: windows ? Int(recommendation.memoryBytes / 1_048_576) : 4096),
         diskBytes: try bytes(
           options, "disk-gib", multiplier: 1_073_741_824, fallback: windows ? 64 : 32))
       c.installationMedia = options["media"]

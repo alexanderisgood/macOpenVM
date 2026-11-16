@@ -533,3 +533,26 @@ The installed app remains unchanged pending that live gate.
 The separate [HDR wire foundation](Benchmarks/HDRFrameWire/README.md) preserves
 explicit FP16 scRGB values and snapshot ownership in generated CPU tests. It has
 no producer/client/EDR/driver integration and does not enable Windows HDR.
+
+## Shared display buffer copy, 16 November 2026
+
+The consumer now blits the read-only shared BGRA buffer directly into its private
+Metal display cache. This removes the intermediate linear texture object and
+its device-specific linear texture alignment requirement. GPU completion still
+controls producer acknowledgement, and display acquisition remains asynchronous.
+
+On an Apple M5 Pro, five generated geometries and six alternating baseline/candidate
+blocks produced 240 timed copies per variant per geometry. Pixel readback passed
+at every block. Median GPU copy times at 1920 × 1080 were 35.750 µs before and
+31.125 µs after. At 3456 × 2168 they were 155.500 µs and 154.833 µs. Other sizes
+showed mixed small differences and variable tails, so these observations establish
+no overall Windows FPS improvement. The reproducible fixture is in
+[Benchmarks/SharedFrameCopy](Benchmarks/SharedFrameCopy/README.md); local raw
+measurements are retained under `.lab/windows-performance-20261116/`.
+
+The actual renderer also passed read-only shared-memory tests at odd padded,
+1080p, native and 4K dimensions, reusing both producer slots through four frames.
+Windows creation now shares a host-sized CPU/RAM recommendation with the CLI and
+hardware editor. Tests cover 8–128 GiB hosts, explicit overrides and insufficient
+capacity. Live Windows performance and physical testing across M-series models
+remain pending. The pinned Windows runtime still requires macOS 27.

@@ -142,9 +142,15 @@ private enum VMCreationDraftInput {
   @Published var name = "Windows 11 VM"
   @Published var media: URL?
   @Published var parent: URL?
-  @Published var cpuCountText = "2"
-  @Published var memoryGiBText = "4"
+  @Published var cpuCountText: String
+  @Published var memoryGiBText: String
   @Published var diskGiBText = "64"
+
+  init(host: HostResources = .current) {
+    let recommendation = host.recommendedWindowsHardware
+    cpuCountText = String(recommendation.cpuCount)
+    memoryGiBText = String(recommendation.memoryBytes / VMNumericInput.gibibyte)
+  }
 
   /// Advisory display only; nil means the current text has no valid disk target.
   var parsedDiskGiB: Int? { try? VMCreationDraftInput.diskValue(diskGiBText, windows: true) }

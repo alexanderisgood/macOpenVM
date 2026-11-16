@@ -68,6 +68,15 @@ public struct HostResources: Sendable {
     self.memoryBytes = memoryBytes
     self.architecture = architecture
   }
+  /// Starting allocation shared by Windows creation and the hardware editor.
+  /// Keep half the host available and cap initial allocation to avoid excessive
+  /// vCPU scheduling and unified-memory pressure. Admission still validates it.
+  public var recommendedWindowsHardware: (cpuCount: Int, memoryBytes: UInt64) {
+    let cpus = max(2, min(8, cpuCount / 2))
+    let memoryGiB = max(4, min(16, memoryBytes / 2 / 1_073_741_824))
+    return (cpus, memoryGiB * 1_073_741_824)
+  }
+
   public static var current: HostResources {
     #if arch(arm64)
       let architecture = GuestArchitecture.arm64
