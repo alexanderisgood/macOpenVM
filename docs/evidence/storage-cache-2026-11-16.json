@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "qemuVersion": "qemu-io version 11.1.0",
+  "qemuSHA256": "9d618189e2cd5e3ea71ed23f75bf9255f0d225acda44772c52f93f5b27acaf21",
+  "harnessSHA256": "4de645298513633eaaa0dc2b64d6a36157c4f5987c367a241b9dfb3276a4528c",
+  "hostArchitecture": "arm64",
+  "macOSVersion": "27.0",
+  "bytesPerTrial": 16777216,
+  "writeSize": 4096,
+  "samples": [
+    {
+      "trial": 0,
+      "cache": "none",
+      "seconds": 0.1502745829639025,
+      "MiBPerSecondIncludingFlush": 106.47176444897114,
+      "reopenVerified": true,
+      "fuaReopenVerified": true
+    },
+    {
+      "trial": 0,
+      "cache": "writeback",
+      "seconds": 0.0658354590414092,
+      "MiBPerSecondIncludingFlush": 243.03012742626004,
+      "reopenVerified": true,
+      "fuaReopenVerified": true
+    },
+    {
+      "trial": 1,
+      "cache": "writeback",
+      "seconds": 0.0624621250317432,
+      "MiBPerSecondIncludingFlush": 256.1552299392442,
+      "reopenVerified": true,
+      "fuaReopenVerified": true
+    },
+    {
+      "trial": 1,
+      "cache": "none",
+      "seconds": 0.15526904101716354,
+      "MiBPerSecondIncludingFlush": 103.04694287531117,
+      "reopenVerified": true,
+      "fuaReopenVerified": true
+    },
+    {
+      "trial": 2,
+      "cache": "none",
+      "seconds": 0.15365366701735184,
+      "MiBPerSecondIncludingFlush": 104.13028410310018,
+      "reopenVerified": true,
+      "fuaReopenVerified": true
+    },
+    {
+      "trial": 2,
+      "cache": "writeback",
+      "seconds": 0.06494208402000368,
+      "MiBPerSecondIncludingFlush": 246.37336853975347,
+      "reopenVerified": true,
+      "fuaReopenVerified": true
+    }
+  ],
+  "scope": "Host QEMU block fixture; not a Windows/native-speed comparison.",
+  "timing": "Process startup, writes and final flush; excludes reopened verification.",
+  "load": "Uncontrolled; record concurrent host workloads separately.",
+  "passed": true
+}

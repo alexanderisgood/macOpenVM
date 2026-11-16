@@ -11,6 +11,7 @@ replace a clean public build or native acceptance on another Mac.
 | ARM64 Linux | Native Virtualization backend; local boot and desktop experiments | Guided installation and broad guest compatibility unfinished |
 | VM library | Create/open, recent locations and settings UI implemented | Experimental user interface |
 | Storage and lifecycle | Identity, ownership, stopped operations and failure checks implemented | Not power-loss or universal filesystem qualification |
+| Windows disk I/O | Buffered writes preserve guest flushes and discard; [disposable block fixture](Benchmarks/STORAGE.md) passes | Avoids macOS synchronous-write fallback; Windows throughput and native-speed parity remain unmeasured |
 | Windows 11 ARM64 | Runs in a private development environment; fresh installer boot verified after [runtime refresh](docs/evidence/windows-runtime-refresh-2026-11-16.md) | Pinned Windows host runtime and firmware are not supplied; basic ARM64 guest drivers have a separate preview download |
 | Windows accelerated graphics | Private GPU experiments and host display code | Reproducible public runtime recipe unfinished |
 | Windows resource defaults | App/CLI share host-sized CPU/RAM recommendations; hardware editor can apply them | Capacity and override tests pass; live workload tuning remains pending |

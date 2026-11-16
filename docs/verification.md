@@ -25,6 +25,7 @@ never silently pass. Tests/mock backends do not establish guest integration.
 | G1 | Guest renderer/API correctness plus separate render/transport/presentation timings, median/p95 input and frame stalls at applied native mode |
 | W1 | Windows app/CLI recommendations agree; cover 8–128 GiB host capacities, explicit overrides and rejected insufficient resources; recommendation changes only a draft until save/create |
 | G2 | Shared display copies preserve visible pixels for padded odd widths, 1080p, native and 4K buffers; reuse both producer slots, preserve read-only mappings and acknowledge only after GPU completion; report generated copy timings separately from G1 |
+| S2 | macOS Windows storage avoids synchronous ordinary writes while preserving guest flush/FUA, sparse raw storage, discard and read-only media; alternate disposable QEMU cache-mode trials with final flush included and reopened byte verification; separately qualify Windows latency after a normal launch |
 
 Unit/contract tests must include invalid transition/resource/schema/path cases,
 round trips, cancellation and stale completion, storage faults and bounded imports.

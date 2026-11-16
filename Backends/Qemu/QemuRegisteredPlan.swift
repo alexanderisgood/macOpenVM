@@ -200,9 +200,10 @@ public struct QemuRegisteredPlan: Sendable {
       "-device", "qemu-xhci,id=xhci0", "-device", "usb-kbd,id=keyboard0,bus=xhci0.0", "-device",
       "usb-mouse,id=relative-pointer0,bus=xhci0.0", "-device",
       "usb-tablet,id=pointer0,bus=xhci0.0",
-      // Forward guest-issued TRIM so the host can reclaim sparse disk blocks.
+      // macOS maps QEMU's cache=none direct-I/O fallback to synchronous writes.
+      // Buffer ordinary writes, retain guest flush/FUA, and forward guest TRIM.
       "-drive",
-      "if=none,id=system,format=raw,cache=none,discard=unmap,file=\(QemuPlan.escape(disk))",
+      "if=none,id=system,format=raw,cache=writeback,cache.no-flush=off,discard=unmap,file=\(QemuPlan.escape(disk))",
       "-device", "nvme,drive=system,serial=\(serial)",
       "-k", keymap.path, "-vnc", "unix:\(endpoints.displaySocket.path),share=force-shared",
     ]

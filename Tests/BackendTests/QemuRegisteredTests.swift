@@ -432,7 +432,7 @@ private struct RegisteredFixture {
   }
 
   @Test(arguments: [false, true])
-  func systemDiskForwardsGuestDiscardAndKeepsBootMediaReadOnly(shared: Bool) throws {
+  func systemDiskBuffersWritesPreservesFlushAndDiscardAndKeepsMediaReadOnly(shared: Bool) throws {
     let f = try RegisteredFixture()
     defer { f.close() }
     let endpoints = try QemuRegisteredEndpoints(directory: f.sockets)
@@ -449,13 +449,14 @@ private struct RegisteredFixture {
     // A comma-bearing disk name stays literal while reclaim applies only to
     // the writable system disk. Firmware and both ISO carriers stay read-only.
     let system =
-      "if=none,id=system,format=raw,cache=none,discard=unmap,file=\(f.vm.path)/disk,,readonly=on.raw"
+      "if=none,id=system,format=raw,cache=writeback,cache.no-flush=off,discard=unmap,file=\(f.vm.path)/disk,,readonly=on.raw"
     #expect(drives.count == 4)
     #expect(drives.filter { $0.hasPrefix("if=none,id=system,") } == [system])
     #expect(drives.filter { $0.contains(",discard=") } == [system])
     #expect(drives.filter { $0 != system }.allSatisfy { $0.contains(",readonly=on,") })
     #expect(!arguments.contains { $0.contains("detect-zeroes=") })
     #expect(!arguments.contains("-snapshot"))
+    #expect(!drives.contains { $0.hasPrefix("if=none,id=system,format=raw,cache=none,") })
   }
 
   @Test func configurationProducesOfflineArgumentsWithLiteralCommaSpaceAndUnicodePaths() throws {
@@ -467,7 +468,7 @@ private struct RegisteredFixture {
       endpoints: endpoints)
     #expect(
       first.0.contains(
-        "if=none,id=system,format=raw,cache=none,discard=unmap,file=\(f.vm.path)/disk,,readonly=on.raw"
+        "if=none,id=system,format=raw,cache=writeback,cache.no-flush=off,discard=unmap,file=\(f.vm.path)/disk,,readonly=on.raw"
       ))
     #expect(first.0.contains("none") && !first.0.contains("-netdev"))
     #expect(first.0.contains(where: { $0.contains("file=\(f.vm.path)/disk,,readonly=on.raw") }))
