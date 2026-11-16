@@ -13,6 +13,7 @@ replace a clean public build or native acceptance on another Mac.
 | Storage and lifecycle | Identity, ownership, stopped operations and failure checks implemented | Not power-loss or universal filesystem qualification |
 | Windows disk I/O | Buffered writes preserve guest flushes and discard; [disposable block fixture](Benchmarks/STORAGE.md) passes | Avoids macOS synchronous-write fallback; Windows throughput and native-speed parity remain unmeasured |
 | Windows 11 ARM64 | Runs in a private development environment; fresh installer boot verified after [runtime refresh](docs/evidence/windows-runtime-refresh-2026-11-16.md) | Pinned Windows host runtime and firmware are not supplied; basic ARM64 guest drivers have a separate preview download |
+| Windows setup help | Read-only guide from creation, selected VM and Help; [native guide/network observation](docs/evidence/windows-setup-guide-2026-11-16.md); links the ARM64 driver preview | Guest installation remains manual; public Windows runtime/disc packaging remains incomplete |
 | Windows accelerated graphics | Private GPU experiments and host display code | Reproducible public runtime recipe unfinished |
 | Windows resource defaults | App/CLI share host-sized CPU/RAM recommendations; hardware editor can apply them | Capacity and override tests pass; live workload tuning remains pending |
 | Shared display copy | Direct buffer-to-texture blit; generated padded/1080p/native/4K pixel tests | Tested on one M5 Pro; no Windows FPS or cross-device support claim |

@@ -95,6 +95,11 @@ import SwiftUI
             }
             VMContentCard("Networking") {
               Text("The new VM starts disconnected.").font(.callout)
+              Text(
+                "Before starting Windows Setup, enable Shared networking and attach the driver disc from the VM’s Machine menu."
+              )
+              .font(.callout).vmSupportingText()
+              WindowsSetupGuideButton().vmGlassControl()
             }
             Text(
               "Creation preserves existing VMs. An interrupted creation retains its new folder for inspection."

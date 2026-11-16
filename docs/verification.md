@@ -21,6 +21,7 @@ never silently pass. Tests/mock backends do not establish guest integration.
 | D8 | One support drive contains one tool for lawful agent/native drivers with attribution; no second third-party setup drive |
 | D9 | Run Setup reaches installer in Windows; explicit elevation/progress/errors/manual fallback; authenticated version and component health hides banner |
 | D10 | Keychain absent/locked/denied does not reset it, weaken pairing or block unrelated boot; no repeat Mac password or credentials in files/media/logs |
+| D11 | Windows setup guide is reachable from creation, selected VM and Help while running; show configured offline/shared and attached/detached states without claiming driver health; exact guest driver folder and public download are visible; opening/closing help preserves configuration and runtime; verify scrolling, keyboard access and small-window layout |
 | A1 | VoiceOver library/assistant/settings/errors, keyboard-only workflows, high contrast/light-dark/reduced motion/Reduce Transparency; native Liquid Glass on 26+ and equivalent 14–25 fallback; audit on each supported host |
 | G1 | Guest renderer/API correctness plus separate render/transport/presentation timings, median/p95 input and frame stalls at applied native mode |
 | W1 | Windows app/CLI recommendations agree; cover 8–128 GiB host capacities, explicit overrides and rejected insufficient resources; recommendation changes only a draft until save/create |

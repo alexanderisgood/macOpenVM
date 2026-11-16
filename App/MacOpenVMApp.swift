@@ -94,6 +94,9 @@ import Virtualization
     .defaultSize(width: 900, height: 640)
     .windowStyle(.hiddenTitleBar)
     .commands {
+      CommandGroup(replacing: .help) {
+        WindowsSetupGuideButton()
+      }
       CommandGroup(replacing: .newItem) {
         if generatedRfbQualification == nil {
           if displayLab.selected {
@@ -220,6 +223,10 @@ import Virtualization
         }
       }
     }
+    Window("Windows Setup & Drivers", id: "windows-setup") {
+      WindowsSetupGuide(session: session)
+    }
+    .defaultSize(width: 660, height: 680)
   }
 }
 
@@ -3470,6 +3477,9 @@ private struct DesktopView: View {
           .disabled(!session.canRequestStart)
           .accessibilityLabel("Start \(configuration.name)")
         selectedMachineSettings(configuration)
+        if session.usesWindowsDriverDisc {
+          WindowsSetupGuideButton().vmGlassControl()
+        }
       }
       selectedMachineWarnings(configuration)
       if let warning = session.graphicsPreferencesWarning, configuration.guest == .windows11 {

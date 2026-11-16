@@ -1,0 +1,67 @@
+# Windows setup and drivers
+
+Use **Help → Windows Setup & Drivers** in macOpenVM to keep these instructions
+beside Windows Setup. The guide also opens from the Windows creation screen and
+the selected VM.
+
+You need your own **Windows 11 ARM64 ISO**. macOpenVM does not include Windows.
+This is currently a source-only alpha: the public repository does not yet supply
+the complete Windows host runtime. These steps apply when the reviewed Windows
+runtime and its driver disc are available in your development installation.
+
+## Get through “Let’s connect you to a network”
+
+1. **Enable networking.** Stop the VM. In macOpenVM choose **Machine → Networking
+   Settings**, select **Shared**, then **Save**. This gives Windows outbound access
+   to your local network and the internet. **Disconnected** creates no adapter;
+   installing a driver alone will not connect it.
+2. **Attach the driver disc.** While stopped, choose **Machine → Attach Windows
+   Driver Disc**. The app selects the matching reviewed disc. Start the VM.
+3. **Install NetKVM.** In Windows choose **Install driver**, browse to the driver
+   disc, open **drivers → netkvm**, and select that folder. Keep **Include
+   subfolders** selected if shown. Wait for Windows to install the driver and
+   establish a connection, then choose **Next**.
+
+The disc's drive letter can vary. Choose the disc containing the `drivers` folder,
+not the Windows installation ISO. Shared networking appears as virtual Ethernet;
+you do not select a Wi-Fi network inside Windows.
+
+The folder picker may say **“No items match your search”** inside `netkvm` because
+it shows folders rather than driver files. If the address bar ends in `netkvm`,
+choose **Select Folder**; you do not need to select an individual `.inf` file.
+
+## Driver download
+
+[Download the ARM64 driver ZIP](https://github.com/alexanderisgood/macOpenVM/releases/download/windows-arm64-virtio-0.1.302-1/macOpenVM-virtio-win-0.1.302-1-arm64.zip)
+or open the [driver release page, licenses and checksums](https://github.com/alexanderisgood/macOpenVM/releases/tag/windows-arm64-virtio-0.1.302-1).
+
+| Driver | Purpose | When to install |
+|---|---|---|
+| NetKVM | Network connection | The VM uses Shared networking with its VirtIO network adapter |
+| VirtIO serial | Guest communication transport | Your runtime provides the corresponding serial device |
+| VirtIO GPU 2D | Basic display support | Your runtime provides the matching VirtIO display device |
+
+The ZIP contains drivers, licenses and checksums. It is **not an ISO** and cannot
+be attached through the driver-disc command. Download it on the Mac if Windows
+has no connection. The current source preview does not yet turn that download
+into an app-managed driver disc; the reviewed development disc is a separate
+prerequisite. Do not rename the ZIP to `.iso`.
+
+## If a step fails
+
+- **The app cannot attach the disc:** keep the VM stopped and check that the
+  reviewed driver disc for your runtime is present. A public source build alone
+  does not include it. Do not replace a pinned disc with an unrelated download.
+- **Windows cannot find a compatible driver:** confirm Shared networking is saved,
+  restart the VM, and select `drivers/netkvm` on the driver disc. Use ARM64 drivers.
+- **The driver installs but there is no connection:** confirm the Mac itself has
+  internet access, then check that the VM restarted after enabling Shared.
+- **Windows rejects the driver signature:** keep signature enforcement enabled
+  and report the exact error and driver version.
+
+The ordinary firmware display works without the VirtIO GPU driver. Accelerated
+graphics uses a separate matched host runtime and Neptune driver; the basic driver
+ZIP does not enable acceleration. See the [driver overview](../README.md#windows-11-arm64-guest-drivers).
+
+Guest connectivity, accelerated graphics and broad M-series support remain
+experimental. An attached disc is not proof that its drivers are installed.

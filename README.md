@@ -29,6 +29,11 @@ near-native performance and FPS-neutral sharpening are not qualified.
 
 ## Windows 11 ARM64 guest drivers
 
+**Stuck at “Let’s connect you to a network”?** Follow the
+[Windows setup guide](docs/windows-setup.md): enable Shared networking, attach the
+driver disc, then select `drivers/netkvm` from Windows’ **Install driver** button.
+The same instructions are available in **Help → Windows Setup & Drivers**.
+
 The separate [VirtIO driver preview](https://github.com/alexanderisgood/macOpenVM/releases/tag/windows-arm64-virtio-0.1.302-1)
 provides the upstream NetKVM network, VirtIO serial and VirtIO GPU 2D display
 packages as a ZIP with their licenses and checksums. The guest needs the matching
