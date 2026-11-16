@@ -2269,9 +2269,12 @@ struct DesktopVMTrashConfirmation: Equatable {
   var nativeFullscreenPixels: PixelSize? {
     guard let screen = window?.screen else { return nil }
     let scale = screen.backingScaleFactor
+    // Fullscreen keeps the native menu reachable. Its occupied height can be
+    // slightly larger than the camera safe area (including the separator).
+    let topInset = max(screen.safeAreaInsets.top, NSApp.mainMenu?.menuBarHeight ?? 0)
     let size = PixelSize(
       width: Int((screen.frame.width * scale).rounded()),
-      height: Int(((screen.frame.height - screen.safeAreaInsets.top) * scale).rounded()))
+      height: Int(((screen.frame.height - topInset) * scale).rounded()))
     return (try? ReviewedQemu2DDisplay(initialPixels: size)) == nil ? nil : size
   }
 

@@ -290,6 +290,40 @@ private struct RegisteredFixture {
         acceleratedDisplay: display, renderServer: server)
     }
   }
+  @Test func sharedDisplayUsesAdaptiveVNCWithoutChangingOtherDevices() throws {
+    let f = try RegisteredFixture()
+    defer { f.close() }
+    let r = f.resources
+    let endpoints = try QemuRegisteredEndpoints(directory: f.sockets)
+    let server = ReviewedQemuRenderServer(
+      url: r.runtimeQemu.url, byteCount: r.runtimeQemu.byteCount,
+      sha256: r.runtimeQemu.sha256, imports: r.qemuImports)
+    for separate in [false, true] {
+      func resources(shared: Bool) throws -> ReviewedQemuLaunchResources {
+        try ReviewedQemuLaunchResources(
+          creation: r.creation, libraries: r.libraries, qemuImports: r.qemuImports,
+          swtpmImports: r.swtpmImports, systemImports: r.systemImports,
+          runtimeQemu: r.runtimeQemu,
+          acceleratedDisplay: ReviewedQemuAcceleratedDisplay(
+            initialPixels: PixelSize(width: 3456, height: 2168), separateFirmware: separate),
+          renderServer: server, sharedFrameTransport: shared)
+      }
+      let fallback = try QemuRegisteredPlan.arguments(
+        configuration: f.configuration, directory: f.vm,
+        resources: resources(shared: false), endpoints: endpoints)
+      let shared = try QemuRegisteredPlan.arguments(
+        configuration: f.configuration, directory: f.vm,
+        resources: resources(shared: true), endpoints: endpoints)
+      var expected = fallback.0
+      let vnc = try #require(expected.firstIndex(of: "-vnc")) + 1
+      #expect(expected[vnc].hasSuffix(",active-refresh-ms=200"))
+      expected[vnc] = String(expected[vnc].dropLast(",active-refresh-ms=200".count))
+      expected[try #require(expected.firstIndex(of: "-display")) + 1] +=
+        ",shared-frame=\(endpoints.sharedFrameSocket.path)"
+      #expect(shared.0 == expected)
+      #expect(shared.1 == fallback.1)
+    }
+  }
   @Test func highRefreshTrialChangesOnlyTheExplicitDisplayTiming() throws {
     let f = try RegisteredFixture()
     defer { f.close() }

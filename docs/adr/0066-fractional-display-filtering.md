@@ -15,8 +15,9 @@ Keep the optional sharpening path separate. No extra image copy, render pass,
 CPU filtering, guest driver or security-setting change is introduced.
 
 Offer a stopped graphics-settings button to copy the current Mac screen's
-backing-pixel size, excluding its top safe area, into the existing startup-size
-draft. Saving still uses the existing bounds, stopped-owner admission and
+backing-pixel size, excluding the greater of the camera safe area and main menu
+height, into the existing startup-size draft. The native menu remains reachable.
+Saving still uses the existing bounds, stopped-owner admission and
 explicit refresh choice. This avoids hand-entering dimensions for fullscreen.
 
 Live resize remains experimental. The current signed graphics driver restarted

@@ -176,7 +176,7 @@ import SwiftUI
       )
       .font(.caption).vmSupportingText()
       Text(
-        "This size is requested when Windows starts. Match This Mac gives fullscreen its native shape and sharpness. Changing resolution while Windows is running is experimental and may restart Windows with the current graphics driver."
+        "This size is requested when Windows starts. Windows may keep a previously saved resolution; check Settings → System → Display inside Windows if the desktop still has borders. Live resolution changes are experimental and may restart Windows with the current graphics driver."
       )
       .font(.callout).vmSupportingText()
       Divider()

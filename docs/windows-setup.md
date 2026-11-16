@@ -41,11 +41,16 @@ Shut down Windows, then choose **Machine → Graphics Settings → Match This Ma
 and **Save Settings**. Start Windows and enter fullscreen from **View**. The
 preset requests the Mac's fullscreen pixel dimensions at startup. Keep Windows'
 own display scaling at a comfortable text size; it is separate from resolution.
+Windows can retain its previously saved resolution. If borders remain, compare
+**View → Windows Display** with **Mac Viewport**. The startup request alone does
+not confirm that Windows applied it; check **Settings → System → Display** inside
+Windows for the current resolution.
 
 **Fit to Window** smooths fractional scaling when the window and guest sizes
 differ. **Integer Pixels** preserves whole source pixels and can leave borders.
 Live resolution changes remain experimental: the current accelerated driver
-has restarted Windows during a resize. Use the startup preset for now.
+has restarted Windows during a resize. Prefer requesting the startup size;
+automatic live resizing is not enabled.
 
 ## Get through “Let’s connect you to a network”
 

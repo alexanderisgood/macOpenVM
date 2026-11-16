@@ -17,7 +17,7 @@ replace a clean public build or native acceptance on another Mac.
 | Windows accelerated graphics | Private GPU experiments and host display code | Reproducible public runtime recipe unfinished |
 | Windows resource defaults | App/CLI share host-sized CPU/RAM recommendations; hardware editor can apply them | Capacity and override tests pass; live workload tuning remains pending |
 | Shared display copy | Direct buffer-to-texture blit; generated padded/1080p/native/4K pixel tests | Tested on one M5 Pro; no Windows FPS or cross-device support claim |
-| VNC display and input | Host implementation and generated tests | Screenshot uses a private Windows environment |
+| VNC display and input | Shared Metal plans use adaptive VNC refresh; [ADR67](docs/adr/0067-adaptive-vnc-refresh-with-metal.md); launch and recovery tests pass | Native performance comparison and fallback checks pending; no game-FPS claim |
 | Integer scaling | Backing-pixel viewport geometry implemented | Host presentation setting; no guest resolution change |
 | Fractional scaling and fullscreen | Linear Metal filtering and stopped native-size preset; [ADR66](docs/adr/0066-fractional-display-filtering.md) | Native/integer pixels retained; live resize exposed a Windows GPU scheduler crash and remains experimental |
 | Light sharpening | Optional and off by default | Measurable GPU cost; FPS neutrality unqualified |

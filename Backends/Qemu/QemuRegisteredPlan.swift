@@ -280,7 +280,12 @@ public struct QemuRegisteredPlan: Sendable {
     // Guest application and delivery still require independent evidence.
     if let acceleratedDisplay {
       guard let vncIndex = args.firstIndex(of: "-vnc") else { throw registeredQemuFailure() }
-      args[vncIndex + 1] += ",active-refresh-ms=200"
+      // Shared delivery pauses RFB pixel requests. A hold renewed by every
+      // guest present would keep scanning that unused surface at 8 ms.
+      // Let VNC adapt until it is needed again; a fallback reconnect wakes it.
+      if !sharedFrameTransport {
+        args[vncIndex + 1] += ",active-refresh-ms=200"
+      }
       let pixels = acceleratedDisplay.initialPixels
       let hostWindow = acceleratedDisplay.hostWindow.rawValue
       let refresh = acceleratedDisplay.refreshRate.rawValue
