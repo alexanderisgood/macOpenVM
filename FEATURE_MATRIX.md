@@ -6,12 +6,12 @@ replace a clean public build or native acceptance on another Mac.
 
 | Area | Current state | Public snapshot limits |
 |---|---|---|
-| macOS app and CLI | Original Swift implementation | Clean public-snapshot checks and public CI pending |
-| Apple silicon / macOS | macOS 14 deployment target | Build requires SDK 26+ and a compatible Swift 6 toolchain |
+| macOS app and CLI | Original Swift implementation; public macOS source CI passes | Real guest and hardware gates are separate |
+| Apple silicon / macOS | macOS 14 deployment target | Build requires SDK 27+ and a compatible Swift 6 toolchain; current Windows runtime requires macOS 27 |
 | ARM64 Linux | Native Virtualization backend; local boot and desktop experiments | Guided installation and broad guest compatibility unfinished |
 | VM library | Create/open, recent locations and settings UI implemented | Experimental user interface |
 | Storage and lifecycle | Identity, ownership, stopped operations and failure checks implemented | Not power-loss or universal filesystem qualification |
-| Windows 11 ARM64 | Runs in a private development environment | Pinned Windows runtime, firmware and drivers are not supplied |
+| Windows 11 ARM64 | Runs in a private development environment; fresh installer boot verified after [runtime refresh](docs/evidence/windows-runtime-refresh-2026-11-16.md) | Pinned Windows host runtime and firmware are not supplied; basic ARM64 guest drivers have a separate preview download |
 | Windows accelerated graphics | Private GPU experiments and host display code | Reproducible public runtime recipe unfinished |
 | Windows resource defaults | App/CLI share host-sized CPU/RAM recommendations; hardware editor can apply them | Capacity and override tests pass; live workload tuning remains pending |
 | Shared display copy | Direct buffer-to-texture blit; generated padded/1080p/native/4K pixel tests | Tested on one M5 Pro; no Windows FPS or cross-device support claim |
@@ -25,6 +25,8 @@ replace a clean public build or native acceptance on another Mac.
 | Distribution | Original source under Apache-2.0; upstream file licenses retained | No OS media, VM data or third-party runtime binaries |
 | Signing | Local ad hoc development builds | No signed/notarized binary release |
 
-The existing development checkout passed 1,319 Swift tests. Fresh-copy checks,
-public CI, real guest acceptance and controlled graphics comparisons are separate
-results. See [contributing](CONTRIBUTING.md) and [release scope](docs/release.md).
+The development checkout passed 1,336 Swift tests. The macOS job in
+[public source CI](https://github.com/alexanderisgood/macOpenVM/actions/runs/43875439404)
+passed its source checks and debug/release builds. Linux recovery shards, real
+guest acceptance and controlled graphics comparisons are separate results. See
+[contributing](CONTRIBUTING.md) and [release scope](docs/release.md).

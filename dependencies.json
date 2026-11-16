@@ -222,14 +222,14 @@
     },
     {
       "name": "GLib installed private-QEMU runtime dependency",
-      "version": "2.88.3",
-      "sourceURL": "NOASSERTION",
+      "version": "2.90.1",
+      "sourceURL": "https://download.gnome.org/sources/glib/2.90/glib-2.90.1.tar.xz",
       "license": "NOASSERTION",
-      "binarySHA256": "629b656720b26f44814cc1dbb34864f724f36e35f1909a2d008e9a435b7086e5",
-      "modifications": "None by project; installed Homebrew libglib-2.0.0.dylib dynamically linked by private candidate, receipt/hash retained.",
+      "binarySHA256": "9ccb24305a227967f6c13eec59c3469228e600236664e3710ab92d6228e938eb",
+      "modifications": "None by project; existing Homebrew/core bottle libraries, verified for local private-QEMU evaluation after a host package update.",
       "scope": "evaluation-runtime",
       "redistributed": false,
-      "obligations": "Observed dylib SHA-256 629b656720b26f44814cc1dbb34864f724f36e35f1909a2d008e9a435b7086e5. Receipt alone does not establish matching source, bottle reproduction, incorporated licenses or full runtime tree. PCRE2/gettext and other declared transitive dependencies need exact resolution/license/security review. Not bundled."
+      "obligations": "Four GLib dylib sizes, SHA-256 values and exact imports are pinned in QemuRegisteredCatalog.swift. Installed Homebrew receipt, Mach-O load commands and signatures inspected. Matching bottle reproduction and full license/security review remain pending; not bundled or release-cleared."
     },
     {
       "name": "GnuTLS installed private-QEMU runtime dependency",
@@ -1314,6 +1314,28 @@
           "version": "11.1.0"
         }
       ]
+    },
+    {
+      "name": "libunistring installed private-QEMU runtime dependency",
+      "version": "1.5",
+      "sourceURL": "https://ftpmirror.gnu.org/libunistring/libunistring-1.5.tar.gz",
+      "license": "NOASSERTION",
+      "binarySHA256": "ea752c18f009ad7d5ccecc3cebec829b05083e2d3e9d60032077e55cbe80d210",
+      "modifications": "None by project; existing Homebrew/core bottle library used for local private-QEMU evaluation.",
+      "scope": "evaluation-runtime",
+      "redistributed": false,
+      "obligations": "Installed receipt, exact bytes, Mach-O imports and signature inspected. Matching bottle reproduction and complete license/security review remain pending; not bundled or release-cleared."
+    },
+    {
+      "name": "PCRE2 installed private-QEMU runtime dependency",
+      "version": "10.49",
+      "sourceURL": "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.49/pcre2-10.49.tar.bz2",
+      "license": "NOASSERTION",
+      "binarySHA256": "1c0890a01bd446b5174e4ce7c35e1e14f39d2e88b7b5160572198ec26647d2da",
+      "modifications": "None by project; existing Homebrew/core bottle library used for local private-QEMU evaluation.",
+      "scope": "evaluation-runtime",
+      "redistributed": false,
+      "obligations": "Installed receipt, exact bytes, Mach-O imports and signature inspected. Matching bottle reproduction and complete license/security review remain pending; not bundled or release-cleared."
     }
   ]
 }

@@ -8,7 +8,7 @@
   },
   "dataLicense": "CC0-1.0",
   "documentComment": "Original source build plus explicit external evaluation tools. Not a complete release dependency inventory. Release clearance: false. Inventory timestamp fixed for deterministic generation.",
-  "documentNamespace": "urn:uuid:2d9ac0ac-3ff8-44ba-a9d7-5aec150d102e",
+  "documentNamespace": "urn:uuid:770ab9d7-aa20-4df0-a037-f8c27f96c7eb",
   "hasExtractedLicensingInfos": [
     {
       "comment": "System-provided; Apple SDK/developer agreements and entitlement distribution need review.",
@@ -245,14 +245,14 @@
     },
     {
       "SPDXID": "SPDXRef-Package-20",
-      "comment": "{\"modifications\": \"None by project; installed Homebrew libglib-2.0.0.dylib dynamically linked by private candidate, receipt/hash retained.\", \"obligations\": \"Observed dylib SHA-256 629b656720b26f44814cc1dbb34864f724f36e35f1909a2d008e9a435b7086e5. Receipt alone does not establish matching source, bottle reproduction, incorporated licenses or full runtime tree. PCRE2/gettext and other declared transitive dependencies need exact resolution/license/security review. Not bundled.\", \"redistributed\": false, \"scope\": \"evaluation-runtime\"}",
+      "comment": "{\"modifications\": \"None by project; existing Homebrew/core bottle libraries, verified for local private-QEMU evaluation after a host package update.\", \"obligations\": \"Four GLib dylib sizes, SHA-256 values and exact imports are pinned in QemuRegisteredCatalog.swift. Installed Homebrew receipt, Mach-O load commands and signatures inspected. Matching bottle reproduction and full license/security review remain pending; not bundled or release-cleared.\", \"redistributed\": false, \"scope\": \"evaluation-runtime\"}",
       "copyrightText": "NOASSERTION",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://download.gnome.org/sources/glib/2.90/glib-2.90.1.tar.xz",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",
       "licenseDeclared": "NOASSERTION",
       "name": "GLib installed private-QEMU runtime dependency",
-      "versionInfo": "2.88.3"
+      "versionInfo": "2.90.1"
     },
     {
       "SPDXID": "SPDXRef-Package-21",
@@ -1045,6 +1045,28 @@
       "licenseDeclared": "MIT",
       "name": "Redistributed source patch: vnc-active-refresh-16ms.patch",
       "versionInfo": "2026-10-18 snapshot (57f998d98167)"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-93",
+      "comment": "{\"modifications\": \"None by project; existing Homebrew/core bottle library used for local private-QEMU evaluation.\", \"obligations\": \"Installed receipt, exact bytes, Mach-O imports and signature inspected. Matching bottle reproduction and complete license/security review remain pending; not bundled or release-cleared.\", \"redistributed\": false, \"scope\": \"evaluation-runtime\"}",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://ftpmirror.gnu.org/libunistring/libunistring-1.5.tar.gz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "libunistring installed private-QEMU runtime dependency",
+      "versionInfo": "1.5"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-94",
+      "comment": "{\"modifications\": \"None by project; existing Homebrew/core bottle library used for local private-QEMU evaluation.\", \"obligations\": \"Installed receipt, exact bytes, Mach-O imports and signature inspected. Matching bottle reproduction and complete license/security review remain pending; not bundled or release-cleared.\", \"redistributed\": false, \"scope\": \"evaluation-runtime\"}",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.49/pcre2-10.49.tar.bz2",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "PCRE2 installed private-QEMU runtime dependency",
+      "versionInfo": "10.49"
     }
   ],
   "relationships": [

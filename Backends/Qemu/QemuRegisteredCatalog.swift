@@ -224,11 +224,11 @@ public enum QemuRegisteredCatalog {
         importPaths: ["/opt/homebrew/opt/dtc/lib/libfdt.1.dylib"],
         dependencies: ["/usr/lib/libSystem.B.dylib"]),
       ReviewedQemuLibrary(
-        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/glib/2.88.3/lib/libglib-2.0.0.dylib"),
-        byteCount: 1_359_280,
-        sha256: "629b656720b26f44814cc1dbb34864f724f36e35f1909a2d008e9a435b7086e5",
+        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/glib/2.90.1/lib/libglib-2.0.0.dylib"),
+        byteCount: 1_362_816,
+        sha256: "9ccb24305a227967f6c13eec59c3469228e600236664e3710ab92d6228e938eb",
         importPaths: [
-          "/opt/homebrew/Cellar/glib/2.88.3/lib/libglib-2.0.0.dylib",
+          "/opt/homebrew/Cellar/glib/2.90.1/lib/libglib-2.0.0.dylib",
           "/opt/homebrew/opt/glib/lib/libglib-2.0.0.dylib",
         ],
         dependencies: [
@@ -265,14 +265,14 @@ public enum QemuRegisteredCatalog {
           "/opt/homebrew/opt/glib/lib/libglib-2.0.0.dylib", "/usr/lib/libSystem.B.dylib",
         ]),
       ReviewedQemuLibrary(
-        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/glib/2.88.3/lib/libgio-2.0.0.dylib"),
-        byteCount: 2_017_856,
-        sha256: "4349f1b8c374046a20a5fa386009870bf0102719dfa7bd0397f4f19cb89c07e9",
+        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/glib/2.90.1/lib/libgio-2.0.0.dylib"),
+        byteCount: 2_039_024,
+        sha256: "c0b56d9bafbe1cda7cb0044ecbf88de57afbeafe2b27b1ede20f26365f24b461",
         importPaths: ["/opt/homebrew/opt/glib/lib/libgio-2.0.0.dylib"],
         dependencies: [
-          "/opt/homebrew/Cellar/glib/2.88.3/lib/libglib-2.0.0.dylib",
-          "/opt/homebrew/Cellar/glib/2.88.3/lib/libgobject-2.0.0.dylib",
-          "/opt/homebrew/Cellar/glib/2.88.3/lib/libgmodule-2.0.0.dylib", "/usr/lib/libz.1.dylib",
+          "/opt/homebrew/Cellar/glib/2.90.1/lib/libglib-2.0.0.dylib",
+          "/opt/homebrew/Cellar/glib/2.90.1/lib/libgobject-2.0.0.dylib",
+          "/opt/homebrew/Cellar/glib/2.90.1/lib/libgmodule-2.0.0.dylib", "/usr/lib/libz.1.dylib",
           "/opt/homebrew/opt/gettext/lib/libintl.8.dylib",
           "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
           "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
@@ -282,15 +282,15 @@ public enum QemuRegisteredCatalog {
           "/usr/lib/libobjc.A.dylib",
         ]),
       ReviewedQemuLibrary(
-        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/glib/2.88.3/lib/libgobject-2.0.0.dylib"),
-        byteCount: 398704,
-        sha256: "bbd811feb8c56b19dcddf2ace04737d934e6d49730ec30fc71420aa6e1935c8a",
+        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/glib/2.90.1/lib/libgobject-2.0.0.dylib"),
+        byteCount: 399616,
+        sha256: "befcb5f07aa26c057163f188b4389e1923da882e6f1ea87ff5156fd27383fc4f",
         importPaths: [
-          "/opt/homebrew/Cellar/glib/2.88.3/lib/libgobject-2.0.0.dylib",
+          "/opt/homebrew/Cellar/glib/2.90.1/lib/libgobject-2.0.0.dylib",
           "/opt/homebrew/opt/glib/lib/libgobject-2.0.0.dylib",
         ],
         dependencies: [
-          "/opt/homebrew/Cellar/glib/2.88.3/lib/libglib-2.0.0.dylib", "/usr/lib/libffi.dylib",
+          "/opt/homebrew/Cellar/glib/2.90.1/lib/libglib-2.0.0.dylib", "/usr/lib/libffi.dylib",
           "/usr/lib/libSystem.B.dylib",
         ]),
       ReviewedQemuLibrary(
@@ -337,9 +337,9 @@ public enum QemuRegisteredCatalog {
         ]),
       ReviewedQemuLibrary(
         url: URL(
-          fileURLWithPath: "/opt/homebrew/Cellar/libunistring/1.4.2/lib/libunistring.5.dylib"),
-        byteCount: 2_016_752,
-        sha256: "ea90c715c014787362941d35a2f2af168520bf11c2d07c592911fb361af20f9e",
+          fileURLWithPath: "/opt/homebrew/Cellar/libunistring/1.5/lib/libunistring.5.dylib"),
+        byteCount: 2_050_608,
+        sha256: "ea752c18f009ad7d5ccecc3cebec829b05083e2d3e9d60032077e55cbe80d210",
         importPaths: ["/opt/homebrew/opt/libunistring/lib/libunistring.5.dylib"],
         dependencies: [
           "/usr/lib/libiconv.2.dylib",
@@ -377,18 +377,18 @@ public enum QemuRegisteredCatalog {
         importPaths: ["/opt/homebrew/opt/gmp/lib/libgmp.10.dylib"],
         dependencies: ["/usr/lib/libSystem.B.dylib"]),
       ReviewedQemuLibrary(
-        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/pcre2/10.47_1/lib/libpcre2-8.0.dylib"),
-        byteCount: 573504,
-        sha256: "dd80a92332fc1135e2dc86e4a3a1f5039f3416983d29b28942ca40807d3ad484",
+        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/pcre2/10.49/lib/libpcre2-8.0.dylib"),
+        byteCount: 574096,
+        sha256: "1c0890a01bd446b5174e4ce7c35e1e14f39d2e88b7b5160572198ec26647d2da",
         importPaths: ["/opt/homebrew/opt/pcre2/lib/libpcre2-8.0.dylib"],
         dependencies: ["/usr/lib/libSystem.B.dylib"]),
       ReviewedQemuLibrary(
-        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/glib/2.88.3/lib/libgmodule-2.0.0.dylib"),
+        url: URL(fileURLWithPath: "/opt/homebrew/Cellar/glib/2.90.1/lib/libgmodule-2.0.0.dylib"),
         byteCount: 53600,
-        sha256: "50e52e83851fda109d7865cf8496573c1a22b7db16b52bc0c4c012fa5541e365",
-        importPaths: ["/opt/homebrew/Cellar/glib/2.88.3/lib/libgmodule-2.0.0.dylib"],
+        sha256: "0389190ada2c5c2dd86fc213d33ea7fb531f63b2dd247c44dba181799d88bb4d",
+        importPaths: ["/opt/homebrew/Cellar/glib/2.90.1/lib/libgmodule-2.0.0.dylib"],
         dependencies: [
-          "/opt/homebrew/Cellar/glib/2.88.3/lib/libglib-2.0.0.dylib", "/usr/lib/libSystem.B.dylib",
+          "/opt/homebrew/Cellar/glib/2.90.1/lib/libglib-2.0.0.dylib", "/usr/lib/libSystem.B.dylib",
         ]),
     ]
     return try ReviewedQemuLaunchResources(
