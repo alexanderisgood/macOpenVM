@@ -64,6 +64,11 @@ Live resolution changes remain experimental: the current accelerated driver
 has restarted Windows during a resize. Prefer requesting the startup size;
 automatic live resizing is not enabled.
 
+If Windows looks frozen or stops visibly responding to input, choose **View →
+Compatibility Display**. This reconnects the Mac window to the standard display
+while Windows keeps running with its existing graphics driver. Toggle it off to
+return to Metal presentation. The selection lasts for the current VM session.
+
 ## Get through “Let’s connect you to a network”
 
 1. **Enable networking.** Stop the VM. In macOpenVM choose **Machine → Networking

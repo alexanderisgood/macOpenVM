@@ -83,6 +83,17 @@ import VMCore
         }
         if let error = display.displayTimingError { Text(error) }
       }
+      if display.offersCompatibilityDisplay {
+        Toggle(
+          "Compatibility Display",
+          isOn: Binding(
+            get: { display.usesCompatibilityDisplay },
+            set: { enabled in Task { await display.setCompatibilityDisplay(enabled) } }
+          )
+        )
+        .disabled(display.consoleSwitchPending || display.resizePending)
+        .help("Use the standard display if Windows looks frozen. Windows keeps running.")
+      }
       Button("Reconnect Display") { Task { await display.connectDisplay() } }
         .keyboardShortcut("r", modifiers: [.command, .shift])
       Button("Show VM Library", action: session.showLibrary)

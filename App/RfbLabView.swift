@@ -46,6 +46,7 @@ struct RfbQualificationPresentation: Sendable {
   @Published private(set) var captured = false
   @Published private(set) var inputBacklogError: String?
   @Published private(set) var displayConnected = false
+  @Published private(set) var usesCompatibilityDisplay = false
   @Published private(set) var state: UInt8 = 0
   @Published private(set) var fullscreen = false
   @Published private(set) var fullscreenMenuBarVisible: Bool?
@@ -67,6 +68,7 @@ struct RfbQualificationPresentation: Sendable {
     }
   }
   var canSharpenPresentation: Bool { frame != nil && sharedClient != nil && !sharedDisabled }
+  var offersCompatibilityDisplay: Bool { registeredContext?.sharedRoute != nil }
   private var displayMeasurementContext: (connection: UUID, frameEpoch: UUID, timingEpoch: UUID)?
   private var displayTiming: GuestFrameTimingMeasurement?
   @Published private(set) var displayTimingFeedbackDiagnostics: GuestFrameTimingCapture.Diagnostics?
@@ -206,9 +208,19 @@ struct RfbQualificationPresentation: Sendable {
     message = "Connecting to \(registeredContext.configuration.name)…"
   }
 
+  func setCompatibilityDisplay(_ enabled: Bool) async {
+    guard offersCompatibilityDisplay, usesCompatibilityDisplay != enabled,
+      registeredLaunchIsCurrent, !consoleSwitchPending, !resizePending
+    else { return }
+    usesCompatibilityDisplay = enabled
+    await connectDisplay()
+  }
+
   func connectDisplay(retryShared: Bool = true) async {
     if retryShared {
-      sharedDisabled = canSelectDisplayConsole && preferredConsole == .firmware
+      sharedDisabled =
+        usesCompatibilityDisplay
+        || (canSelectDisplayConsole && preferredConsole == .firmware)
       sharedRecovery = SharedDisplayRecovery()
       consoleError = nil
     }
@@ -1267,7 +1279,7 @@ struct RfbQualificationPresentation: Sendable {
       !consoleSwitchPending, !resizePending, displayCleanup == nil, let client,
       frame == nil || frame?.connectionEpoch == client.connectionEpoch,
       let selection = consoleSelection.begin(
-        console, sharedRouteAvailable: context.sharedRoute != nil,
+        console, sharedRouteAvailable: context.sharedRoute != nil && !usesCompatibilityDisplay,
         sharedActive: !sharedDisabled && sharedClient != nil && sharedFrameInfo != nil)
     else { return }
     let connection = connectAttempt
