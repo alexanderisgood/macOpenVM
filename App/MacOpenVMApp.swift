@@ -2266,6 +2266,15 @@ struct DesktopVMTrashConfirmation: Equatable {
 
   var canUse120HzGraphics: Bool { (window?.screen?.maximumFramesPerSecond ?? 0) >= 120 }
 
+  var nativeFullscreenPixels: PixelSize? {
+    guard let screen = window?.screen else { return nil }
+    let scale = screen.backingScaleFactor
+    let size = PixelSize(
+      width: Int((screen.frame.width * scale).rounded()),
+      height: Int(((screen.frame.height - screen.safeAreaInsets.top) * scale).rounded()))
+    return (try? ReviewedQemu2DDisplay(initialPixels: size)) == nil ? nil : size
+  }
+
   var windowsGraphicsSummary: String {
     guard acceleratedDisplayEvaluation else { return "Basic display" }
     let pixels =
@@ -3340,6 +3349,7 @@ private struct DesktopView: View {
       WindowsGraphicsSettingsView(
         settings: session.windowsGraphicsSettings, canUse120: session.canUse120HzGraphics,
         isSaving: session.preparing, error: session.graphicsError,
+        nativeFullscreenPixels: session.nativeFullscreenPixels,
         preferenceWarning: session.graphicsPreferencesWarning,
         canResetRememberedSettings: session.canResetRememberedGraphicsSettings,
         resetRememberedSettings: session.resetRememberedGraphicsSettings,

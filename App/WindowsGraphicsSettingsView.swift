@@ -15,6 +15,7 @@ import SwiftUI
 /// The owning session supplies stopped-state, selection and resource-admission guards.
 @MainActor struct WindowsGraphicsSettingsView: View {
   let canUse120: Bool
+  let nativeFullscreenPixels: PixelSize?
   let isSaving: Bool
   let error: String?
   let preferenceWarning: String?
@@ -26,11 +27,13 @@ import SwiftUI
 
   init(
     settings: WindowsGraphicsSettings, canUse120: Bool, isSaving: Bool, error: String?,
+    nativeFullscreenPixels: PixelSize? = nil,
     preferenceWarning: String? = nil, canResetRememberedSettings: Bool = false,
     resetRememberedSettings: @escaping () -> Void = {},
     save: @escaping (WindowsGraphicsSettings) -> Void, cancel: @escaping () -> Void
   ) {
     self.canUse120 = canUse120
+    self.nativeFullscreenPixels = nativeFullscreenPixels
     self.isSaving = isSaving
     self.error = error
     self.preferenceWarning = preferenceWarning
@@ -145,6 +148,21 @@ import SwiftUI
 
   private var acceleratedSettings: some View {
     VMContentCard("Initial display") {
+      if let nativeFullscreenPixels {
+        Button(
+          "Match This Mac · \(nativeFullscreenPixels.width) × \(nativeFullscreenPixels.height)"
+        ) {
+          do {
+            try editor.value.matchDisplay(nativeFullscreenPixels)
+            editor.validationError = nil
+          } catch {
+            editor.validationError = "This display is outside the supported pixel limits."
+          }
+        }
+        .vmGlassControl()
+        .accessibilityHint(
+          "Use the Mac display’s fullscreen pixel dimensions at the next Windows start")
+      }
       LabeledContent("Initial width (pixels)") {
         TextField("Initial width", text: $editor.value.widthText)
           .frame(width: 140).accessibilityLabel("Initial display width in pixels")
@@ -158,7 +176,7 @@ import SwiftUI
       )
       .font(.caption).vmSupportingText()
       Text(
-        "This is the size requested at startup. After Windows starts, use View → Match Mac Resolution to request the current guest viewport size. Check the applied mode in Windows."
+        "This size is requested when Windows starts. Match This Mac gives fullscreen its native shape and sharpness. Changing resolution while Windows is running is experimental and may restart Windows with the current graphics driver."
       )
       .font(.callout).vmSupportingText()
       Divider()

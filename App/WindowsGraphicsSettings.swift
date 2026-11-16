@@ -93,6 +93,13 @@ struct WindowsGraphicsSettingsDraft: Equatable, Sendable {
     heightText = String(settings.initialHeight)
   }
 
+  mutating func matchDisplay(_ pixels: PixelSize) throws {
+    // Validate before replacing either field; retain the user's refresh choice.
+    _ = try ReviewedQemu2DDisplay(initialPixels: pixels)
+    widthText = String(pixels.width)
+    heightText = String(pixels.height)
+  }
+
   func prepared(canUse120: Bool) throws -> WindowsGraphicsSettings {
     guard settings.mode == .accelerated else { return WindowsGraphicsSettings() }
     guard let width = Self.wholePixels(widthText), let height = Self.wholePixels(heightText) else {

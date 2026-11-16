@@ -21,7 +21,7 @@ import VMCore
       }
       .disabled(display.frame == nil)
       .help(
-        "Integer Pixels uses whole pixel multiples with letterboxing. Smaller windows fit the whole display normally."
+        "Fit to Window smooths fractional scaling. Integer Pixels preserves whole pixel multiples with letterboxing."
       )
       Toggle("Light Sharpening", isOn: $display.presentationSettings.sharpeningEnabled)
         .disabled(!display.canSharpenPresentation)
@@ -32,10 +32,14 @@ import VMCore
         if let pixels = display.desiredNativePixels {
           Text("Mac Viewport: \(pixels.width) × \(pixels.height)")
         }
-        Button("Match Mac Resolution", action: display.matchMacResolution)
+        Button("Match Mac Resolution · Experimental", action: display.matchMacResolution)
           .disabled(
             display.desiredNativePixels == nil || display.frame == nil
-              || display.resizePending || display.consoleSwitchPending)
+              || display.resizePending || display.consoleSwitchPending
+          )
+          .help(
+            "Live mode changes may restart Windows with the current graphics driver. For fullscreen, set Match This Mac in Graphics Settings while the VM is stopped."
+          )
       }
       if let error = display.consoleError {
         Text(error)

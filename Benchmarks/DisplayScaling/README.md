@@ -1,5 +1,12 @@
 # Display scaling component fixtures
 
+The historical fixture below compares the nearest and optional sharpening
+pipelines. Since [ADR66](../../docs/adr/0066-fractional-display-filtering.md),
+ordinary fractional fit selects a separate linear pipeline; the historical
+fixture does not measure that selection. Production pixel regressions are in
+`SharedFrameFilteringTests`. Do not present the old nearest/sharpening timings
+as measurements of the new fractional-fit default.
+
 These generated-pixel fixtures measure the final Metal scaling component and the
 default CPU viewport component. They do not open a window, connect a display,
 read guest pixels, launch a VM, change a guest mode, or install an application.

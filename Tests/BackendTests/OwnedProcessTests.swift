@@ -138,18 +138,23 @@ private enum OwnedFixtureError: Error {
         executable: "/usr/bin/python3",
         arguments: [
           "-c",
-          "import os,time; assert os.fstat(40).st_ino==\(identity.st_ino); os.write(1,b'lease-ready\\n'); time.sleep(5)",
+          "import os,signal; assert os.fstat(40).st_ino==\(identity.st_ino); os.write(1,b'lease-ready\\n'); signal.pause()",
         ], inheritedDescriptors: [.init(source: lease, target: 40)])
       try await process.launch()
       let marker = Data("lease-ready\n".utf8)
-      let deadline = ContinuousClock.now.advanced(by: .seconds(3))
+      // CI may schedule the interpreter behind concurrent compiler/test work.
+      // Keep the child alive until the explicit termination under test, rather
+      // than racing an unrelated five-second child lifetime against readiness.
+      let deadline = ContinuousClock.now.advanced(by: .seconds(15))
       var state = await process.snapshot()
       while state.stdout.range(of: marker) == nil && state.running && ContinuousClock.now < deadline
       {
         try await Task.sleep(for: .milliseconds(10))
         state = await process.snapshot()
       }
-      #expect(state.stdout.range(of: marker) != nil && state.running)
+      try #require(
+        state.stdout.range(of: marker) != nil && state.running,
+        "Lease child did not become ready: \(String(decoding: state.stderr, as: UTF8.self))")
       #expect(fcntl(lease, F_GETFD) == flags && flags & FD_CLOEXEC != 0)
       fixture.closeDescriptor(lease)
       #expect(try fixture.anotherWriterIsBusy())

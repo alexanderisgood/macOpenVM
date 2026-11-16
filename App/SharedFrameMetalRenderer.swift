@@ -17,6 +17,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
   private let render = DispatchQueue(label: "local.macOpenVM.metal-frame", qos: .userInteractive)
   private var commands: (any MTLCommandQueue)?
   private var pipeline: (any MTLRenderPipelineState)?
+  private var smoothingPipeline: (any MTLRenderPipelineState)?
   private var sharpeningPipeline: (any MTLRenderPipelineState)?
   private let compiler = DispatchQueue(label: "local.macOpenVM.metal-compiler", qos: .utility)
   private var sharpeningPreparationStarted = false
@@ -443,6 +444,18 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
   private static func pixelSize(_ size: CGSize) -> CGSize {
     CGSize(width: size.width.rounded(.up), height: size.height.rounded(.up))
   }
+
+  /// Nearest sampling preserves pixels only for an aligned, uniform integer
+  /// enlargement (including 1x). Fractional fit uses the GPU's linear filter.
+  static func hasAlignedWholePixels(source: CGSize, viewport: CGRect) -> Bool {
+    guard source.width > 0, source.height > 0 else { return false }
+    let x = viewport.width / source.width
+    let y = viewport.height / source.height
+    let epsilon = 0.000_01
+    return x >= 1 && abs(x - x.rounded()) < epsilon && abs(y - x) < epsilon
+      && abs(viewport.minX - viewport.minX.rounded()) < epsilon
+      && abs(viewport.minY - viewport.minY.rounded()) < epsilon
+  }
   private func importBuffer(_ frame: SharedFrame) throws -> any MTLBuffer {
     let key = ObjectIdentifier(frame.mapping)
     if let existing = imports[key] { return existing }
@@ -477,6 +490,20 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
     }
     """
 
+  private static let smoothingShader = """
+    #include <metal_stdlib>
+    using namespace metal;
+    struct Vertex { float4 p [[position]]; float2 uv; };
+    vertex Vertex plane(uint i [[vertex_id]]) {
+      float2 p[3] = {float2(-1,-1),float2(3,-1),float2(-1,3)};
+      return Vertex{float4(p[i],0,1),float2((p[i].x+1)/2,(1-p[i].y)/2)};
+    }
+    fragment half4 smooth(Vertex v [[stage_in]],texture2d<half> image [[texture(0)]]) {
+      constexpr sampler linear(coord::normalized,address::clamp_to_edge,filter::linear);
+      return half4(image.sample(linear,v.uv).rgb,1);
+    }
+    """
+
   private static let sharpeningShader = """
     #include <metal_stdlib>
     using namespace metal;
@@ -508,8 +535,13 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
     desc.fragmentFunction = library.makeFunction(name: "opaque")
     desc.colorAttachments[0].pixelFormat = .bgra8Unorm
     let prepared = try device.makeRenderPipelineState(descriptor: desc)
+    let smoothLibrary = try device.makeLibrary(source: Self.smoothingShader, options: nil)
+    desc.vertexFunction = smoothLibrary.makeFunction(name: "plane")
+    desc.fragmentFunction = smoothLibrary.makeFunction(name: "smooth")
+    let preparedSmoothing = try device.makeRenderPipelineState(descriptor: desc)
     guard let queue = device.makeCommandQueue() else { throw Failure.unavailable }
     pipeline = prepared
+    smoothingPipeline = preparedSmoothing
     commands = queue
   }
 
@@ -587,8 +619,11 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
       throw Failure.gpu
     }
     let enlarged = viewport.width > CGFloat(cache.width) && viewport.height > CGFloat(cache.height)
+    let aligned = Self.hasAlignedWholePixels(
+      source: CGSize(width: cache.width, height: cache.height), viewport: viewport)
+    let fittedPipeline = aligned ? pipeline : (smoothingPipeline ?? pipeline)
     encoder.setRenderPipelineState(
-      sharpeningEnabled && enlarged ? (sharpeningPipeline ?? pipeline) : pipeline)
+      sharpeningEnabled && enlarged ? (sharpeningPipeline ?? fittedPipeline) : fittedPipeline)
     encoder.setViewport(
       MTLViewport(
         originX: viewport.minX, originY: viewport.minY,
@@ -604,7 +639,8 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
       acquire: @escaping @Sendable () -> Bool,
       schedule: (@Sendable (Int, @escaping @Sendable () -> Void) -> Void)? = nil,
       drawableSize: (@Sendable () -> CGSize)? = nil,
-      beforeSharpeningInstall: (@Sendable () -> Void)? = nil
+      beforeSharpeningInstall: (@Sendable () -> Void)? = nil,
+      checkerboard: Bool = false
     ) async throws {
       try await withCheckedThrowingContinuation {
         (continuation: CheckedContinuation<Void, Error>) in
@@ -621,7 +657,14 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
             }
             var pixels = [UInt8](repeating: 0, count: 64 * 64 * 4)
             for pixel in 0..<(64 * 64) {
-              pixels[pixel * 4 + 2] = 255
+              if checkerboard {
+                let value: UInt8 = (pixel % 64 + pixel / 64).isMultiple(of: 2) ? 0 : 255
+                pixels[pixel * 4] = value
+                pixels[pixel * 4 + 1] = value
+                pixels[pixel * 4 + 2] = value
+              } else {
+                pixels[pixel * 4 + 2] = 255
+              }
               pixels[pixel * 4 + 3] = 255
             }
             pixels.withUnsafeBytes { bytes in

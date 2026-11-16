@@ -1,5 +1,9 @@
 # 61. Keep scaling in native backing pixels
 
+The nearest-only fractional-fit decision below is superseded by
+[ADR66](0066-fractional-display-filtering.md). Native and aligned integer pixels
+still use the original sampler; fractional fit now uses linear sampling.
+
 Status: implemented in the development branch, with component and native Metal
 checks. Installed adoption and live no-FPS-regression acceptance remain pending.
 Sharpening is off by default. This work does not enable Windows HDR.

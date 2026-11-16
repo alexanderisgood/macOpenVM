@@ -35,6 +35,18 @@ from Windows' Start menu and run the installer again. If it remains missing,
 check the VM's Graphics Settings. An unattached optional guest-communication
 device is reported separately; attaching a tools disc does not create that device.
 
+## Make fullscreen sharp
+
+Shut down Windows, then choose **Machine → Graphics Settings → Match This Mac**
+and **Save Settings**. Start Windows and enter fullscreen from **View**. The
+preset requests the Mac's fullscreen pixel dimensions at startup. Keep Windows'
+own display scaling at a comfortable text size; it is separate from resolution.
+
+**Fit to Window** smooths fractional scaling when the window and guest sizes
+differ. **Integer Pixels** preserves whole source pixels and can leave borders.
+Live resolution changes remain experimental: the current accelerated driver
+has restarted Windows during a resize. Use the startup preset for now.
+
 ## Get through “Let’s connect you to a network”
 
 1. **Enable networking.** Stop the VM. In macOpenVM choose **Machine → Networking

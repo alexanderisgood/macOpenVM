@@ -6,6 +6,20 @@ import Testing
 @testable import MacOpenVMApp
 
 @Suite struct WindowsGraphicsSettingsTests {
+  @Test func nativeDisplayPresetPreservesRefreshAndRejectsInvalidSizesAtomically() throws {
+    var draft = WindowsGraphicsSettingsDraft(
+      settings: WindowsGraphicsSettings(mode: .accelerated, refreshRate: .hz120))
+    try draft.matchDisplay(PixelSize(width: 3456, height: 2168))
+    let matched = try draft.prepared(canUse120: true)
+    #expect(matched.initialWidth == 3456 && matched.initialHeight == 2168)
+    #expect(matched.refreshRate == .hz120 && matched.mode == .accelerated)
+    let saved = draft
+    for size in [PixelSize(width: 0, height: 0), PixelSize(width: 8192, height: 8192)] {
+      #expect(throws: (any Error).self) { try draft.matchDisplay(size) }
+      #expect(draft == saved)
+    }
+  }
+
   @Test func ordinaryDefaultsKeepBasicDisplayAndSixtyHertz() throws {
     let settings = WindowsGraphicsSettings()
     #expect(settings.mode == .basic && settings.refreshRate == .hz60)
