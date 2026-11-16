@@ -137,3 +137,31 @@ Retained source bytes SHA-256: 4f273fc3e18bfd75f7de60833d74361bdb40615d1c0dbd470
 License basis: Upstream project license
 
 [No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: src/d3d11/d3d11_context_impl.cpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 536aa15885f120bb46155db7c5ada5893409a648f35b96855924cb7f68848a33
+License basis: Explicit LGPL-2.1-or-later notice in the modified source
+
+/*
+ * This file is included by d3d11_context_{imm|def}.cpp
+ * and should be not used as a compilation unit
+ * since it is for internal use only (and I don't want to deal with several thousands line of code)
+ *
+ * Copyright 2026 Feifan He for CodeWeavers
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+ */

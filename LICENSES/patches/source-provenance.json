@@ -506,6 +506,15 @@
       "license": "GPL-2.0-or-later",
       "licenseBasis": "Explicit SPDX notice in added source",
       "addedByPatch": true
+    },
+    {
+      "family": "dxmt",
+      "target": "src/d3d11/d3d11_context_impl.cpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/d3d11/d3d11_context_impl.cpp",
+      "sourceBytesSHA256": "536aa15885f120bb46155db7c5ada5893409a648f35b96855924cb7f68848a33",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Explicit LGPL-2.1-or-later notice in the modified source",
+      "addedByPatch": false
     }
   ]
 }

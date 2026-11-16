@@ -1,5 +1,24 @@
 # Explicit native baseline
 
+## Constant-buffer rebinding regression
+
+`constant_buffer_rebind.cpp` uses DXMT's native offscreen test helpers. Supply a
+reviewed DXMT source tree containing `tests/native/d3d11_test.cpp` and a separately
+built `libdxmt-native.dylib`; neither dependency is downloaded by this test.
+Compile with C++20 and the source tree's `include/native/windows`,
+`include/native/directx` and `tests/native` include directories, link
+`-ldxmt-native`, and set an rpath to the selected library directory. Run the
+resulting executable on an Apple GPU. Missing dependencies are an explicit skip,
+not a successful regression result.
+
+The range-only control reads green. Rebinding the same buffer through either the
+legacy API or null offset/count arrays must reset its offset and read red, on
+both immediate and deferred contexts. The evaluation patch is
+`Backends/Qemu/patches/dxmt-constant-buffer-rebind.patch`. This component test does
+not establish that Windows interface text, games or frame pacing are correct.
+
+## Offline boot baseline
+
 This measures the offline Alpine live console experiment, not installed-OS,
 desktop or authenticated-agent readiness. Follow the media preparation and CLI
 fixture instructions in Tests/Integration/README.md. Only the pinned official

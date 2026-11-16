@@ -1,0 +1,52 @@
+--- a/src/d3d11/d3d11_context_impl.cpp
++++ b/src/d3d11/d3d11_context_impl.cpp
+@@ -3467,32 +3467,36 @@
+     for (unsigned slot = StartSlot; slot < StartSlot + NumBuffers; slot++) {
+       auto pConstantBuffer = ppConstantBuffers[slot - StartSlot];
+       if (pConstantBuffer) {
++        // A whole-buffer bind resets an earlier range even when the resource
++        // identity is unchanged (including legacy *SetConstantBuffers calls).
++        const UINT firstConstant = pFirstConstant ? pFirstConstant[slot - StartSlot] : 0;
++        UINT numConstants;
++        if (pNumConstants) {
++          numConstants = pNumConstants[slot - StartSlot];
++        } else {
++          D3D11_BUFFER_DESC desc;
++          pConstantBuffer->GetDesc(&desc);
++          numConstants = desc.ByteWidth >> 4;
++        }
+         bool replaced = false;
+         auto &entry = ShaderStage.ConstantBuffers.bind(slot, {pConstantBuffer}, replaced);
+         if (!replaced) {
+-          if (pFirstConstant &&
+-              pFirstConstant[slot - StartSlot] != entry.FirstConstant) {
++          if (firstConstant != entry.FirstConstant) {
+             ShaderStage.ConstantBuffers.set_dirty(slot);
+-            entry.FirstConstant = pFirstConstant[slot - StartSlot];
++            entry.FirstConstant = firstConstant;
+             EmitST([=, offset = entry.FirstConstant
+                                 << 4](ArgumentEncodingContext &enc) mutable {
+               enc.bindConstantBufferOffset<Stage>(slot, offset);
+             });
+           }
+-          if (pNumConstants && pNumConstants[slot - StartSlot] != entry.NumConstants) {
++          if (numConstants != entry.NumConstants) {
+             ShaderStage.ConstantBuffers.set_dirty(slot);
+-            entry.NumConstants = pNumConstants[slot - StartSlot];
++            entry.NumConstants = numConstants;
+           }
+           continue;
+         }
+-        entry.FirstConstant = pFirstConstant ? pFirstConstant[slot - StartSlot] : 0;
+-        if (pNumConstants) {
+-          entry.NumConstants = pNumConstants[slot - StartSlot];
+-        } else {
+-          D3D11_BUFFER_DESC desc;
+-          pConstantBuffer->GetDesc(&desc);
+-          entry.NumConstants = desc.ByteWidth >> 4;
+-        }
++        entry.FirstConstant = firstConstant;
++        entry.NumConstants = numConstants;
+         entry.Buffer = GetResourceCommon(pConstantBuffer);
+         EmitST([=, buffer = entry.Buffer->buffer(), offset = entry.FirstConstant << 4](ArgumentEncodingContext &enc
+              ) mutable { enc.bindConstantBuffer<Stage>(slot, offset, forward_rc(buffer)); });

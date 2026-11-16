@@ -698,11 +698,11 @@
       "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
       "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
       "license": "LGPL-2.1-or-later",
-      "modifications": "Original staging upload fix retained. App47 bounded native completion timing trial now exercised Windows Start and shader workloads; no120Hz or hardware utilization claim. Source48 restores the original timing-disabled library and removes receive-buffer materialization in original host code. Timing candidate and all source/build records remain preserved. App68 forces literal interface GUID initialization at compile time, eliminating parser work observed in the O3 shader-binding profile. Exact public-header probes preserve known bits; native exports/imports match. No driver/timing change; live Windows gain remains pending. App69 adds a per-retired-chunk autorelease pool to the long-lived native D3D11 completion thread. GPU completion, readback, fence publication and allocator retirement retain their ordering. Native exports/imports match. No guest-driver/timing change; live memory/FPS benefit remains unqualified. Protocol2 pair16October: update five upstream commits, retain completion-thread pool and constant GUID initialization; upstream replaces local staging uploads. Use pinned directx-native ABI1. Actual paired loader/capset2 check and191 native offscreen D3D11 cases pass. Isolated candidate only; Windows/native120Hz qualification pending. ADR55 pipeline-task pool remains separate.",
+      "modifications": "Original staging upload fix retained. App47 bounded native completion timing trial now exercised Windows Start and shader workloads; no120Hz or hardware utilization claim. Source48 restores the original timing-disabled library and removes receive-buffer materialization in original host code. Timing candidate and all source/build records remain preserved. App68 forces literal interface GUID initialization at compile time, eliminating parser work observed in the O3 shader-binding profile. Exact public-header probes preserve known bits; native exports/imports match. No driver/timing change; live Windows gain remains pending. App69 adds a per-retired-chunk autorelease pool to the long-lived native D3D11 completion thread. GPU completion, readback, fence publication and allocator retirement retain their ordering. Native exports/imports match. No guest-driver/timing change; live memory/FPS benefit remains unqualified. Protocol2 pair16October: update five upstream commits, retain completion-thread pool and constant GUID initialization; upstream replaces local staging uploads. Use pinned directx-native ABI1. Actual paired loader/capset2 check and191 native offscreen D3D11 cases pass. Isolated candidate only; Windows/native120Hz qualification pending. ADR55 pipeline-task pool remains separate. November 16 constant-buffer correction: legacy and null-range rebinds now reset a prior range on the same resource. The offscreen immediate/deferred regression improves from 18 passing and 8 failing checks to 26 passing checks; 191 native graphics and 82 shared-texture checks also pass. Windows text rendering and interactive performance remain unqualified.",
       "scope": "gpu-evaluation",
       "redistributed": false,
       "obligations": "Independent native source build; explicit zstd link option. Source notices, modifications, relinking rights and complete incorporated-source inventory required before distribution. Original Apache-2.0 helper integration, combined-license compatibility and relinking/source arrangements require review before distribution.",
-      "privateBinarySHA256": "2967b3869e6223a436f054380af29d0077c89d4d61736647857e732a04fbc2df",
+      "privateBinarySHA256": "ca617d512bf6c962abafcff2dfb30382aa9e03a932e05e17e104ce54590ef186",
       "patchSHA256": "41bf8739c9f388542a50db52b1f0a377a85a76f57307580943c95481e139a01e",
       "priorStablePrivateBinarySHA256": "c6ec27b5ec818e8d13e5a3f09419f524c6990f500af7c4e1e870b966302f6b80",
       "incrementalTimingPatchSHA256": "3d42daacc990108851d58b76014a255631a927338ad4cfb4950c16ad7a2f625b",
@@ -739,7 +739,8 @@
       "priorWorkingProtocol1": {
         "version": "bcdcf6da89af6c9fedeb2fc92b4367b23d5d6ed6",
         "binarySHA256": "3ceb842fb1d192a79152d4e47b1d622722f71562f701abf089c5233699f38cce"
-      }
+      },
+      "constantBufferRebindPatchSHA256": "7e74ff3b250d7ad2d7358b09efd8187b152e736e3ddb0cfa8a8e4faff3fe70ac"
     },
     {
       "name": "virglrenderer Neptune GPU candidate",
@@ -1336,6 +1337,24 @@
       "scope": "evaluation-runtime",
       "redistributed": false,
       "obligations": "Installed receipt, exact bytes, Mach-O imports and signature inspected. Matching bottle reproduction and complete license/security review remain pending; not bundled or release-cleared."
+    },
+    {
+      "name": "Redistributed source patch: dxmt-constant-buffer-rebind.patch",
+      "version": "2026-11-16 snapshot (7e74ff3b250d)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Reset previous constant-buffer ranges when the same resource is rebound through the legacy API or null range arrays. Offscreen immediate/deferred regression included; live Windows text rendering and performance remain unqualified.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-constant-buffer-rebind.patch",
+      "patchSHA256": "7e74ff3b250d7ad2d7358b09efd8187b152e736e3ddb0cfa8a8e4faff3fe70ac",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
     }
   ]
 }

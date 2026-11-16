@@ -59,7 +59,7 @@ extension QemuRegisteredCatalog {
         url: projectRoot.appendingPathComponent(
           ".lab/neptune-protocol2-20261016/graphics/lib/libdxmt-native.dylib"),
         byteCount: 29_390_752,
-        sha256: "2967b3869e6223a436f054380af29d0077c89d4d61736647857e732a04fbc2df",
+        sha256: "ca617d512bf6c962abafcff2dfb30382aa9e03a932e05e17e104ce54590ef186",
         importPaths: [
           "/Users/developer/Documents/Code/VM/macOpenVM/.lab/neptune-protocol2-20261016/graphics/lib/libdxmt-native.dylib"
         ],

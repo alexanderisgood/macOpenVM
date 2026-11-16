@@ -978,6 +978,33 @@
       "sourceOnly": true,
       "licenseClearance": false,
       "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-constant-buffer-rebind.patch",
+      "patchSHA256": "7e74ff3b250d7ad2d7358b09efd8187b152e736e3ddb0cfa8a8e4faff3fe70ac",
+      "patchBytes": 2580,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/d3d11/d3d11_context_impl.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Explicit LGPL-2.1-or-later notice in the modified source",
+          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_context_impl.cpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
     }
   ],
   "excludeForUnresolvedLicense": []
