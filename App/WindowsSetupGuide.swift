@@ -34,6 +34,15 @@ struct WindowsSetupGuideButton: View {
           )
           .font(.callout).vmSupportingText()
         }
+        VMContentCard("Keep storage efficient") {
+          Text(
+            "New VMs use a sparse disk: the capacity limit is not space reserved on your Mac. CPU and memory start with recommendations for your Mac."
+          )
+          Text(
+            "In Guest Tools, leave Save disk space selected to turn off Windows hibernation and Fast Startup and reclaim unused blocks. This preserves paging, Windows Recovery and your files. Use Storage settings in the installer to inspect Windows disk usage."
+          )
+          .font(.callout).vmSupportingText()
+        }
         if let configuration = session.configuration, session.usesWindowsDriverDisc {
           VMContentCard("Selected VM: \(configuration.name)") {
             LabeledContent("Networking") {

@@ -67,23 +67,33 @@ import SwiftUI
               Text("Use a Windows 11 ARM64 installation image with EFI boot support.")
                 .font(.caption).vmSupportingText()
             }
-            VMContentCard("Hardware") {
-              LabeledContent("Virtual CPUs") {
-                TextField("CPUs", text: $draft.cpuCountText)
-                  .accessibilityLabel("Virtual CPUs").frame(width: 140)
+            VMContentCard("Hardware & storage") {
+              Text(
+                "\(draft.cpuCountText) CPUs · \(draft.memoryGiBText) GiB memory · \(draft.diskGiBText) GiB disk limit"
+              )
+              .font(.callout.weight(.medium))
+              Text(
+                "Recommended CPU and memory settings leave room for macOS. The disk uses space only as Windows writes data, up to the limit you choose."
+              )
+              .font(.callout).vmSupportingText()
+              DisclosureGroup("Customize hardware") {
+                LabeledContent("Virtual CPUs") {
+                  TextField("CPUs", text: $draft.cpuCountText)
+                    .accessibilityLabel("Virtual CPUs").frame(width: 140)
+                }
+                LabeledContent("Memory (GiB)") {
+                  TextField("Memory (GiB)", text: $draft.memoryGiBText)
+                    .accessibilityLabel("Memory in GiB").frame(width: 140)
+                }
+                LabeledContent("Disk capacity (GiB)") {
+                  TextField("Disk capacity (GiB)", text: $draft.diskGiBText)
+                    .accessibilityLabel("Disk capacity in GiB").frame(width: 140)
+                }
+                Text("Initial CPU and memory values are sized for this Mac and can be adjusted.")
+                  .font(.caption).vmSupportingText()
+                Text("Windows needs at least 2 virtual CPUs, 4 GiB memory and a 64 GiB disk.")
+                  .font(.caption).vmSupportingText()
               }
-              LabeledContent("Memory (GiB)") {
-                TextField("Memory (GiB)", text: $draft.memoryGiBText)
-                  .accessibilityLabel("Memory in GiB").frame(width: 140)
-              }
-              LabeledContent("Disk capacity (GiB)") {
-                TextField("Disk capacity (GiB)", text: $draft.diskGiBText)
-                  .accessibilityLabel("Disk capacity in GiB").frame(width: 140)
-              }
-              Text("Initial CPU and memory values are sized for this Mac and can be adjusted.")
-                .font(.caption).vmSupportingText()
-              Text("Windows needs at least 2 virtual CPUs, 4 GiB memory and a 64 GiB disk.")
-                .font(.caption).vmSupportingText()
               if let message = draft.numericError(host: host) {
                 Label(message, systemImage: "exclamationmark.triangle")
                   .font(.callout).fixedSize(horizontal: false, vertical: true)

@@ -38,7 +38,7 @@ import Testing
     let fields: [ReferenceWritableKeyPath<WindowsCreationDraft, String>] = [
       \.cpuCountText, \.memoryGiBText, \.diskGiBText,
     ]
-    let corrected = ["4", "6", "128"]
+    let corrected = ["4", "6", "256"]
     let labels = ["Virtual CPUs", "Memory (GiB)", "Disk capacity (GiB)"]
     for (index, field) in fields.enumerated() {
       for edit in invalidEdits {
@@ -58,7 +58,7 @@ import Testing
         #expect(draft.numericError(host: host) == nil)
         #expect(prepared.configuration.cpuCount == 4)
         #expect(prepared.configuration.memoryBytes == UInt64(index == 1 ? 6 : 8) << 30)
-        #expect(prepared.configuration.diskBytes == UInt64(index == 2 ? 128 : 64) << 30)
+        #expect(prepared.configuration.diskBytes == UInt64(index == 2 ? 256 : 128) << 30)
         #expect(prepared.configuration.network == .disconnected)
       }
     }
@@ -235,7 +235,7 @@ import Testing
     let windows = windows()
     let linux = linux()
     await advisor.refresh(parent: windows.parent)
-    #expect(advisor.growthDeficit(diskGiB: try #require(windows.parsedDiskGiB)) == 56 << 30)
+    #expect(advisor.growthDeficit(diskGiB: try #require(windows.parsedDiskGiB)) == 120 << 30)
     for edit in invalidEdits + ["0", "2049"] {
       windows.diskGiBText = edit
       linux.diskGiBText = edit

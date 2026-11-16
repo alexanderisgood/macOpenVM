@@ -26,6 +26,7 @@ struct WindowsGuestToolsButton: View {
           VMContentCard("Included for this VM") {
             Label("Network connection", systemImage: "network")
             Label("Guest communication, when available", systemImage: "arrow.left.arrow.right")
+            Label("Recommended storage setup", systemImage: "internaldrive")
             Label(
               session.guestToolsHasGraphics
                 ? "Graphics driver" : "Basic display uses Windows' built-in driver",
@@ -88,6 +89,10 @@ struct WindowsGuestToolsButton: View {
             Text(
               "Approve the Windows administrator prompt once. The installer handles all matching drivers and shows which are working or need a restart."
             )
+            Text(
+              "Save disk space turns off Windows hibernation and Fast Startup, then reclaims unused disk blocks. Leave it selected for the recommended setup, or uncheck it to keep your settings. Paging, recovery and personal files stay available."
+            )
+            .font(.callout).vmSupportingText()
             Text(
               "An attached disc does not mean drivers are installed. Check the result in the Windows installer."
             )

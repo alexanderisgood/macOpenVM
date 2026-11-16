@@ -4,6 +4,8 @@ import hashlib
 import importlib.util
 from pathlib import Path
 import tempfile
+import shutil
+import subprocess
 import unittest
 import zipfile
 
@@ -14,6 +16,18 @@ SPEC.loader.exec_module(tools)
 
 
 class GuestToolsInputTests(unittest.TestCase):
+    def test_storage_sequence_reports_failures_and_opt_out_without_mutation(self):
+        compiler = shutil.which("clang") or shutil.which("cc")
+        if not compiler:
+            self.skipTest("A C compiler is required for the storage orchestration fixture")
+        with tempfile.TemporaryDirectory() as directory:
+            binary = Path(directory) / "storage-plan"
+            subprocess.run([compiler, "-std=c11", "-Wall", "-Wextra", "-Werror",
+                            "-I", str(ROOT / "GuestAgent/Windows/Tools"),
+                            str(ROOT / "Tests/Integration/fixtures/windows_storage_plan.c"),
+                            "-o", str(binary)], check=True)
+            subprocess.run([str(binary)], check=True)
+
     def archive(self, entries):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

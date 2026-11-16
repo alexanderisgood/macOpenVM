@@ -60,6 +60,9 @@ public struct VMConfiguration: Codable, Equatable, Sendable {
 }
 
 public struct HostResources: Sendable {
+  /// A sparse growth limit, not bytes reserved on the Mac. Keep room for updates
+  /// and apps without requiring a guest partition resize immediately after setup.
+  public static let recommendedWindowsDiskGiB = 128
   public let cpuCount: Int
   public let memoryBytes: UInt64
   public let architecture: GuestArchitecture

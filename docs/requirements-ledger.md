@@ -1,5 +1,11 @@
 # Requirements ledger
 
+Windows storage/setup continuation: [ADR68](adr/0068-windows-storage-defaults.md)
+and S3 cover sparse capacity defaults and an optional Guest Tools storage pass.
+Implementation, failure fixtures and reproducible ARM64 media builds are complete.
+Broader native qualification, unattended setup and automatic guest partition
+growth remain separate work.
+
 Full objective remains open. This grouped ledger maps every original requirement
 family; detailed capability rows are in FEATURE_MATRIX and procedure IDs below.
 Verified narrow behaviors are linked in FEATURE_MATRIX and

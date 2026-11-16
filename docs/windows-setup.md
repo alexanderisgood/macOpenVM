@@ -11,6 +11,11 @@ runtime and its driver disc are available in your development installation.
 
 ## Install the drivers together
 
+New VMs start with CPU and memory recommendations for the Mac and a 128 GiB
+sparse disk limit. That limit is not reserved disk space: the disk grows as
+Windows writes data. Open **Customize hardware** to change it; existing VMs
+retain their saved sizes. Keep enough real free space for Windows and updates.
+
 With a development app that bundles Guest Tools, shut down Windows and open
 **Machine → Install Guest Tools**. Choose your graphics mode in **Graphics
 Settings** first, then **Prepare Guest Tools → Start Windows**. The app attaches
@@ -23,6 +28,13 @@ and approve the administrator prompt. The installer checks the packaged files,
 installs the matching drivers together and reports each result. Restart Windows
 if requested, then select **Show Windows GPU Display** in the Mac's Guest Tools
 window. No command prompt or individual INF selection is needed at the desktop.
+
+Leave **Save disk space (recommended)** selected to disable Windows hibernation
+and Fast Startup and reclaim unused disk blocks. Uncheck it to keep those settings.
+The installer preserves paging, recovery, updates and personal files and does not
+add compression. Check both storage results; an unsuccessful reclaim is reported
+separately from driver setup. **Storage settings** opens Windows' disk-usage
+breakdown. Guest free space and actual Mac space reclaimed are different values.
 
 The accelerated profile includes the signed Neptune guest package paired with
 macOpenVM's modified QEMU/Metal runtime. The basic VirtIO display package is a

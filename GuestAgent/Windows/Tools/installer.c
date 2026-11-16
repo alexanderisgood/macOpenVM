@@ -7,14 +7,17 @@
 #include <cfgmgr32.h>
 #include <bcrypt.h>
 #include <shellapi.h>
+#include <powrprof.h>
 #include "payload.h"
+#include "storage_plan.h"
 
-static HWND window, statusText, installButton, rows[3];
+static HWND window, statusText, installButton, rows[3], storageOption, hibernationText, reclaimText, spaceText;
 static HFONT font;
 static WCHAR root[MAX_PATH], executable[MAX_PATH];
 static HANDLE payloadHandles[64];
-static BOOL busy;
-static const UINT resultMessage = WM_APP + 1, completeMessage = WM_APP + 2;
+static BOOL busy, optimizeStorage;
+static int scrollPosition, wheelRemainder;
+static const UINT resultMessage = WM_APP + 1, completeMessage = WM_APP + 2, storageMessage = WM_APP + 3;
 static const WCHAR graphicsKey[] = L"SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers";
 static const WCHAR schedulerKey[] = L"SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers\\Scheduler";
 typedef struct { BOOL present; DWORD value; } RegistryValue;
@@ -181,6 +184,61 @@ static DWORD installPackage(unsigned package) {
   CloseHandle(process.hProcess); return result;
 }
 
+typedef struct { WCHAR volume[MAX_PATH]; } StorageContext;
+
+static int windowsVolume(void *context) {
+  StorageContext *storage = context; WCHAR path[MAX_PATH];
+  UINT length = GetWindowsDirectoryW(path, MAX_PATH);
+  if (!length || length >= MAX_PATH || !GetVolumePathNameW(path, storage->volume, MAX_PATH)) return 0;
+  // Support the ordinary local Windows drive. Refuse mount points/UNC paths
+  // rather than constructing command arguments from arbitrary path text.
+  return lstrlenW(storage->volume) == 3 && storage->volume[0] >= L'A' && storage->volume[0] <= L'Z'
+    && storage->volume[1] == L':' && storage->volume[2] == L'\\';
+}
+
+static unsigned long storageCommand(void *context, enum MVOStorageStep step) {
+  StorageContext *storage = context;
+  WCHAR program[MAX_PATH], command[512]; STARTUPINFOW startup; PROCESS_INFORMATION process;
+  memset(&startup, 0, sizeof(startup)); startup.cb = sizeof(startup); memset(&process, 0, sizeof(process));
+  UINT length = GetSystemDirectoryW(program, MAX_PATH);
+  if (!length || length > MAX_PATH - 20) return ERROR_BAD_PATHNAME;
+  if (step == MVO_DISABLE_HIBERNATION) {
+    lstrcatW(program, L"\\powercfg.exe");
+    wsprintfW(command, L"\"%s\" /hibernate off", program);
+  } else if (step == MVO_RETRIM) {
+    lstrcatW(program, L"\\defrag.exe");
+    wsprintfW(command, L"\"%s\" %c: /L", program, storage->volume[0]);
+  } else return ERROR_INVALID_PARAMETER;
+  if (!CreateProcessW(program, command, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &startup, &process))
+    return GetLastError();
+  CloseHandle(process.hThread);
+  DWORD result = ERROR_GEN_FAILURE;
+  if (WaitForSingleObject(process.hProcess, INFINITE) == WAIT_OBJECT_0) GetExitCodeProcess(process.hProcess, &result);
+  CloseHandle(process.hProcess); return result;
+}
+
+static int hibernationAbsent(void *context) {
+  StorageContext *storage = context; SYSTEM_POWER_CAPABILITIES power; WCHAR path[MAX_PATH];
+  memset(&power, 0, sizeof(power));
+  if (!GetPwrCapabilities(&power) || power.HiberFilePresent) return 0;
+  lstrcpyW(path, storage->volume); lstrcatW(path, L"hiberfil.sys");
+  return GetFileAttributesW(path) == INVALID_FILE_ATTRIBUTES && GetLastError() == ERROR_FILE_NOT_FOUND;
+}
+
+static void showFreeSpace(void) {
+  StorageContext storage; ULARGE_INTEGER available, total, freeBytes; WCHAR text[256];
+  if (!windowsVolume(&storage) || !GetDiskFreeSpaceExW(storage.volume, &available, &total, &freeBytes)
+      || !total.QuadPart || freeBytes.QuadPart > total.QuadPart) {
+    SetWindowTextW(spaceText, L"Windows drive: space could not be checked. Open Storage settings."); return;
+  }
+  // Integer tenths of GiB; this is guest free space, not host allocation saved.
+  ULONGLONG freeTenths = freeBytes.QuadPart / 1048576 * 10 / 1024;
+  ULONGLONG totalTenths = total.QuadPart / 1048576 * 10 / 1024;
+  wsprintfW(text, L"Windows drive %c: %lu.%lu GiB free of %lu.%lu GiB", storage.volume[0],
+    (DWORD)(freeTenths / 10), (DWORD)(freeTenths % 10), (DWORD)(totalTenths / 10), (DWORD)(totalTenths % 10));
+  SetWindowTextW(spaceText, text);
+}
+
 static DWORD WINAPI installAll(void *unused) {
   (void)unused; BOOL failures = FALSE, reboot = FALSE, missingGraphics = FALSE;
   if (!verifyPayload()) {
@@ -218,6 +276,12 @@ static DWORD WINAPI installAll(void *unused) {
     else { failures = TRUE; PostMessageW(window, resultMessage, i, 5); }
   }
   releasePayload();
+  StorageContext storage;
+  MVOStorageOperations ops = { &storage, windowsVolume, storageCommand, hibernationAbsent };
+  if (optimizeStorage) PostMessageW(window, storageMessage, 1, 0);
+  MVOStorageResult storageResult = mvoOptimizeStorage(optimizeStorage, ops);
+  PostMessageW(window, storageMessage, 0,
+    (LPARAM)(storageResult.hibernation | (storageResult.reclaim << 8)));
   PostMessageW(window, completeMessage, missingGraphics ? 5 : failures ? 2 : reboot ? 1 : 0, 0);
   return 0;
 }
@@ -235,20 +299,92 @@ static HWND control(const WCHAR *kind, const WCHAR *label, DWORD style, int x, i
   SendMessageW(result, WM_SETFONT, (WPARAM)font, TRUE); return result;
 }
 
+static void scrollTo(HWND hwnd, int position) {
+  SCROLLINFO info; memset(&info, 0, sizeof(info));
+  info.cbSize = sizeof(info); info.fMask = SIF_POS; info.nPos = position;
+  int next = SetScrollInfo(hwnd, SB_VERT, &info, TRUE);
+  if (next != scrollPosition) {
+    ScrollWindowEx(hwnd, 0, scrollPosition - next, NULL, NULL, NULL, NULL,
+                   SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
+    scrollPosition = next;
+  }
+}
+
+static void revealFocus(void) {
+  HWND focused = GetFocus(); RECT child, client;
+  if (!focused || GetParent(focused) != window || !GetWindowRect(focused, &child)
+      || !GetClientRect(window, &client)) return;
+  MapWindowPoints(NULL, window, (POINT *)&child, 2);
+  if (child.top < 0) scrollTo(window, scrollPosition + child.top - 8);
+  else if (child.bottom > client.bottom) scrollTo(window, scrollPosition + child.bottom - client.bottom + 8);
+}
+
 static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM w, LPARAM l) {
+  if (message == WM_SIZE) {
+    RECT client; GetClientRect(hwnd, &client);
+    SCROLLINFO info; memset(&info, 0, sizeof(info)); info.cbSize = sizeof(info);
+    info.fMask = SIF_RANGE | SIF_PAGE; info.nMax = 599; info.nPage = (UINT)client.bottom;
+    SetScrollInfo(hwnd, SB_VERT, &info, TRUE);
+    return 0;
+  }
+  if (message == WM_VSCROLL) {
+    SCROLLINFO info; memset(&info, 0, sizeof(info)); info.cbSize = sizeof(info); info.fMask = SIF_ALL;
+    GetScrollInfo(hwnd, SB_VERT, &info); int next = scrollPosition;
+    switch (LOWORD(w)) {
+      case SB_LINEUP: next -= 28; break;
+      case SB_LINEDOWN: next += 28; break;
+      case SB_PAGEUP: next -= (int)info.nPage; break;
+      case SB_PAGEDOWN: next += (int)info.nPage; break;
+      case SB_THUMBTRACK: case SB_THUMBPOSITION: next = info.nTrackPos; break;
+      case SB_TOP: next = info.nMin; break;
+      case SB_BOTTOM: next = info.nMax; break;
+      default: return 0;
+    }
+    scrollTo(hwnd, next); return 0;
+  }
+  if (message == WM_MOUSEWHEEL) {
+    wheelRemainder += (short)HIWORD(w);
+    scrollTo(hwnd, scrollPosition - (wheelRemainder / WHEEL_DELTA) * 48);
+    wheelRemainder %= WHEEL_DELTA; return 0;
+  }
   if (message == WM_COMMAND && LOWORD(w) == 1 && !busy) {
+    optimizeStorage = SendMessageW(storageOption, BM_GETCHECK, 0, 0) == BST_CHECKED;
     if (!elevated()) {
       SHELLEXECUTEINFOW launch; memset(&launch, 0, sizeof(launch)); launch.cbSize = sizeof(launch);
       launch.hwnd = hwnd; launch.lpVerb = L"runas"; launch.lpFile = executable;
-      launch.lpParameters = L"--install"; launch.nShow = SW_SHOWNORMAL;
+      launch.lpParameters = optimizeStorage ? L"--install --storage" : L"--install"; launch.nShow = SW_SHOWNORMAL;
       if (ShellExecuteExW(&launch)) DestroyWindow(hwnd);
       else SetWindowTextW(statusText, L"Installation was not started. Choose Install when you are ready to approve Windows' administrator prompt.");
     } else {
-      busy = TRUE; EnableWindow(installButton, FALSE);
+      busy = TRUE; EnableWindow(installButton, FALSE); EnableWindow(storageOption, FALSE);
+      SetWindowTextW(hibernationText, optimizeStorage ? L"Hibernation: waiting for driver setup" : L"Hibernation: left unchanged");
+      SetWindowTextW(reclaimText, optimizeStorage ? L"Unused disk blocks: waiting" : L"Unused disk blocks: reclaim not requested");
       SetWindowTextW(statusText, L"Checking the complete driver package. Please keep this window open.");
       HANDLE worker = CreateThread(NULL, 0, installAll, NULL, 0, NULL);
       if (worker) CloseHandle(worker);
-      else { busy = FALSE; EnableWindow(installButton, TRUE); SetWindowTextW(statusText, L"Could not start installation. Try again."); }
+      else { busy = FALSE; EnableWindow(installButton, TRUE); EnableWindow(storageOption, TRUE); SetWindowTextW(statusText, L"Could not start installation. Try again."); }
+    }
+    return 0;
+  }
+  if (message == WM_COMMAND && LOWORD(w) == 2) {
+    SHELLEXECUTEINFOW launch; memset(&launch, 0, sizeof(launch)); launch.cbSize = sizeof(launch);
+    launch.hwnd = hwnd; launch.lpFile = L"ms-settings:storagesense"; launch.nShow = SW_SHOWNORMAL;
+    if (!ShellExecuteExW(&launch)) SetWindowTextW(statusText, L"Open Windows Settings > System > Storage to review disk usage.");
+    return 0;
+  }
+  if (message == storageMessage) {
+    if (w == 1) {
+      SetWindowTextW(hibernationText, L"Hibernation: applying space-saving setting...");
+      SetWindowTextW(reclaimText, L"Unused disk blocks: reclaiming; this can take a few minutes...");
+    } else {
+      int h = (int)(l & 255), r = (int)((l >> 8) & 255);
+      SetWindowTextW(hibernationText, h == MVO_STORAGE_SKIPPED ? L"Hibernation: left unchanged"
+        : h == MVO_STORAGE_READY ? L"Hibernation: off; no hibernation file"
+        : L"Hibernation: could not confirm the change. Retry Install / Repair.");
+      SetWindowTextW(reclaimText, r == MVO_STORAGE_SKIPPED ? L"Unused disk blocks: reclaim not requested"
+        : r == MVO_STORAGE_READY ? L"Unused disk blocks: Windows reclaim completed"
+        : L"Unused disk blocks: reclaim unavailable or failed. Retry later.");
+      showFreeSpace();
     }
     return 0;
   }
@@ -261,20 +397,24 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM w, LPARAM l) 
   }
   if (message == completeMessage) {
     const WCHAR *messages[] = {
-      L"Your matching drivers are ready. You can close this window.",
+      L"Your matching drivers are ready. Review the storage results above before closing.",
       L"Installation finished. Save your work, then restart Windows to finish setting up the drivers.",
       L"Some devices need attention. Open Windows Device Manager for details, or choose Install to retry. Other drivers were processed.",
       L"The tools disc is incomplete or changed. No drivers were installed. Prepare Guest Tools again in macOpenVM.",
       L"Graphics recovery settings could not be restored. Do not restart yet. The original values are in Program Files > macOpenVM Guest Tools.",
       L"Graphics setup is incomplete: Windows cannot see the selected GPU. Choose Restart in Windows, then run Install again. If it is still missing, check Graphics Settings in macOpenVM."
     };
-    busy = FALSE; EnableWindow(installButton, w != 4);
+    busy = FALSE; EnableWindow(installButton, w != 4); EnableWindow(storageOption, w != 4);
+    if (w == 3 || w == 4) {
+      SetWindowTextW(hibernationText, L"Hibernation: storage setup was not started");
+      SetWindowTextW(reclaimText, L"Unused disk blocks: reclaim was not started");
+    }
     SetWindowTextW(installButton, L"Install / Repair");
     if (w < 6) SetWindowTextW(statusText, messages[w]);
     return 0;
   }
   if (message == WM_CLOSE && busy) {
-    MessageBoxW(hwnd, L"Windows is processing drivers. Please wait until installation finishes.", L"macOpenVM Guest Tools", MB_OK | MB_ICONINFORMATION);
+    MessageBoxW(hwnd, L"Windows setup is still running. Please wait until it finishes.", L"macOpenVM Guest Tools", MB_OK | MB_ICONINFORMATION);
     return 0;
   }
   if (message == WM_DESTROY) { PostQuitMessage(0); return 0; }
@@ -294,26 +434,45 @@ void mvo_start(void) {
   // System DPI scaling handles the whole form consistently on high-DPI desktops.
   font = CreateFontW(-16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
                      OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+  // Respect the taskbar and scaled desktop; shorter displays scroll the form.
+  RECT work = { 0, 0, 800, 600 };
+  SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
+  int height = work.bottom - work.top - 16; if (height > 640) height = 640;
+  if (height < 200) height = 200;
+  int x = work.left + (work.right - work.left - 680) / 2;
+  if (x < work.left) x = work.left;
   window = CreateWindowExW(WS_EX_CONTROLPARENT, cls.lpszClassName, L"macOpenVM Guest Tools",
-    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-    CW_USEDEFAULT, CW_USEDEFAULT, 640, 450, NULL, NULL, cls.hInstance, NULL);
+    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VSCROLL,
+    x, work.top + 8, 680, height, NULL, NULL, cls.hInstance, NULL);
   if (!window) ExitProcess(1);
   control(L"STATIC", L"Make Windows work with your Mac", 0, 28, 24, 570, 32, 0);
   control(L"STATIC", L"Install all compatible drivers together. Windows will ask for administrator permission. Your VM will not restart automatically.", 0, 28, 66, 570, 56, 0);
   for (unsigned i = 0; i < PACKAGE_COUNT; i++) {
     WCHAR label[128]; wsprintfW(label, L"%s: Ready to check", packages[i].name);
-    rows[i] = control(L"STATIC", label, 0, 28, 140 + (int)i * 36, 570, 32, 0);
+    rows[i] = control(L"STATIC", label, 0, 28, 128 + (int)i * 32, 600, 30, 0);
   }
-  statusText = control(L"STATIC", L"Choose Install. Devices that your VM does not use will be skipped.", 0, 28, 262, 570, 68, 0);
-  installButton = control(L"BUTTON", L"Install", WS_TABSTOP | BS_DEFPUSHBUTTON, 440, 350, 158, 36, 1);
-  ShowWindow(window, SW_SHOWNORMAL); UpdateWindow(window); SetFocus(installButton);
+  storageOption = control(L"BUTTON", L"Save disk space (recommended)", WS_TABSTOP | BS_AUTOCHECKBOX, 28, 236, 600, 28, 3);
+  SendMessageW(storageOption, BM_SETCHECK, BST_CHECKED, 0);
+  control(L"STATIC", L"Turn off Windows hibernation and Fast Startup, then reclaim unused disk blocks. Paging, recovery and your files stay available. No compression is added. Uncheck to keep your settings.", 0, 28, 270, 600, 64, 0);
+  hibernationText = control(L"STATIC", L"Hibernation: ready to check", 0, 28, 342, 600, 30, 0);
+  reclaimText = control(L"STATIC", L"Unused disk blocks: ready to reclaim", 0, 28, 376, 600, 40, 0);
+  spaceText = control(L"STATIC", L"", 0, 28, 418, 600, 30, 0);
+  statusText = control(L"STATIC", L"Choose Install to set up matching drivers and the selected storage option. Your VM will not restart automatically.", 0, 28, 456, 600, 68, 0);
+  control(L"BUTTON", L"Storage settings", WS_TABSTOP, 28, 548, 180, 36, 2);
+  installButton = control(L"BUTTON", L"Install", WS_TABSTOP | BS_DEFPUSHBUTTON, 450, 548, 178, 36, 1);
+  showFreeSpace();
+  ShowWindow(window, SW_SHOWNORMAL); UpdateWindow(window); SetFocus(storageOption);
   int count = 0; LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &count);
-  BOOL autoInstall = args && count == 2 && !lstrcmpW(args[1], L"--install") && elevated();
+  BOOL installArgs = args && (count == 2 || (count == 3 && !lstrcmpW(args[2], L"--storage")))
+    && !lstrcmpW(args[1], L"--install");
+  if (installArgs) SendMessageW(storageOption, BM_SETCHECK, count == 3 ? BST_CHECKED : BST_UNCHECKED, 0);
+  BOOL autoInstall = installArgs && elevated();
   if (args) LocalFree(args);
   if (autoInstall) PostMessageW(window, WM_COMMAND, 1, 0);
   MSG message;
   while (GetMessageW(&message, NULL, 0, 0) > 0) {
     if (!IsDialogMessageW(window, &message)) { TranslateMessage(&message); DispatchMessageW(&message); }
+    else revealFocus();
   }
   if (font) DeleteObject(font);
   ExitProcess(0);

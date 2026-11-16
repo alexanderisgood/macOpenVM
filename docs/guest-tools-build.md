@@ -6,6 +6,13 @@ copies them into the app before signing. Partial or modified bundles fail the
 build. The discs contain drivers and an original native ARM64 installer, never
 Windows installation media.
 
+The recommended storage option uses Windows' own powercfg and retrim tools.
+It disables guest hibernation and Fast Startup, verifies the hibernation file is
+absent, and reports reclaim separately. Uncheck it to preserve the current
+settings. Paging, recovery, updates and personal files are unchanged. It does
+not enable compression or promise a fixed number of bytes saved. Hibernation
+can be re-enabled with Windows' `powercfg /hibernate on` when needed.
+
 The basic profile includes networking and VirtIO serial. The display profile adds
 the signed 2D driver. The accelerated profile instead includes the unmodified
 signed Neptune v0.4 package paired with macOpenVM's modified wire-2 graphics host.

@@ -29,6 +29,13 @@ near-native performance and FPS-neutral sharpening are not qualified.
 
 ## Windows 11 ARM64 guest drivers
 
+macOpenVM includes a native **Guest Tools installer** and a reproducible recipe
+for preparing optional driver discs. Development app bundles with these discs
+offer **Machine → Install Guest Tools**. Inside Windows, one **Install / Repair**
+action installs matching network, guest-communication and graphics drivers,
+checks their status, and offers the recommended storage setup. See the
+[setup guide](docs/windows-setup.md) and [Guest Tools build recipe](docs/guest-tools-build.md).
+
 **Stuck at “Let’s connect you to a network”?** Follow the
 [Windows setup guide](docs/windows-setup.md): enable Shared networking, attach the
 driver disc, then select `drivers/netkvm` from Windows’ **Install driver** button.
@@ -44,6 +51,23 @@ Accelerated graphics requires a compatible host runtime and a separate Neptune
 driver. The [upstream Neptune v0.4 release](https://github.com/osy/kvm-guest-drivers-windows/releases/tag/v0.4)
 provides the ARM64X package for the matching wire protocol 2 host. See
 [graphics protocol pairing](docs/adr/0057-graphics-protocol-pairing.md) for compatibility.
+The accelerated Guest Tools profile packages this signed driver when building
+with the required inputs; it is different from the VirtIO GPU 2D package.
+Graphics remains experimental, with rendering and live-resize issues still open.
+The public source build does not include the complete Windows host runtime or
+Windows itself; it is not yet a turnkey Windows VM download.
+
+## Storage and setup defaults
+
+New Windows VMs use host-sized CPU and memory recommendations and a **128 GiB
+sparse disk limit**. The limit is not preallocated space; existing VMs keep their
+saved sizes. **Customize hardware** exposes the manual controls.
+
+Guest Tools' **Save disk space** option turns off Windows hibernation and Fast
+Startup and asks Windows to reclaim unused disk blocks. It preserves paging,
+recovery, updates and personal files, and adds no compression. Users can opt out,
+review separate storage results, or open Windows Storage settings from the
+installer. Guest free space is not the same as physical space reclaimed on the Mac.
 
 ## Build and check
 

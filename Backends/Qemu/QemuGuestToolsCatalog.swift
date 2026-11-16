@@ -14,13 +14,13 @@ public enum QemuGuestToolsCatalog {
     switch profile {
     case .basic:
       bytes = 921_600
-      hash = "ee29b3ee84a07c4c2a11b395397a474d0d59679da111d7b6d36a04d9eba90281"
+      hash = "b96d6fe3781c5727fbf75e1cae488ad7a446a45c201ff634372fef6936edce86"
     case .display:
-      bytes = 921_600
-      hash = "cce95cb18e0359e481104dc0f74ada85b19ede60df20a56645aa5d4a1322a2bf"
+      bytes = 927_744
+      hash = "28d6b781ce5d295b5de582d407621c427087db0e01e185a424610b4031ada3c4"
     case .accelerated:
-      bytes = 7_055_360
-      hash = "830cc06e072b4b0bd09314b8aca4355ef93676718166265c950af600c4a46ce6"
+      bytes = 7_061_504
+      hash = "6b32a19afb81f0a5ae6cceed27a624ec85d36a39c39186c1143ecc028a1d4cb2"
     }
     let directories =
       [bundleResources?.appendingPathComponent("GuestTools")]

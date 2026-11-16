@@ -569,7 +569,8 @@ import VMStorage
           options, "memory-mib", multiplier: 1_048_576,
           fallback: windows ? Int(recommendation.memoryBytes / 1_048_576) : 4096),
         diskBytes: try bytes(
-          options, "disk-gib", multiplier: 1_073_741_824, fallback: windows ? 64 : 32))
+          options, "disk-gib", multiplier: 1_073_741_824,
+          fallback: windows ? HostResources.recommendedWindowsDiskGiB : 32))
       c.installationMedia = options["media"]
       c.supportMedia = options["support-media"]
       if let kernel = options["kernel"] {

@@ -25,13 +25,14 @@ PACKAGES = [
     ("Guest communication", "drivers/vioser/vioser.inf", "PCI\\VEN_1AF4&DEV_1003", "PCI\\VEN_1AF4&DEV_1043", "VirtioSerial", False),
 ]
 IMPORTS = {
-    "kernel32": "CloseHandle CompareStringOrdinal CreateDirectoryW CreateFileW CreateProcessW CreateThread ExitProcess FlushFileBuffers GetCommandLineW GetCurrentProcess GetEnvironmentVariableW GetExitCodeProcess GetFileAttributesW GetFileInformationByHandle GetLastError GetModuleFileNameW GetModuleHandleW GetSystemDirectoryW GetTempFileNameW LocalFree ReadFile WaitForSingleObject WriteFile lstrcatW lstrcmpW lstrcmpiW lstrcpyW lstrlenW",
-    "user32": "CreateWindowExW DefWindowProcW DestroyWindow DispatchMessageW EnableWindow GetMessageW IsDialogMessageW LoadCursorW MessageBoxW PostMessageW PostQuitMessage RegisterClassW SendMessageW SetFocus SetWindowTextW ShowWindow TranslateMessage UpdateWindow wsprintfW",
+    "kernel32": "CloseHandle CompareStringOrdinal CreateDirectoryW CreateFileW CreateProcessW CreateThread ExitProcess FlushFileBuffers GetCommandLineW GetCurrentProcess GetDiskFreeSpaceExW GetEnvironmentVariableW GetExitCodeProcess GetFileAttributesW GetFileInformationByHandle GetLastError GetModuleFileNameW GetModuleHandleW GetSystemDirectoryW GetTempFileNameW GetVolumePathNameW GetWindowsDirectoryW LocalFree ReadFile WaitForSingleObject WriteFile lstrcatW lstrcmpW lstrcmpiW lstrcpyW lstrlenW",
+    "user32": "CreateWindowExW DefWindowProcW DestroyWindow DispatchMessageW EnableWindow GetMessageW GetClientRect GetFocus GetParent GetScrollInfo GetWindowRect IsDialogMessageW MapWindowPoints ScrollWindowEx SetScrollInfo SystemParametersInfoW LoadCursorW MessageBoxW PostMessageW PostQuitMessage RegisterClassW SendMessageW SetFocus SetWindowTextW ShowWindow TranslateMessage UpdateWindow wsprintfW",
     "gdi32": "CreateFontW DeleteObject",
     "advapi32": "GetTokenInformation OpenProcessToken RegCloseKey RegDeleteValueW RegOpenKeyExW RegQueryValueExW RegSetValueExW",
     "shell32": "CommandLineToArgvW ShellExecuteExW",
     "setupapi": "SetupDiDestroyDeviceInfoList SetupDiEnumDeviceInfo SetupDiGetClassDevsW SetupDiGetDeviceRegistryPropertyW",
     "cfgmgr32": "CM_Get_DevNode_Status",
+    "powrprof": "GetPwrCapabilities",
     "bcrypt": "BCryptCloseAlgorithmProvider BCryptCreateHash BCryptDestroyHash BCryptFinishHash BCryptHashData BCryptOpenAlgorithmProvider",
 }
 
@@ -236,6 +237,8 @@ def build(args):
             (stage / "autorun.inf").write_text('[autorun]\r\nopen="Install macOpenVM Tools.exe"\r\naction=Install macOpenVM Guest Tools\r\nlabel=macOpenVM Guest Tools\r\n')
             (stage / "Read me.txt").write_text("Open Install macOpenVM Tools, choose Install, then approve Windows' administrator prompt.\r\n"
                 "The installer checks every driver file, installs matching devices, and reports any restart needed.\r\n"
+                "Save disk space disables Windows hibernation and Fast Startup, then asks Windows to reclaim unused blocks. Uncheck it to keep your settings.\r\n"
+                "Paging, Windows Recovery, updates and personal files are preserved; no compression is enabled. Host space reclaimed depends on the disk and filesystem.\r\n"
                 "If Windows Setup asks for a network driver first, select drivers\\netkvm on this disc.\r\n"
                 "This " + profile + " disc is paired with its macOpenVM runtime. Do not use it with other VM software.\r\n"
                 "No Windows ISO, account, agent enrollment, or automatic restart is included.\r\n")

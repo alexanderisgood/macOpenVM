@@ -32,3 +32,6 @@ docs/checkpoint-history/
 docs/checkpoints/
 *.key
 *.p8
+
+# Local Markdown notes; existing tracked project documentation stays tracked.
+*.[mM][dD]

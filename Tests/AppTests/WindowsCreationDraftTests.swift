@@ -27,7 +27,7 @@ import Testing
     #expect(first.configuration.installationMedia == "/private/tmp/windows-arm64.iso")
     #expect(
       first.configuration.cpuCount == 4 && first.configuration.memoryBytes == 8 * 1_073_741_824)
-    #expect(first.configuration.diskBytes == 64 * 1_073_741_824)
+    #expect(first.configuration.diskBytes == 128 * 1_073_741_824)
     #expect(first.destination.path == "/private/tmp/VMs/My Windows VM.macopenvm")
   }
   @Test(arguments: [

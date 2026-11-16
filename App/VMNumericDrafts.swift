@@ -144,7 +144,7 @@ private enum VMCreationDraftInput {
   @Published var parent: URL?
   @Published var cpuCountText: String
   @Published var memoryGiBText: String
-  @Published var diskGiBText = "64"
+  @Published var diskGiBText = String(HostResources.recommendedWindowsDiskGiB)
 
   init(host: HostResources = .current) {
     let recommendation = host.recommendedWindowsHardware
