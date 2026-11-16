@@ -2039,7 +2039,9 @@ struct DesktopVMTrashConfirmation: Equatable {
         controller = nil
         editingDiskCapacity = false
         diskCapacityNotice =
-          "Virtual disk expanded. Expand the partition inside the guest to use the added space."
+          replacement.guest == .windows11
+          ? "Virtual disk expanded. Start Windows and finish in Disk Management."
+          : "Virtual disk expanded. Expand the partition inside Linux to use the added space."
         await refreshWindowsLaunchReadiness(for: replacement)
       } catch {
         let message =
@@ -3552,8 +3554,14 @@ private struct DesktopView: View {
           .accessibilityLabel("Remembered graphics settings: \(warning)")
       }
       if let notice = session.diskCapacityNotice {
-        Label(notice, systemImage: "checkmark.circle").font(.callout).vmSupportingText()
-          .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 6) {
+          Label(notice, systemImage: "info.circle").font(.callout).vmSupportingText()
+            .fixedSize(horizontal: false, vertical: true)
+          if configuration.guest == .windows11 {
+            WindowsSetupGuideButton(title: "Finish expanding Windows storage…")
+              .vmGlassControl()
+          }
+        }
       }
       if session.isBusy {
         HStack(spacing: 8) {

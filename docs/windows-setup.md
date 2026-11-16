@@ -47,6 +47,18 @@ from Windows' Start menu and run the installer again. If it remains missing,
 check the VM's Graphics Settings. An unattached optional guest-communication
 device is reported separately; attaching a tools disc does not create that device.
 
+## Use added disk space
+
+After enlarging the virtual disk in macOpenVM, start Windows. Right-click
+**Start → Disk Management**. If the unallocated space is immediately to the
+right of **C:**, right-click **C:** and choose **Extend Volume**.
+
+If a recovery partition separates C: from the unallocated space, Windows
+cannot extend C: into that space. Creating a new simple volume in the
+unallocated space gives Windows a separate drive. To add the space to C:
+itself, the recovery partition needs to be relocated or recreated.
+See [Microsoft’s volume extension guide](https://learn.microsoft.com/en-us/windows-server/storage/disk-management/extend-a-basic-volume?tabs=disk-management).
+
 ## Make fullscreen sharp
 
 Shut down Windows, then choose **Machine → Graphics Settings → Match This Mac**

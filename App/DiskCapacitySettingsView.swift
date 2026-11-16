@@ -39,9 +39,16 @@ import SwiftUI
           Text("1 GiB = 1,024 MiB. Choose a larger capacity, up to 2,048 GiB.")
             .font(.caption).vmSupportingText()
         }
-        Text(
-          "Keep a backup before expanding the disk. This adds empty space to the virtual disk; expand the partition inside Windows or Linux afterwards. Disk capacity cannot be reduced here."
-        )
+        VStack(alignment: .leading, spacing: 8) {
+          Text("This adds unallocated space to the virtual disk.")
+          if configuration.guest == .windows11 {
+            Text(
+              "After starting Windows, open Disk Management to extend C:. A recovery partition between C: and the new space can block the extension."
+            )
+          } else {
+            Text("Expand the partition inside Linux to use the added space.")
+          }
+        }
         .font(.callout).fixedSize(horizontal: false, vertical: true)
         if let message = session.diskCapacityError {
           Label(message, systemImage: "exclamationmark.triangle")
@@ -80,8 +87,11 @@ import SwiftUI
       }
       Button("Cancel", role: .cancel) { draft.confirmationTarget = nil }
     } message: {
-      Text(
-        "Existing data stays in place. The guest partition needs a separate expansion afterwards.")
+      if configuration.guest == .windows11 {
+        Text("This expands the virtual disk. Windows still needs to extend C:.")
+      } else {
+        Text("This expands the virtual disk. Linux still needs to extend its partition.")
+      }
     }
   }
 }

@@ -4,9 +4,10 @@ import SwiftUI
 
 struct WindowsSetupGuideButton: View {
   @Environment(\.openWindow) private var openWindow
+  var title = "Windows Setup & Drivers…"
 
   var body: some View {
-    Button("Windows Setup & Drivers…", systemImage: "questionmark.circle") {
+    Button(title, systemImage: "questionmark.circle") {
       openWindow(id: "windows-setup")
     }
   }
@@ -40,6 +41,15 @@ struct WindowsSetupGuideButton: View {
           )
           Text(
             "In Guest Tools, leave Save disk space selected to turn off Windows hibernation and Fast Startup and reclaim unused blocks. This preserves paging, Windows Recovery and your files. Use Storage settings in the installer to inspect Windows disk usage."
+          )
+          .font(.callout).vmSupportingText()
+        }
+        VMContentCard("Use added disk space") {
+          Text(
+            "After expanding the virtual disk, start Windows. Right-click Start, open Disk Management, then right-click C: and choose Extend Volume."
+          )
+          Text(
+            "If a recovery partition separates C: from the unallocated space, Extend Volume is unavailable. You can make a separate volume in the unallocated space or have the recovery partition relocated to expand C:."
           )
           .font(.callout).vmSupportingText()
         }
