@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 #ifndef MVO_SHARED_HDR_FRAME_TRANSPORT_H
 #define MVO_SHARED_HDR_FRAME_TRANSPORT_H
 #include "SharedHDRFrameWire.h"

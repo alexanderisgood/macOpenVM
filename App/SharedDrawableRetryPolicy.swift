@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 
 /// Finite delayed attempts for one static cache. Only new content, redraw or
 /// renewed activity starts another budget; cancelled tickets cannot revive it.

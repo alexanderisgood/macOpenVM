@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 import SwiftUI
 
 /// A local prerequisite check. Its action never selects a replacement runtime or starts a VM.

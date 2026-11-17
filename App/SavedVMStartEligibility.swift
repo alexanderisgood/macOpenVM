@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 import BackendAPI
 
 /// UI eligibility only. Actual start still obtains ordinary runtime/writer admission

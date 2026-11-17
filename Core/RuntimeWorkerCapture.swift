@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 // Worker retains one instance for its actual lifetime, not per IPC connection.
 import BackendAPI
 import Foundation

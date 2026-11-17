@@ -16,6 +16,7 @@ binary_directory=$(./scripts/swift.sh build --configuration "$configuration" "${
 mkdir -p build/macOpenVM.app/Contents/MacOS build/macOpenVM.app/Contents/Resources build/bin
 cp "$binary_directory/macOpenVMDesktop" build/macOpenVM.app/Contents/MacOS/macOpenVM
 cp LICENSE NOTICE build/macOpenVM.app/Contents/Resources/
+cp LICENSES/patches/licenses/Apache-2.0-original-project.txt build/macOpenVM.app/Contents/Resources/Apache-2.0.txt
 cp packaging/PrivacyInfo.xcprivacy build/macOpenVM.app/Contents/Resources/
 python3 scripts/package-guest-tools.py
 cp "$binary_directory/macopenvm" build/bin/macopenvm

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 #include "ScanoutLeasePool.h"
 
 static MVOScanoutSlot *matching_slot(MVOScanoutLeasePool *pool, MVOScanoutLease lease,

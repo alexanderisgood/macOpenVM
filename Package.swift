@@ -1,5 +1,5 @@
 // swift-tools-version: 6.0
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 import PackageDescription
 
 let strict: [SwiftSetting] = [

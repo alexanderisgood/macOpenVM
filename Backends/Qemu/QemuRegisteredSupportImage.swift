@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 import Foundation
 
 /// Independent caller/code-reviewed public data image, never decoded from a VM

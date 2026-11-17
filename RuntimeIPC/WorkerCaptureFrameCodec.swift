@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 // Package-only opt-in version2 values. No socket/server or capture authority.
 // Whole-frame decoders are intentional; the version1 payload decoder stays exact.
 import BackendAPI

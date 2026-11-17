@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 import AppKit
 
 /// Mouse association belongs to the process, rather than the lifetime of a view.

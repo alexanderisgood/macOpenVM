@@ -1,6 +1,6 @@
 # macOpenVM
 
-An experimental macOS virtual machine app and CLI for Apple silicon.
+An experimental, source-available macOS virtual machine app and CLI for Apple silicon.
 Windows 11 ARM64 is the main development goal; ARM64 Linux uses Apple's native
 Virtualization framework. This is a **source-only alpha**, with incomplete features.
 
@@ -13,6 +13,18 @@ targets an ARM64 Xcode 27 runner; see the [current checks](https://github.com/al
 
 *Private Windows development VM using VNC. Its required runtime and driver
 binaries are not included. This screenshot is not an FPS benchmark or HDR proof.*
+
+## License and distribution
+
+You can download, modify, and build macOpenVM under the
+[macOpenVM Source License](LICENSE). You can also share source and patches
+under those terms. Distributing compiled macOpenVM builds requires written
+permission from the copyright holders. The official prebuilt macOS app is
+planned as a one-time purchase.
+
+[NOTICE](NOTICE) lists separately licensed code and components. Revisions
+published under [Apache 2.0](https://github.com/alexanderisgood/macOpenVM/blob/baea3b7899e9abf013525ee72e97354d184a94d5/LICENSE)
+remain available under those terms.
 
 ## What is here
 
@@ -95,7 +107,6 @@ Useful work includes a reproducible Windows source-build recipe, graphics
 performance measurements and fixes, audio, HDR producer integration, and failure
 tests. Open an issue describing the behavior and evidence you can reproduce.
 
-Original app and CLI code is [Apache-2.0](LICENSE). Upstream patches retain their
-own file licenses and notices; see [NOTICE](NOTICE).
+The [source license](LICENSE) describes the terms for contributions to macOpenVM.
 
 Project: [github.com/alexanderisgood/macOpenVM](https://github.com/alexanderisgood/macOpenVM).

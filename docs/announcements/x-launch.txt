@@ -1,4 +1,4 @@
-Can we build a great open-source Windows VM for Apple silicon?
+Can we build a great source-available Windows VM for Apple silicon?
 
 I’ve opened macOpenVM’s source. Looking for graphics, driver & audio contributors.
 

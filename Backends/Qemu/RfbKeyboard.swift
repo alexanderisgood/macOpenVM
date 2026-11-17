@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 import Foundation
 
 /// RFC 6143 section 7.5.4 keysyms. This is a bounded keyboard vocabulary,

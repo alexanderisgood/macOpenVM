@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 // Package-private diagnostic values; no endpoint, process or lifecycle authority.
 package enum CaptureFault: Error, Equatable, Sendable {
   case malformed, limit, identity, stale, unavailable, busy, alreadyUsed, notReady

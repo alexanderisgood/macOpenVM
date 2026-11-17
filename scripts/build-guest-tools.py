@@ -242,7 +242,8 @@ def build(args):
                 "If Windows Setup asks for a network driver first, select drivers\\netkvm on this disc.\r\n"
                 "This " + profile + " disc is paired with its macOpenVM runtime. Do not use it with other VM software.\r\n"
                 "No Windows ISO, account, agent enrollment, or automatic restart is included.\r\n")
-            (stage / "Installer LICENSE.txt").write_bytes((ROOT / "LICENSE").read_bytes())
+            installer_license = ROOT / "LICENSES/patches/licenses/Apache-2.0-original-project.txt"
+            (stage / "Installer LICENSE.txt").write_bytes(installer_license.read_bytes())
             for path in sorted(stage.rglob("*"), reverse=True):
                 os.utime(path, (946684800, 946684800))
             os.utime(stage, (946684800, 946684800))

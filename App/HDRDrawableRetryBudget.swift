@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 /// Pure acquisition budget used by the actual HDR renderer. Content/geometry
 /// notifications cannot restart a run of failed nextDrawable acquisitions.
 struct HDRDrawableRetryBudget: Sendable {

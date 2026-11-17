@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "auditDate": "2026-11-17",
-  "scope": "Conservative aggregate license expressions for separately distributed source patches; per-target notices govern. Original application remains separately Apache-2.0.",
+  "scope": "Conservative aggregate license expressions for separately distributed source patches. Per-target notices govern. The original application is covered by the repository-root license.",
   "patches": [
     {
       "path": "Backends/Qemu/patches/auth2-strict-timestamp.patch",

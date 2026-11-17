@@ -1,7 +1,12 @@
 macOpenVM
 Copyright 2026 macOpenVM contributors
 
-Original project code is licensed under Apache-2.0.
+The original macOpenVM app and CLI are covered by the macOpenVM Source License
+1.0 in LICENSE. Separately marked files follow their own licenses. Apache 2.0
+continues to govern earlier releases and separately licensed source, including
+the Guest Tools installer. See Apache-2.0.txt in the app bundle or
+LICENSES/patches/licenses/Apache-2.0-original-project.txt in the source tree.
+
 External dependencies retain their own licenses. The source tree contains no
 operating-system media, QEMU binary, firmware, Windows driver or guest-agent
 binary. The separate Windows ARM64 VirtIO release asset carries its upstream
@@ -15,6 +20,5 @@ license in Tests/EFI/MacOpenVMLabPkg/PkEnrollmentProbe/. No private key is inclu
 
 The screenshot docs/images/windows-development.jpg depicts a private Windows
 development VM through VNC. Windows and Counter-Strike assets belong to their
-respective owners; the screenshot is illustrative documentation, excluded from
-the Apache source license. No OS media, game files, VM or required runtime binary
-is distributed with it.
+respective owners. The screenshot is illustrative documentation. No OS media,
+game files, VM or required runtime binary is distributed with it.

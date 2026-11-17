@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 import Foundation
 
 /// Created filesystem entries only; empty directories establish no guest or device health.

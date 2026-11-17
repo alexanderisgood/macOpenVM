@@ -7,11 +7,11 @@
       "name": "macOpenVM",
       "version": "0.1.0-dev",
       "sourceURL": "https://github.com/alexanderisgood/macOpenVM",
-      "license": "Apache-2.0",
-      "modifications": "Original project code",
+      "license": "LicenseRef-macOpenVM-Source-1.0",
+      "modifications": "Original app and CLI code",
       "scope": "project",
       "redistributed": true,
-      "obligations": "Include Apache-2.0 license and NOTICE; source-only contributor alpha. Upstream patch licenses remain file-specific."
+      "obligations": "Include LICENSE and NOTICE with source. Distribution of compiled macOpenVM builds requires written permission from the applicable copyright holders."
     },
     {
       "name": "Swift",
@@ -1538,6 +1538,16 @@
           "version": "11.1.0"
         }
       ]
+    },
+    {
+      "name": "macOpenVM Apache-licensed support code",
+      "version": "0.1.0-dev",
+      "sourceURL": "https://github.com/alexanderisgood/macOpenVM",
+      "license": "Apache-2.0",
+      "modifications": "Original guest agents, Guest Tools installer, protocol, tests and other support files with Apache-2.0 notices.",
+      "scope": "project-support",
+      "redistributed": true,
+      "obligations": "Retain the applicable notices and include the Apache 2.0 license text in LICENSES/patches/licenses/Apache-2.0-original-project.txt."
     }
   ]
 }

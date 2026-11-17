@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-macOpenVM-Source-1.0
 struct SharedPresentationVisibility {
   static func shouldPresent(
     visible: Bool, miniaturized: Bool, onActiveSpace: Bool, occlusionVisible: Bool,

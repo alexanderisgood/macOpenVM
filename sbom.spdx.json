@@ -8,8 +8,13 @@
   },
   "dataLicense": "CC0-1.0",
   "documentComment": "Original source build plus explicit external evaluation tools. Not a complete release dependency inventory. Release clearance: false. Inventory timestamp fixed for deterministic generation.",
-  "documentNamespace": "urn:uuid:58250b39-198d-4dde-a118-a939f47fa984",
+  "documentNamespace": "urn:uuid:630c38ee-ed13-4917-a81b-e6b5b1c61121",
   "hasExtractedLicensingInfos": [
+    {
+      "comment": "Include LICENSE and NOTICE with source. Distribution of compiled macOpenVM builds requires written permission from the applicable copyright holders.",
+      "extractedText": "macOpenVM Source License 1.0\n\nCopyright 2026 macOpenVM contributors\n\n1. Scope\n\nThis license covers the original macOpenVM application and command-line\ncode distributed with this file and builds containing that code. Files and\ncomponents with their own license notices are governed by those notices.\nEarlier grants under the Apache License 2.0 continue in force.\n\n2. Source code and use\n\nYou may download, copy, modify and build the source code. You may install\nand use your own builds and copies obtained from an authorized distributor\nfor personal or commercial purposes, including for use within your\norganization. You may keep backup copies for your own use.\n\nYou may share the source code, patches and modified source code. Include\nthis license and the applicable copyright and attribution notices, identify\nyour changes, and share the covered source under these same terms.\n\n3. Distribution of compiled builds\n\nYou may distribute or make compiled builds containing code covered by\nthis license available to third parties only with written permission from the\napplicable copyright holders. This requirement applies to free and paid\ndistribution, including application bundles, installers and archives.\nYou may share instructions or scripts that build the source locally on\nthe recipient's machine.\n\n4. Contributions\n\nIf you intentionally submit a contribution for inclusion in macOpenVM,\nyou offer it under this license and grant the project maintainers a\nnonexclusive, worldwide, royalty-free, perpetual copyright license to\nuse, modify and distribute your contribution as part of macOpenVM,\nincluding official paid builds. You retain copyright in your contribution.\n\n5. Warranty\n\nTo the extent permitted by law, the software is provided as is, without\nwarranties. Mandatory rights under applicable law continue to apply.\n",
+      "licenseId": "LicenseRef-macOpenVM-Source-1.0"
+    },
     {
       "comment": "System-provided; Apple SDK/developer agreements and entitlement distribution need review.",
       "extractedText": "NOASSERTION",
@@ -25,12 +30,12 @@
   "packages": [
     {
       "SPDXID": "SPDXRef-Package-0",
-      "comment": "{\"modifications\": \"Original project code\", \"obligations\": \"Include Apache-2.0 license and NOTICE; source-only contributor alpha. Upstream patch licenses remain file-specific.\", \"redistributed\": true, \"scope\": \"project\"}",
+      "comment": "{\"modifications\": \"Original app and CLI code\", \"obligations\": \"Include LICENSE and NOTICE with source. Distribution of compiled macOpenVM builds requires written permission from the applicable copyright holders.\", \"redistributed\": true, \"scope\": \"project\"}",
       "copyrightText": "NOASSERTION",
       "downloadLocation": "https://github.com/alexanderisgood/macOpenVM",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "Apache-2.0",
+      "licenseDeclared": "LicenseRef-macOpenVM-Source-1.0",
       "name": "macOpenVM",
       "versionInfo": "0.1.0-dev"
     },
@@ -1177,6 +1182,17 @@
       "licenseDeclared": "GPL-2.0-or-later",
       "name": "Redistributed source patch: shared-scanout-leases.patch",
       "versionInfo": "2026-11-17 snapshot (cb90c4e0e7fc)"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-105",
+      "comment": "{\"modifications\": \"Original guest agents, Guest Tools installer, protocol, tests and other support files with Apache-2.0 notices.\", \"obligations\": \"Retain the applicable notices and include the Apache 2.0 license text in LICENSES/patches/licenses/Apache-2.0-original-project.txt.\", \"redistributed\": true, \"scope\": \"project-support\"}",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://github.com/alexanderisgood/macOpenVM",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "Apache-2.0",
+      "name": "macOpenVM Apache-licensed support code",
+      "versionInfo": "0.1.0-dev"
     }
   ],
   "relationships": [

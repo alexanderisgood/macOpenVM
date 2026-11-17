@@ -10,7 +10,9 @@ ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--check", action="store_true", help="Verify the checked-in inventory without rewriting it")
 arguments = parser.parse_args()
-manifest = json.loads((ROOT / "dependencies.json").read_text())
+manifest_bytes = (ROOT / "dependencies.json").read_bytes()
+manifest = json.loads(manifest_bytes)
+content_hash = hashlib.sha256(manifest_bytes)
 required = {"name", "version", "sourceURL", "license", "modifications", "scope", "redistributed", "obligations"}
 packages = []
 extracted = []
@@ -21,7 +23,11 @@ for index, component in enumerate(manifest["components"]):
         raise SystemExit("Unreviewed redistributed component")
     license_id = component["license"]
     if license_id.startswith("LicenseRef-"):
-        extracted.append({"licenseId": license_id, "extractedText": "NOASSERTION", "comment": component["obligations"]})
+        license_text = "NOASSERTION"
+        if license_id == "LicenseRef-macOpenVM-Source-1.0":
+            license_text = (ROOT / "LICENSE").read_text()
+            content_hash.update(license_text.encode())
+        extracted.append({"licenseId": license_id, "extractedText": license_text, "comment": component["obligations"]})
     packages.append({
         "SPDXID": f"SPDXRef-Package-{index}", "name": component["name"],
         "versionInfo": component["version"], "downloadLocation": component["sourceURL"],
@@ -29,7 +35,7 @@ for index, component in enumerate(manifest["components"]):
         "copyrightText": component.get("copyrightText", "NOASSERTION"), "comment": json.dumps({
             key: component[key] for key in ["modifications", "scope", "redistributed", "obligations"]}, sort_keys=True),
     })
-digest = hashlib.sha256((ROOT / "dependencies.json").read_bytes()).hexdigest()
+digest = content_hash.hexdigest()
 document = {
     "spdxVersion": "SPDX-2.3", "dataLicense": "CC0-1.0", "SPDXID": "SPDXRef-DOCUMENT",
     "name": "macOpenVM development inventory",
