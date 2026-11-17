@@ -1,5 +1,6 @@
-import BackendAPI
 // SPDX-License-Identifier: Apache-2.0
+import Accelerate
+import BackendAPI
 import Foundation
 
 /// Original fixed-scope parser from RFC6143 sections7.1/7.3/7.5/7.6/7.8.
@@ -217,11 +218,18 @@ package struct RfbDecoder {
         }
       case .rectangle:
         guard available >= 12 else { return actions }
-        let header = take(12)
-        let rect = Rect(
-          x: integer(header, at: 0, count: 2), y: integer(header, at: 2, count: 2),
-          width: integer(header, at: 4, count: 2), height: integer(header, at: 6, count: 2))
-        let encoding = Int32(bitPattern: UInt32(integer(header, at: 8, count: 4)))
+        let (rect, encoding) = buffer.withUnsafeBytes { header in
+          func field(_ offset: Int) -> Int {
+            Int(
+              UInt16(
+                bigEndian: header.loadUnaligned(fromByteOffset: cursor + offset, as: UInt16.self)))
+          }
+          return (
+            Rect(x: field(0), y: field(2), width: field(4), height: field(6)),
+            Int32(bigEndian: header.loadUnaligned(fromByteOffset: cursor + 8, as: Int32.self))
+          )
+        }
+        cursor += 12
         if encoding == -257 {
           guard rectanglesRemaining == 1, (0...1).contains(rect.x), rect.y == 0,
             rect.width == width, rect.height == height
@@ -387,47 +395,39 @@ package struct RfbDecoder {
     canvas: inout [UInt8], coverage: inout [UInt64], coveredPixels: inout Int,
     trackCoverage: Bool
   ) {
-    canvas.withUnsafeMutableBufferPointer { bytes in
-      let destination = UnsafeMutableRawBufferPointer(bytes)
-      let byteMask = SIMD4<UInt32>(repeating: 0x0000_00ff)
-      let greenMask = SIMD4<UInt32>(repeating: 0x0000_ff00)
-      let opacity = SIMD4<UInt32>(repeating: 0xff00_0000)
-      let shift = SIMD4<UInt32>(repeating: 16)
+    canvas.withUnsafeMutableBytes { (destination: UnsafeMutableRawBufferPointer) in
       var sourceIndex = start
       var row = rect.y + offset / rect.width
       var column = offset % rect.width
       var remaining = count
       while remaining > 0 {
-        let length = min(remaining, rect.width - column)
+        let length = rect.width == stride ? remaining : min(remaining, rect.width - column)
         let firstPixel = row * stride + rect.x + column
         var destinationIndex = firstPixel * 4
-        var pixelsLeft = length
-        // macOS hosts are little-endian. Load four wire pixels without an
-        // alignment assumption; swap R/B together and force opaque alpha.
-        // copyMemory also permits an unaligned byte-array destination.
-        while pixelsLeft >= 4 {
-          let wire = source.loadUnaligned(fromByteOffset: sourceIndex, as: SIMD4<UInt32>.self)
-          let blue = (wire & byteMask) &<< shift
-          let green = wire & greenMask
-          let red = (wire &>> shift) & byteMask
-          var rgba = blue | green | red | opacity
-          withUnsafeBytes(of: &rgba) { converted in
-            UnsafeMutableRawBufferPointer(
-              rebasing: destination[destinationIndex..<destinationIndex + 16]
-            )
-            .copyMemory(from: converted)
-          }
-          sourceIndex += 16
-          destinationIndex += 16
-          pixelsLeft -= 4
+        var converted = false
+        if length >= 32 {
+          var input = vImage_Buffer(
+            data: UnsafeMutableRawPointer(mutating: source.baseAddress!.advanced(by: sourceIndex)),
+            height: 1, width: UInt(length), rowBytes: length * 4)
+          var output = vImage_Buffer(
+            data: destination.baseAddress!.advanced(by: destinationIndex), height: 1,
+            width: UInt(length), rowBytes: length * 4)
+          converted =
+            vImagePermuteChannelsWithMaskedInsert_ARGB8888(
+              &input, &output, [2, 1, 0, 3], 1, [0, 0, 0, 255], vImage_Flags(kvImageDoNotTile))
+            == kvImageNoError
         }
-        for _ in 0..<pixelsLeft {
-          destination[destinationIndex] = source[sourceIndex + 2]
-          destination[destinationIndex + 1] = source[sourceIndex + 1]
-          destination[destinationIndex + 2] = source[sourceIndex]
-          destination[destinationIndex + 3] = 255
-          sourceIndex += 4
-          destinationIndex += 4
+        if converted {
+          sourceIndex += length * 4
+        } else {
+          for _ in 0..<length {
+            destination[destinationIndex] = source[sourceIndex + 2]
+            destination[destinationIndex + 1] = source[sourceIndex + 1]
+            destination[destinationIndex + 2] = source[sourceIndex]
+            destination[destinationIndex + 3] = 255
+            sourceIndex += 4
+            destinationIndex += 4
+          }
         }
         if trackCoverage {
           var pixel = firstPixel

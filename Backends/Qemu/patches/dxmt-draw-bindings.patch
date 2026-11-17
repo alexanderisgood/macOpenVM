@@ -1,0 +1,413 @@
+--- a/src/d3d11/d3d11_context_impl.cpp
++++ b/src/d3d11/d3d11_context_impl.cpp
+@@ -1926,6 +1926,8 @@
+   IASetInputLayout(ID3D11InputLayout *pInputLayout) override {
+     std::lock_guard<mutex_t> lock(mutex);
+ 
++    if (state_.InputAssembler.InputLayout.ptr() == pInputLayout)
++      return;
+     if (auto expected = com_cast<IMTLD3D11InputLayout>(pInputLayout)) {
+       if (state_.InputAssembler.InputLayout.ptr() == expected.ptr())
+         return;
+@@ -1934,6 +1936,13 @@
+       if (!state_.InputAssembler.InputLayout)
+         return;
+       state_.InputAssembler.InputLayout = nullptr;
++    }
++    auto &ia = state_.InputAssembler;
++    auto mask = ia.InputLayout ? ia.InputLayout->GetManagedInputLayout()->input_slot_mask() : 0;
++    if (mask != ia.InputSlotMask) {
++      // Vertex arguments are packed by the slots used by the layout.
++      ia.InputSlotMask = mask;
++      ia.VertexBuffers.set_dirty();
+     }
+     InvalidateRenderPipeline();
+   }
+@@ -2857,6 +2866,8 @@
+   ) override {
+     std::lock_guard<mutex_t> lock(mutex);
+ 
++    if (NumRTVs != D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL && NumRTVs > D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)
++      return;
+     if (!ValidateMultiOutput(NumRTVs, ppRenderTargetViews, NumUAVs, ppUnorderedAccessViews))
+       return;
+ 
+@@ -2868,8 +2879,7 @@
+         return;
+       }
+       auto &BoundRTVs = state_.OutputMerger.RTVs;
+-      constexpr unsigned RTVSlotCount = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+-      for (unsigned rtv_index = 0; rtv_index < RTVSlotCount; rtv_index++) {
++      for (unsigned rtv_index = 0; rtv_index < std::max(NumRTVs, state_.OutputMerger.NumRTVs); rtv_index++) {
+         if (rtv_index < NumRTVs && ppRenderTargetViews[rtv_index]) {
+           auto rtv = static_cast<D3D11RenderTargetView *>(ppRenderTargetViews[rtv_index]);
+           if (BoundRTVs[rtv_index].ptr() == rtv)
+@@ -2996,14 +3006,10 @@
+     std::lock_guard<mutex_t> lock(mutex);
+ 
+     bool should_invalidate_pipeline = false;
+-    if (auto expected = com_cast<IMTLD3D11BlendState>(pBlendState)) {
++    if (state_.OutputMerger.BlendState != pBlendState) {
++      auto expected = com_cast<IMTLD3D11BlendState>(pBlendState);
+       if (expected.ptr() != state_.OutputMerger.BlendState) {
+         state_.OutputMerger.BlendState = expected.ptr();
+-        should_invalidate_pipeline = true;
+-      }
+-    } else {
+-      if (state_.OutputMerger.BlendState) {
+-        state_.OutputMerger.BlendState = nullptr;
+         should_invalidate_pipeline = true;
+       }
+     }
+@@ -3046,14 +3052,12 @@
+   OMSetDepthStencilState(ID3D11DepthStencilState *pDepthStencilState, UINT StencilRef) override {
+     std::lock_guard<mutex_t> lock(mutex);
+ 
+-    auto expected = com_cast<IMTLD3D11DepthStencilState>(pDepthStencilState);
+-    if (state_.OutputMerger.DepthStencilState == expected.ptr() && state_.OutputMerger.StencilRef == StencilRef)
+-      return;
+-
+-    if (expected) {
+-      state_.OutputMerger.DepthStencilState = expected.ptr();
++    if (state_.OutputMerger.DepthStencilState == pDepthStencilState) {
++      if (state_.OutputMerger.StencilRef == StencilRef)
++        return;
+     } else {
+-      state_.OutputMerger.DepthStencilState = nullptr;
++      auto expected = com_cast<IMTLD3D11DepthStencilState>(pDepthStencilState);
++      state_.OutputMerger.DepthStencilState = expected.ptr();
+     }
+     state_.OutputMerger.StencilRef = StencilRef;
+     dirty_state.set(DirtyState::DepthStencilState);
+@@ -3085,6 +3089,8 @@
+   RSSetState(ID3D11RasterizerState *pRasterizerState) override {
+     std::lock_guard<mutex_t> lock(mutex);
+ 
++    if (state_.Rasterizer.RasterizerState == pRasterizerState)
++      return;
+     if (pRasterizerState) {
+       if (auto expected = com_cast<IMTLD3D11RasterizerState>(pRasterizerState)) {
+         if (state_.Rasterizer.RasterizerState == expected.ptr())
+@@ -3100,8 +3106,6 @@
+         ERR("RSSetState: invalid ID3D11RasterizerState object.");
+       }
+     } else {
+-      if (!state_.Rasterizer.RasterizerState)
+-        return;
+       if (state_.Rasterizer.RasterizerState->IsScissorEnabled() != default_rasterizer_state->IsScissorEnabled()) {
+         dirty_state.set(DirtyState::Scissors);
+       }
+@@ -3317,13 +3321,13 @@
+   void
+   UploadShaderStageResourceBinding() {
+     auto &ShaderStage = state_.ShaderStages[stage];
+-    if (!ShaderStage.Shader) {
++    const auto *reflection = ShaderStage.Reflection;
++    if (!reflection) {
+       return;
+     }
+     auto &UAVBindingSet = stage == PipelineStage::Compute ? state_.ComputeStageUAV.UAVs : state_.OutputMerger.UAVs;
+ 
+-    auto managed_shader = ShaderStage.Shader->GetManagedShader();
+-    const MTL_SHADER_REFLECTION *reflection = &managed_shader->reflection();
++    auto managed_shader = ShaderStage.Managed;
+ 
+     bool dirty_cbuffer = ShaderStage.ConstantBuffers.any_dirty_masked(reflection->ConstantBufferSlotMask);
+     bool dirty_sampler = ShaderStage.Samplers.any_dirty_masked(reflection->SamplerSlotMask);
+@@ -3357,10 +3361,7 @@
+ 
+   void
+   UpdateVertexBuffer() {
+-    if (!state_.InputAssembler.InputLayout)
+-      return;
+-
+-    uint32_t slot_mask = state_.InputAssembler.InputLayout->GetManagedInputLayout()->input_slot_mask();
++    uint32_t slot_mask = state_.InputAssembler.InputSlotMask;
+     if (slot_mask == 0) // effectively empty input layout
+       return;
+ 
+@@ -3415,12 +3416,14 @@
+ 
+     auto &ShaderStage = state_.ShaderStages[stage];
+ 
++    if (ShaderStage.Shader.ptr() == pShader)
++      return;
+     if (pShader) {
+       if (auto expected = com_cast<IMTLD3D11Shader>(pShader)) {
+-        if (ShaderStage.Shader.ptr() == expected.ptr()) {
+-          return;
+-        }
+-        ShaderStage.Shader = std::move(expected);
++        ShaderStage.Shader = pShader;
++        ShaderStage.Managed = expected->GetManagedShader();
++        // A stream-output-only geometry shader has no bytecode or bindings.
++        ShaderStage.Reflection = ShaderStage.Managed ? &ShaderStage.Managed->reflection() : nullptr;
+         ShaderStage.ConstantBuffers.set_dirty();
+         ShaderStage.SRVs.set_dirty();
+         ShaderStage.Samplers.set_dirty();
+@@ -3436,9 +3439,9 @@
+         D3D11_ASSERT(0 && "unexpected shader object");
+       }
+     } else {
+-      if (!ShaderStage.Shader)
+-        return;
+       ShaderStage.Shader = nullptr;
++      ShaderStage.Managed = nullptr;
++      ShaderStage.Reflection = nullptr;
+     }
+ 
+     if (NumClassInstances)
+@@ -4973,8 +4976,7 @@
+   template <PipelineStage Type>
+   ManagedShader
+   GetManagedShader() {
+-    auto ptr = state_.ShaderStages[Type].Shader.ptr();
+-    return ptr ? ptr->GetManagedShader() : nullptr;
++    return state_.ShaderStages[Type].Managed;
+   };
+ 
+   template <bool IndexedDraw>
+@@ -5275,9 +5277,6 @@
+         cmd.stencil_ref = stencil_ref;
+       });
+     }
+-    IMTLD3D11RasterizerState *current_rs =
+-        state_.Rasterizer.RasterizerState ? state_.Rasterizer.RasterizerState : default_rasterizer_state;
+-    bool allow_scissor = current_rs->IsScissorEnabled();
+     if (dirty_state.any(DirtyState::Viewport)) {
+       auto viewports = AllocateCommandData<WMTViewport>(state_.Rasterizer.NumViewports);
+       for (unsigned i = 0; i < state_.Rasterizer.NumViewports; i++) {
+@@ -5293,6 +5292,8 @@
+       });
+     }
+     if (dirty_state.any(DirtyState::Scissors)) {
++      auto *current_rs = state_.Rasterizer.RasterizerState ? state_.Rasterizer.RasterizerState : default_rasterizer_state;
++      bool allow_scissor = current_rs->IsScissorEnabled();
+       auto render_target_width = state_.OutputMerger.RenderTargetWidth == 0
+                                      ? (UINT)state_.Rasterizer.viewports[0].Width
+                                      : state_.OutputMerger.RenderTargetWidth;
+--- a/src/d3d11/d3d11_context_state.hpp
++++ b/src/d3d11/d3d11_context_state.hpp
+@@ -76,7 +76,9 @@
+   SRVBindingSet SRVs;
+   SamplerBindingSet Samplers;
+   ConstantBufferBindingSet ConstantBuffers;
+-  Com<IMTLD3D11Shader> Shader;
++  Com<ID3D11DeviceChild> Shader;
++  ManagedShader Managed = nullptr;
++  const MTL_SHADER_REFLECTION *Reflection = nullptr;
+ };
+ 
+ struct VERTEX_BUFFER_B {
+@@ -95,6 +97,7 @@
+ 
+ struct D3D11InputAssemblerStageState {
+   Com<IMTLD3D11InputLayout> InputLayout;
++  uint32_t InputSlotMask = 0;
+   BindingSet<VERTEX_BUFFER_B, 16> VertexBuffers;
+   Com<D3D11ResourceCommon, false> IndexBuffer;
+   /**
+@@ -213,4 +216,4 @@
+   }
+ };
+ 
+-} // namespace dxmt
+\ No newline at end of file
++} // namespace dxmt
+--- a/src/dxmt/dxmt_buffer.hpp
++++ b/src/dxmt/dxmt_buffer.hpp
+@@ -89,7 +89,7 @@
+   WMT::Reference<WMT::Texture> texture;
+   uint64_t gpu_resource_id;
+   uint64_t suballocation_texel;
+-  DXMT_RESOURCE_RESIDENCY_STATE residency{};
++  mutable DXMT_RESOURCE_RESIDENCY_STATE residency{};
+ 
+   BufferView(WMT::Reference<WMT::Texture> &&texture, uint64_t gpu_resource_id, uint64_t suballocation_texel) :
+       texture(std::move(texture)),
+@@ -252,4 +252,4 @@
+   uint32_t elementCount = 0;
+ };
+ 
+-} // namespace dxmt
+\ No newline at end of file
++} // namespace dxmt
+--- a/src/dxmt/dxmt_context.cpp
++++ b/src/dxmt/dxmt_context.cpp
+@@ -106,7 +106,7 @@
+     entries[index].stride = state.stride;
+     entries[index++].length = valid_length;
+     // FIXME: did we intended to use the whole buffer?
+-    makeResident<PipelineStage::Vertex, kind>(buffer.ptr());
++    makeResident<PipelineStage::Vertex, kind>(buffer_alloc);
+   };
+   {
+     auto &cmd = encodeRenderCommand<wmtcmd_render_setbufferoffset>();
+@@ -140,7 +140,7 @@
+     auto [buffer_alloc, buffer_offset] = access<PipelineStage::Vertex>(buffer, state.offset, 0, ResourceAccess::Write);
+     entries[slot].buffer_handle = buffer_alloc->gpuAddress() + buffer_offset + state.offset;
+     entries[slot].counter_handle = 0; // TODO(stream-output): counter & buffer_filled_size
+-    makeResident<PipelineStage::Vertex, PipelineKind::Ordinary>(buffer.ptr(), false, true);
++    makeResident<PipelineStage::Vertex, PipelineKind::Ordinary>(buffer_alloc, false, true);
+   };
+   {
+     auto &cmd = encodeRenderCommand<wmtcmd_render_setbufferoffset>();
+@@ -220,11 +220,11 @@
+         makeResident<stage, kind>(dummy_cbuffer_, GetResidencyMask<kind>(stage, true, false));
+         continue;
+       }
+-      auto argbuf = cbuf.buffer;
++      const auto &argbuf = cbuf.buffer;
+       auto valid_length = argbuf->length() > cbuf.offset ? argbuf->length() - cbuf.offset : 0;
+       auto [argbuf_alloc, argbuf_offset] = access<stage>(argbuf, cbuf.offset, valid_length, ResourceAccess::Read);
+       encoded_buffer[arg.StructurePtrOffset] = argbuf_alloc->gpuAddress() + argbuf_offset + cbuf.offset;
+-      makeResident<stage, kind>(argbuf.ptr());
++      makeResident<stage, kind>(argbuf_alloc);
+       break;
+     }
+     default:
+@@ -338,7 +338,7 @@
+           auto [srv_alloc, offset] = access<stage>(srv.buffer, srv.slice.byteOffset, srv.slice.byteLength, ResourceAccess::Read);
+           encoded_buffer[arg.StructurePtrOffset] = srv_alloc->gpuAddress() + offset + srv.slice.byteOffset;
+           encoded_buffer[arg.StructurePtrOffset + 1] = srv.slice.byteLength;
+-          makeResident<stage, kind>(srv.buffer.ptr());
++          makeResident<stage, kind>(srv_alloc);
+         } else {
+           encoded_buffer[arg.StructurePtrOffset] = 0;
+           encoded_buffer[arg.StructurePtrOffset + 1] = 0;
+@@ -350,14 +350,14 @@
+           encoded_buffer[arg.StructurePtrOffset] = view.gpu_resource_id;
+           encoded_buffer[arg.StructurePtrOffset + 1] =
+               ((uint64_t)srv.slice.elementCount << 32) | (uint64_t)(srv.slice.firstElement + offset);
+-          makeResident<stage, kind>(srv.buffer.ptr(), srv.viewId);
++          makeResident<stage, kind>(view.texture, view.residency);
+         } else if (srv.texture.ptr()) {
+           assert(arg.Flags & MTL_SM50_SHADER_ARGUMENT_TEXTURE_MINLOD_CLAMP);
+           auto viewIdChecked = srv.texture->checkViewUseArray(srv.viewId, arg.Flags & MTL_SM50_SHADER_ARGUMENT_TEXTURE_ARRAY);
+-          encoded_buffer[arg.StructurePtrOffset] =
+-              access<stage>(srv.texture, viewIdChecked, ResourceAccess::Read).gpuResourceID;
++          auto &view = access<stage>(srv.texture, viewIdChecked, ResourceAccess::Read);
++          encoded_buffer[arg.StructurePtrOffset] = view.gpuResourceID;
+           encoded_buffer[arg.StructurePtrOffset + 1] = TextureMetadata(srv.texture->arrayLength(viewIdChecked), 0);
+-          makeResident<stage, kind>(srv.texture.ptr(), viewIdChecked);
++          makeResident<stage, kind>(view.texture, view.residency);
+         } else {
+           encoded_buffer[arg.StructurePtrOffset] = 0;
+           encoded_buffer[arg.StructurePtrOffset + 1] = 0;
+@@ -378,7 +378,7 @@
+           auto [uav_alloc, offset] = access<stage>(uav.buffer, uav.slice.byteOffset, uav.slice.byteLength, access_flags);
+           encoded_buffer[arg.StructurePtrOffset] = uav_alloc->gpuAddress() + offset + uav.slice.byteOffset;
+           encoded_buffer[arg.StructurePtrOffset + 1] = uav.slice.byteLength;
+-          makeResident<stage, kind>(uav.buffer.ptr(), read, write);
++          makeResident<stage, kind>(uav_alloc, read, write);
+         } else {
+           encoded_buffer[arg.StructurePtrOffset] = 0;
+           encoded_buffer[arg.StructurePtrOffset + 1] = 0;
+@@ -390,13 +390,14 @@
+           encoded_buffer[arg.StructurePtrOffset] = view.gpu_resource_id;
+           encoded_buffer[arg.StructurePtrOffset + 1] =
+               ((uint64_t)uav.slice.elementCount << 32) | (uint64_t)(uav.slice.firstElement + offset);
+-          makeResident<stage, kind>(uav.buffer.ptr(), uav.viewId, read, write);
++          makeResident<stage, kind>(view.texture, view.residency, read, write);
+         } else if (uav.texture.ptr()) {
+           assert(arg.Flags & MTL_SM50_SHADER_ARGUMENT_TEXTURE_MINLOD_CLAMP);
+           auto viewIdChecked = uav.texture->checkViewUseArray(uav.viewId, arg.Flags & MTL_SM50_SHADER_ARGUMENT_TEXTURE_ARRAY);
+-          encoded_buffer[arg.StructurePtrOffset] = access<stage>(uav.texture, viewIdChecked, access_flags).gpuResourceID;
++          auto &view = access<stage>(uav.texture, viewIdChecked, access_flags);
++          encoded_buffer[arg.StructurePtrOffset] = view.gpuResourceID;
+           encoded_buffer[arg.StructurePtrOffset + 1] = TextureMetadata(uav.texture->arrayLength(viewIdChecked), 0);
+-          makeResident<stage, kind>(uav.texture.ptr(), viewIdChecked, read, write);
++          makeResident<stage, kind>(view.texture, view.residency, read, write);
+         } else {
+           encoded_buffer[arg.StructurePtrOffset] = 0;
+           encoded_buffer[arg.StructurePtrOffset + 1] = 0;
+@@ -406,7 +407,7 @@
+         if (uav.counter) {
+           auto [counter_alloc, offset] = access<stage>(uav.counter);
+           encoded_buffer[arg.StructurePtrOffset + 2] = counter_alloc->gpuAddress() + offset;
+-          makeResident<stage, kind>(uav.counter.ptr());
++          makeResident<stage, kind>(counter_alloc, true, true);
+         } else {
+           /*
+            * potentially cause gpu pagefault, even providing a dummy buffer doesn't improve since the returned
+--- a/src/dxmt/dxmt_context.hpp
++++ b/src/dxmt/dxmt_context.hpp
+@@ -561,47 +561,19 @@
+       cmd.usage = GetUsageFromResidencyMask(requested);
+       cmd.stages = GetStagesFromResidencyMask(requested);
+     }
+-  }
+-  template <PipelineStage stage, PipelineKind kind>
+-  void
+-  makeResident(Counter *counter) {
+-    auto allocation = getCounterAllocation(counter)->buffer();
+-    uint64_t encoder_id = currentEncoder()->id;
+-    DXMT_RESOURCE_RESIDENCY requested = GetResidencyMask<kind>(stage, true, true);
+-    if (CheckResourceResidency(allocation->residencyState, encoder_id, requested)) {
+-      makeResident<stage, kind>(allocation->buffer(), requested);
+-    };
+   }
+   template <PipelineStage stage, PipelineKind kind>
+   void
+-  makeResident(Buffer *buffer, bool read = true, bool write = false) {
+-    auto allocation = buffer->current();
+-    uint64_t encoder_id = currentEncoder()->id;
+-    DXMT_RESOURCE_RESIDENCY requested = GetResidencyMask<kind>(stage, read, write);
+-    if (CheckResourceResidency(allocation->residencyState, encoder_id, requested)) {
+-      makeResident<stage, kind>(allocation->buffer(), requested);
+-    };
++  makeResident(WMT::Resource resource, DXMT_RESOURCE_RESIDENCY_STATE &state, bool read = true, bool write = false) {
++    auto requested = GetResidencyMask<kind>(stage, read, write);
++    if (CheckResourceResidency(state, currentEncoder()->id, requested))
++      makeResident<stage, kind>(resource, requested);
+   }
++
+   template <PipelineStage stage, PipelineKind kind>
+   void
+-  makeResident(Buffer *buffer, uint64_t viewId, bool read = true, bool write = false) {
+-    auto allocation = buffer->current();
+-    uint64_t encoder_id = currentEncoder()->id;
+-    DXMT_RESOURCE_RESIDENCY requested = GetResidencyMask<kind>(stage, read, write);
+-    if (CheckResourceResidency(buffer->residency(viewId, allocation), encoder_id, requested)) {
+-      makeResident<stage, kind>(buffer->view(viewId, allocation), requested);
+-    };
+-  }
+-  template <PipelineStage stage, PipelineKind kind>
+-  void
+-  makeResident(Texture *texture, uint64_t viewId, bool read = true, bool write = false) {
+-    auto allocation = texture->current();
+-    uint64_t encoder_id = currentEncoder()->id;
+-    DXMT_RESOURCE_RESIDENCY requested = GetResidencyMask<kind>(stage, read, write);
+-    auto &view = texture->view(viewId, allocation);
+-    if (CheckResourceResidency(view.residency, encoder_id, requested)) {
+-      makeResident<stage, kind>(view.texture, requested);
+-    };
++  makeResident(BufferAllocation *allocation, bool read = true, bool write = false) {
++    makeResident<stage, kind>(allocation->buffer(), allocation->residencyState, read, write);
+   }
+ 
+   template <typename cmd_struct>
+--- a/src/dxmt/dxmt_texture.cpp
++++ b/src/dxmt/dxmt_texture.cpp
+@@ -253,10 +253,13 @@
+ }
+ 
+ TextureViewKey Texture::checkViewUseArray(TextureViewKey key, bool isArray) {
++  static constexpr uint32_t ARRAY_TYPE_MASK = 0b0101001010;
++  // Descriptor zero is the original texture type and never changes.
++  if (key.index == 0 && bool((1u << uint32_t(info_.type)) & ARRAY_TYPE_MASK) == isArray)
++    return key;
+   std::shared_lock<dxmt::shared_mutex> shared_lock(mutex_);
+   auto view = viewDescriptors_[key.index];
+   shared_lock = {};
+-  static constexpr uint32_t ARRAY_TYPE_MASK = 0b0101001010;
+   if (unlikely(bool((1 << uint32_t(view.type)) & ARRAY_TYPE_MASK) != isArray)) {
+     // TODO: this process can be cached
+     auto new_view_desc = view;
+@@ -360,4 +363,4 @@
+   return allocations_[current_index];
+ }
+ 
+-} // namespace dxmt
+\ No newline at end of file
++} // namespace dxmt

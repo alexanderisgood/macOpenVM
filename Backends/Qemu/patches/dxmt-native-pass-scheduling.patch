@@ -1,0 +1,258 @@
+--- a/src/dxmt/dxmt_context.hpp
++++ b/src/dxmt/dxmt_context.hpp
+@@ -328,6 +328,8 @@
+ enum DXMT_ENCODER_LIST_OP {
+   DXMT_ENCODER_LIST_OP_SWAP = 0,
+   DXMT_ENCODER_LIST_OP_SYNCHRONIZE = 1,
++  DXMT_ENCODER_LIST_OP_CONSUMED_FORMER,
++  DXMT_ENCODER_LIST_OP_CONSUMED_LATTER,
+ };
+ 
+ class CommandQueue;
+@@ -902,10 +904,8 @@
+   void *dummy_cbuffer_host_;
+   WMTBufferInfo dummy_cbuffer_info_;
+ 
+-  EncoderData encoder_head = {EncoderType::Null, nullptr, ~0ull};
+-  EncoderData *encoder_last = &encoder_head;
++  EncoderData *encoder_last = nullptr;
+   EncoderData *encoder_current = nullptr;
+-  unsigned encoder_count_ = 0;
+   
+   uint64_t encoder_id_ = kParityLane; // actually important to not start from 0
+   std::array<WMT::Reference<WMT::Fence>, kParityLane> fence_pool_;
+@@ -1041,4 +1041,4 @@
+   return;
+ }
+ 
+-} // namespace dxmt
+\ No newline at end of file
++} // namespace dxmt
+--- a/src/dxmt/dxmt_context.cpp
++++ b/src/dxmt/dxmt_context.cpp
+@@ -700,7 +700,7 @@
+ void
+ ArgumentEncodingContext::endPass() {
+   assert(encoder_current);
+-  encoder_last->next = encoder_current;
++  encoder_current->next = encoder_last;
+   encoder_last = encoder_current;
+ 
+   if (encoder_current->id != ~0ull) {
+@@ -730,7 +730,6 @@
+   }
+ 
+   encoder_current = nullptr;
+-  encoder_count_++;
+ }
+ 
+ std::pair<WMT::Buffer, size_t>
+@@ -856,40 +855,35 @@
+   seq_id_ = seq_id;
+   frame_id_ = frame_id;
+ }
+-
+-constexpr unsigned kEncoderOptimizerThreshold = 64;
+ 
+ QueryReadbacks
+ ArgumentEncodingContext::flushCommands(WMT::CommandBuffer cmdbuf, uint64_t seqId, uint64_t event_seq_id) {
+   assert(!encoder_current);
+-
+-  unsigned encoder_count = encoder_count_;
+-  unsigned encoder_index = 0;
+-  EncoderData **encoders =
+-      reinterpret_cast<EncoderData **>(allocate_cpu_heap(sizeof(EncoderData *) * encoder_count, alignof(EncoderData *))
+-      );
+-
+-  {
+-    EncoderData *current = encoder_head.next;
+-    while (current) {
+-      encoders[encoder_index++] = current;
+-      current = current->next;
+-    }
+-    assert(encoder_index == encoder_count);
+-  }
+ 
+-  if (encoder_count > 1) {
+-    unsigned j, i;
+-    for (j = encoder_count - 2; j != ~0u; j--) {
+-      // TODO(fences): we don't actively move encoders other than clear and render
+-      if (encoders[j]->type != EncoderType::Clear && encoders[j]->type != EncoderType::Render)
+-        continue;
+-      for (i = j + 1; i < encoder_count; i++) {
+-        if (encoders[i]->type == EncoderType::Null)
+-          continue;
+-        if (checkEncoderRelation(encoders[j], encoders[i]) == DXMT_ENCODER_LIST_OP_SYNCHRONIZE)
++  EncoderData *live = nullptr;
++  while (encoder_last) {
++    auto *former = encoder_last;
++    encoder_last = former->next;
++    if (former->type == EncoderType::Clear || former->type == EncoderType::Render) {
++      auto **link = &live;
++      while (auto *latter = *link) {
++        auto *next = latter->next;
++        auto relation = checkEncoderRelation(former, latter);
++        if (relation == DXMT_ENCODER_LIST_OP_CONSUMED_FORMER) {
++          former = nullptr;
+           break;
++        }
++        if (relation == DXMT_ENCODER_LIST_OP_SYNCHRONIZE)
++          break;
++        if (relation == DXMT_ENCODER_LIST_OP_CONSUMED_LATTER)
++          *link = next;
++        else
++          link = &latter->next;
+       }
++    }
++    if (former) {
++      former->next = live;
++      live = former;
+     }
+   }
+ 
+@@ -915,8 +909,9 @@
+ 
+   readbacks.timestamp = timestamp_state_.flush(cmdbuf);
+ 
+-  while (encoder_index) {
+-    auto current = encoders[encoder_count - encoder_index];
++  while (live) {
++    auto *current = live;
++    live = current->next;
+     switch (current->type) {
+     case EncoderType::Render: {
+       auto data = static_cast<RenderEncoderData *>(current);
+@@ -1265,11 +1260,7 @@
+     default:
+       break;
+     }
+-    encoder_index--;
+   }
+-  encoder_head.next = nullptr;
+-  encoder_last = &encoder_head;
+-  encoder_count_ = 0;
+ 
+   cmdbuf.encodeSignalEvent(queue_.event, event_seq_id);
+ 
+@@ -1331,9 +1322,7 @@
+           render->fence_wait.subtract(clear->fence_update);
+           currentFrameStatistics().clear_pass_optimized++;
+           clear->~ClearEncoderData();
+-          clear->next = nullptr;
+-          clear->type = EncoderType::Null;
+-          return DXMT_ENCODER_LIST_OP_SYNCHRONIZE;
++          return DXMT_ENCODER_LIST_OP_CONSUMED_FORMER;
+         }
+       } else {
+         if (auto attachment = isClearColorSignatureMatched(clear, render)) {
+@@ -1346,9 +1335,7 @@
+           render->fence_wait.subtract(clear->fence_update);
+           currentFrameStatistics().clear_pass_optimized++;
+           clear->~ClearEncoderData();
+-          clear->next = nullptr;
+-          clear->type = EncoderType::Null;
+-          return DXMT_ENCODER_LIST_OP_SYNCHRONIZE;
++          return DXMT_ENCODER_LIST_OP_CONSUMED_FORMER;
+         }
+       }
+       break;
+@@ -1377,9 +1364,7 @@
+ 
+         currentFrameStatistics().resolve_pass_optimized++;
+         resolve->~ResolveEncoderData();
+-        resolve->next = nullptr;
+-        resolve->type = EncoderType::Null;
+-        return DXMT_ENCODER_LIST_OP_SWAP; // carry on (RENDER -> RESOLVE -> RESOLVE -> ...)
++        return DXMT_ENCODER_LIST_OP_CONSUMED_LATTER;
+       }
+     }
+     return hasDataDependency(latter, former) ? DXMT_ENCODER_LIST_OP_SYNCHRONIZE : DXMT_ENCODER_LIST_OP_SWAP;
+@@ -1445,10 +1430,7 @@
+ 
+       currentFrameStatistics().render_pass_optimized++;
+       r0->~RenderEncoderData();
+-      r0->next = nullptr;
+-      r0->type = EncoderType::Null;
+-
+-      return DXMT_ENCODER_LIST_OP_SYNCHRONIZE;
++      return DXMT_ENCODER_LIST_OP_CONSUMED_FORMER;
+     }
+   }
+ 
+@@ -1601,4 +1583,4 @@
+   return ret;
+ }
+ 
+-} // namespace dxmt
+\ No newline at end of file
++} // namespace dxmt
+--- a/src/dxmt/dxmt_deptrack.hpp
++++ b/src/dxmt/dxmt_deptrack.hpp
+@@ -87,6 +87,8 @@
+   test(EncoderId id) const {
+     return storage_[PARITY(id)] & (1ull << LANE(id));
+   }
++
++  constexpr LaneStorage lanesAt(unsigned parity) const { return storage_[parity]; }
+ 
+   constexpr bool
+   testAndSet(EncoderId id) {
+--- a/src/dxmt/dxmt_deptrack.cpp
++++ b/src/dxmt/dxmt_deptrack.cpp
+@@ -1,4 +1,5 @@
+ #include "dxmt_deptrack.hpp"
++#include <bit>
+ #include <cassert>
+ 
+ namespace dxmt {
+@@ -269,26 +270,37 @@
+ 
+   FenceSet minimal_fences;
+   FenceSet accessible_fences;
+-
+-  constexpr auto start_offset = kParityLane == 1 ? 0 : 1;
+ 
+-  for (auto offset = start_offset; offset < kParityLane; offset++) {
+-    EncoderId prev_encoder_id = id - offset;
+-
+-    if (full_fences.test(prev_encoder_id) && !accessible_fences.testAndSet(prev_encoder_id))
+-      minimal_fences.set(prev_encoder_id);
+-    if (accessible_fences.test(prev_encoder_id))
+-      accessible_fences.merge(summary_[prev_encoder_id % kParityLane]);
++  // Walk one ring in descending order, including when the absolute ID wraps.
++  const EncoderId limit = kParityLane + id % kParityLane;
++  EncoderId cursor = limit + kParityLane - 1;
++  while (cursor > limit) {
++    const auto parity = PARITY(cursor);
++    const auto lane = LANE(cursor);
++    const auto candidates = full_fences.lanesAt(parity) & (kAllLaneMask >> (kLane - 1 - lane));
++    if (candidates) {
++      cursor -= lane - (std::bit_width(candidates) - 1);
++      break;
++    }
++    cursor -= lane + 1;
++  }
++  for (; cursor > limit; --cursor) {
++    if (!accessible_fences.test(cursor)) {
++      if (!full_fences.test(cursor))
++        continue;
++      minimal_fences.set(cursor);
++      accessible_fences.set(cursor);
++    }
++    accessible_fences.merge(summary_[cursor % kParityLane]);
+     if (accessible_fences.contains(full_fences))
+       break;
+   }
+ 
+-  summary_[id % kParityLane] = full_fences;
+-
+   if (implicit_pre_raster_wait)
+     minimal_fences.unset(id - 1);
+ 
++  summary_[id % kParityLane] = full_fences;
+   return minimal_fences;
+ }
+ 
+-} // namespace dxmt
+\ No newline at end of file
++} // namespace dxmt

@@ -1,0 +1,105 @@
+--- a/src/d3d11/d3d11_context_impl.cpp
++++ b/src/d3d11/d3d11_context_impl.cpp
+@@ -3359,6 +3359,24 @@
+     }
+   }
+ 
++  // A discard renames the backing allocation. Only tables which refer to
++  // that buffer need their GPU addresses encoded again on the next draw.
++  void
++  InvalidateRenamedBufferBindings(Buffer *buffer, UINT bind_flags) {
++    auto invalidate = [buffer](auto &bindings) {
++      for (const auto &[slot, entry] : bindings) {
++        if (entry.Buffer->buffer().ptr() == buffer)
++          bindings.set_dirty(slot);
++      }
++    };
++    if (bind_flags & D3D11_BIND_VERTEX_BUFFER)
++      invalidate(state_.InputAssembler.VertexBuffers);
++    if (bind_flags & D3D11_BIND_CONSTANT_BUFFER) {
++      for (auto &stage : state_.ShaderStages)
++        invalidate(stage.ConstantBuffers);
++    }
++  }
++
+   void
+   UpdateVertexBuffer() {
+     uint32_t slot_mask = state_.InputAssembler.InputSlotMask;
+--- a/src/d3d11/d3d11_context_imm.cpp
++++ b/src/d3d11/d3d11_context_imm.cpp
+@@ -152,14 +152,7 @@
+       case D3D11_MAP_READ_WRITE:
+         return E_INVALIDARG;
+       case D3D11_MAP_WRITE_DISCARD: {
+-        if (bind_flag & D3D11_BIND_VERTEX_BUFFER) {
+-          state_.InputAssembler.VertexBuffers.set_dirty();
+-        }
+-        if (bind_flag & D3D11_BIND_CONSTANT_BUFFER) {
+-          for (auto &stage : state_.ShaderStages) {
+-            stage.ConstantBuffers.set_dirty();
+-          }
+-        }
++        InvalidateRenamedBufferBindings(dynamic->buffer, bind_flag);
+         if (bind_flag & D3D11_BIND_SHADER_RESOURCE) {
+           for (auto &stage : state_.ShaderStages) {
+             stage.SRVs.set_dirty();
+@@ -261,6 +254,10 @@
+           return S_OK;
+         }
+         if (MapFlags & D3D11_MAP_FLAG_DO_NOT_WAIT) {
++          // A polling caller may never issue another command. Submit the
++          // required chunk once, without flushing later unrelated work.
++          if (coherent_seq_id + uint64_t(result) == current_seq_id)
++            Flush();
+           return DXGI_ERROR_WAS_STILL_DRAWING;
+         }
+         // even it's in a while loop
+--- a/src/d3d11/d3d11_context_def.cpp
++++ b/src/d3d11/d3d11_context_def.cpp
+@@ -158,14 +158,7 @@
+       case D3D11_MAP_READ_WRITE:
+         return E_INVALIDARG;
+       case D3D11_MAP_WRITE_DISCARD: {
+-        if (bind_flag & D3D11_BIND_VERTEX_BUFFER) {
+-          state_.InputAssembler.VertexBuffers.set_dirty();
+-        }
+-        if (bind_flag & D3D11_BIND_CONSTANT_BUFFER) {
+-          for (auto &stage : state_.ShaderStages) {
+-            stage.ConstantBuffers.set_dirty();
+-          }
+-        }
++        InvalidateRenamedBufferBindings(dynamic->buffer, bind_flag);
+         if (bind_flag & D3D11_BIND_SHADER_RESOURCE) {
+           for (auto &stage : state_.ShaderStages) {
+             stage.SRVs.set_dirty();
+--- a/src/d3d11/d3d11_context_state.hpp
++++ b/src/d3d11/d3d11_context_state.hpp
+@@ -98,7 +98,7 @@
+ struct D3D11InputAssemblerStageState {
+   Com<IMTLD3D11InputLayout> InputLayout;
+   uint32_t InputSlotMask = 0;
+-  BindingSet<VERTEX_BUFFER_B, 16> VertexBuffers;
++  BindingSet<VERTEX_BUFFER_B, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT> VertexBuffers;
+   Com<D3D11ResourceCommon, false> IndexBuffer;
+   /**
+   either DXGI_FORMAT_R16_UINT or DXGI_FORMAT_R32_UINT
+--- a/src/dxmt/dxmt_context.cpp
++++ b/src/dxmt/dxmt_context.cpp
+@@ -84,13 +84,12 @@
+     uint32_t stride;
+     uint32_t length;
+   };
+-  uint32_t max_slot = 32 - __builtin_clz(slot_mask);
+-
+   VERTEX_BUFFER_ENTRY *entries = getMappedArgumentBuffer<VERTEX_BUFFER_ENTRY>(offset);
+ 
+-  for (unsigned slot = 0, index = 0; slot < max_slot; slot++) {
+-    if (!(slot_mask & (1 << slot)))
+-      continue;
++  unsigned index = 0;
++  while (slot_mask) {
++    const unsigned slot = __builtin_ctz(slot_mask);
++    slot_mask &= slot_mask - 1;
+     auto &state = vbuf_[slot];
+     auto &buffer = state.buffer;
+     if (!buffer.ptr()) {
