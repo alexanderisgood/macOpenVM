@@ -33,5 +33,6 @@ docs/checkpoints/
 *.key
 *.p8
 
-# Keep Markdown files local.
+# Keep local Markdown notes out of Git, while publishing the project README.
 *.[mM][dD]
+!/README.md
