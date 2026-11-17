@@ -165,3 +165,43 @@ License basis: Explicit LGPL-2.1-or-later notice in the modified source
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
+
+========================================================================
+Target: src/dxmt/dxmt_tasks.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: e8cab7e01d1257c4c7c532048033b7455c2ac53eea3fa0aee730bbc692ed025f
+License basis: Upstream project license
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: src/winemetal/unix/winemetal_unix.c
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: b9a71675263bc1ccfbe44078ea61323d93483b69e8424fab1c82df6edd6ae3df
+License basis: Upstream project license
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: src/dxmt/dxmt_ring_bump_allocator.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 8cd469b634eb5be1100f4f928cb0159114a16f334973209743190531cdcbb74e
+License basis: Upstream project license
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: src/d3d11/d3d11_shader.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 69dc8dc98a4c91b2807a150c3f19f6a5033fc7b8cde745f37ee20ec7806402d3
+License basis: Upstream project license
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]
+
+========================================================================
+Target: src/d3d11/d3d11_pipeline.hpp
+Upstream version: 66e27f3759ff79e41a791ec40e2a70ef6d0c964c
+Retained source bytes SHA-256: 8f8796c7ed0bb8ea16667e0d9b80f25716c0a7853c3b318c4966ee488a9f2e88
+License basis: Upstream project license
+
+[No leading file-specific copyright/license notice. Project license basis is recorded in patch-license-map.json.]

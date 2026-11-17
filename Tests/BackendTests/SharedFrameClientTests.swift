@@ -44,7 +44,7 @@ import Testing
     window.contentView = nil
     replacement.contentView = nil
   }
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   let renderer = try #require(view.sharedRendererForValidation())
   let surface = try #require(view.subviews.first as? SharedFrameMetalSurface)
   let layer = try #require(surface.layer as? CAMetalLayer)
@@ -54,10 +54,11 @@ import Testing
     #expect(layer.drawableSize == view.convertToBacking(view.bounds).size)
   }
   expectGeometry(in: window)
-  // Stable frames must preserve actual layer geometry and independent GPU copies.
-  _ = try await view.presentShared(frame)
+  // Stable frames preserve actual layer geometry while borrowing the source.
+  try await view.presentShared(frame)
   expectGeometry(in: window)
-  #expect((await renderer.drawableRetryStateForValidation()).copies == 2)
+  let delivery = await renderer.drawableRetryStateForValidation()
+  #expect(delivery.directFrames == 2 && delivery.copies == 0)
 
   view.setFrameSize(NSSize(width: 80, height: 48))
   expectGeometry(in: window)
@@ -65,7 +66,7 @@ import Testing
   expectGeometry(in: window)
   // The next receipt must reconcile a bounds origin even without a size callback.
   view.setBoundsOrigin(NSPoint(x: 7, y: 11))
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   expectGeometry(in: window)
   #expect(surface.frame.origin == NSPoint(x: 7, y: 11))
 
@@ -74,30 +75,30 @@ import Testing
   view.viewDidChangeBackingProperties()
   expectGeometry(in: window)
   window.reportedScale = 3
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   expectGeometry(in: window)
 
   // Each mismatch independently needs repair even when view/window geometry is stable.
   surface.frame = surface.frame.offsetBy(dx: 1, dy: 2)
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   expectGeometry(in: window)
   layer.contentsScale = 9
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   expectGeometry(in: window)
   layer.drawableSize = CGSize(width: 1, height: 1)
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   expectGeometry(in: window)
 
   // Existing renderer, different window/backing context, then a new backing surface.
   window.contentView = nil
   replacement.reportedScale = 2
   replacement.contentView = view
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   expectGeometry(in: replacement)
   #expect(view.sharedRendererForValidation() === renderer)
   #expect(await renderer.drawableRequestsForValidation() == 0)
   view.stopShared()
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   let recreated = try #require(view.subviews.first as? SharedFrameMetalSurface)
   let recreatedLayer = try #require(recreated.layer as? CAMetalLayer)
   #expect(recreated !== surface)
@@ -143,7 +144,7 @@ private final class SharedVisibilityAcquisition: @unchecked Sendable {
     view.stopShared()
     window.contentView = nil
   }
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   #expect(await view.sharedDrawableRequestsForValidation() == 0)
   let renderer = try #require(view.sharedRendererForValidation())
   let acquisition = SharedVisibilityAcquisition()
@@ -151,7 +152,7 @@ private final class SharedVisibilityAcquisition: @unchecked Sendable {
   try await renderer.configureDrawableRetryValidation(
     acquire: { acquisition.acquire() }, schedule: { _, _ in acquisition.recordSchedule() })
   let hidden = await renderer.drawableRetryStateForValidation()
-  #expect(!hidden.active && !hidden.pending && hidden.copies == 1)
+  #expect(!hidden.active && !hidden.pending && hidden.directFrames == 1 && hidden.copies == 0)
   let surface = try #require(view.subviews.first as? SharedFrameMetalSurface)
   #expect(surface.frame == view.bounds)
   #expect(surface.layer is CAMetalLayer)
@@ -159,16 +160,16 @@ private final class SharedVisibilityAcquisition: @unchecked Sendable {
   // No window is shown, and no occlusion notification is posted. The next
   // received frame must reconcile a visibility change missed at attachment.
   window.reportedVisible = true
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   let visible = await renderer.drawableRetryStateForValidation()
-  #expect(visible.active && visible.pending && visible.requests == 1 && visible.copies == 2)
+  #expect(visible.active && visible.pending && visible.requests == 1 && visible.directFrames == 2)
   view.setFrameSize(NSSize(width: 80, height: 48))
   #expect(surface.frame == view.bounds)
   #expect((surface.layer as? CAMetalLayer)?.drawableSize == view.convertToBacking(view.bounds).size)
   window.reportedVisible = false
-  _ = try await view.presentShared(frame)
+  try await view.presentShared(frame)
   let hiddenAgain = await renderer.drawableRetryStateForValidation()
-  #expect(!hiddenAgain.active && hiddenAgain.requests == 1 && hiddenAgain.copies == 3)
+  #expect(!hiddenAgain.active && hiddenAgain.requests == 1 && hiddenAgain.directFrames == 3)
   #expect(hiddenAgain.pending && !hiddenAgain.scheduled)
   acquisition.release()
   let deadline = ContinuousClock.now.advanced(by: .seconds(2))
@@ -178,7 +179,7 @@ private final class SharedVisibilityAcquisition: @unchecked Sendable {
     settled = await renderer.drawableRetryStateForValidation()
   }
   #expect(!settled.pending && !settled.active && !settled.scheduled)
-  #expect(settled.requests == 1 && settled.draws == 0 && settled.copies == 3)
+  #expect(settled.requests == 1 && settled.draws == 0 && settled.copies == 0)
   #expect(acquisition.succeeded)
 }
 
@@ -700,12 +701,15 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
                   raw.bindMemory(to: UInt8.self).baseAddress, raw.count,
                   UInt32((sequence - 1) % 2), 0, 0, 0) == 1)
             }
-            // A hidden native layer must still finish the actual GPU copy so
-            // the producer can reuse its slot, without acquiring a drawable.
-            _ = try await renderer.present(
+            // A hidden layer can retire the previous slot without scheduling
+            // a cache copy or acquiring a drawable.
+            try await renderer.present(
               frame, drawableSize: CGSize(width: size.width, height: size.height),
-              viewport: CGRect(x: 0, y: 0, width: size.width, height: size.height))
+              viewport: CGRect(x: 0, y: 0, width: size.width, height: size.height),
+              presentationActive: false)
             #expect(await renderer.drawableRequestsForValidation() == 0)
+            let delivery = await renderer.drawableRetryStateForValidation()
+            #expect(delivery.directFrames == Int(sequence) && delivery.copies == 0)
             let rendered = try await renderer.renderGeneratedValidation(frame, updateCache: false)
             rendered.withUnsafeBytes { raw in
               #expect(
@@ -731,7 +735,55 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
     }
   }
 
-  @Test(arguments: [0, 1, 2, 3, 4, 5, 6]) func malformedAndUnsafeAttachIsRejected(_ fault: Int)
+  @Test func leasedPoolAcknowledgesTheActualSlotAndRejectsEarlyReuse() async throws {
+    try await withSharedPeer(
+      { fd in
+        let bytes = Int(getpagesize())
+        var pool = MVOFrameFixturePool()
+        var spare = MVOFrameFixturePool()
+        guard mvo_fixture_pool(&pool, bytes, 1) == 0 else { throw RfbPeerError.posix(errno) }
+        defer { mvo_fixture_clear(&pool) }
+        guard mvo_fixture_pool(&spare, bytes, 1) == 0 else { throw RfbPeerError.posix(errno) }
+        defer { mvo_fixture_clear(&spare) }
+        let attach = sharedWire(
+          2, width: 64, height: 64, stride: 256, bytes: UInt32(bytes), slot: 3, format: 1)
+        try rfbWrite(fd, sharedWire(1))
+        guard try rfbRead(fd, 80) == sharedWire(5) else { throw RfbPeerError.wire }
+        try sharedSend(
+          fd, attach, descriptors: [pool.descriptors.0, pool.descriptors.1, spare.descriptors.0],
+          fragment: true)
+        guard try rfbRead(fd, 80) == sharedKind(attach, 4) else { throw RfbPeerError.wire }
+        for (index, slot) in [UInt32(2), 0, 2, 2].enumerated() {
+          let sequence = UInt64(index + 1)
+          let frame = sharedWire(
+            3, sequence: sequence, generation: sequence * 2, width: 64, height: 64, stride: 256,
+            bytes: UInt32(bytes), slot: slot, format: 1, sent: 123)
+          try rfbWrite(fd, frame)
+          if index == 3 {
+            try rfbExpectClosed(fd)
+          } else {
+            guard try rfbRead(fd, 80) == sharedKind(frame, 4),
+              try rfbRead(fd, 80) == sharedWire(5)
+            else { throw RfbPeerError.wire }
+          }
+        }
+      },
+      body: { client in
+        try await client.connect()
+        let first = try await client.nextFrame()
+        let second = try await client.nextFrame(acknowledging: first)
+        let third = try await client.nextFrame(acknowledging: second)
+        #expect(first.mapping !== second.mapping)
+        #expect(first.mapping === third.mapping)
+        await #expect(throws: RFBClientError.unexpectedMessage) {
+          _ = try await client.nextFrame(acknowledging: third)
+        }
+      })
+  }
+
+  @Test(arguments: [0, 1, 2, 3, 4, 5, 6, 7, 8]) func malformedAndUnsafeAttachIsRejected(
+    _ fault: Int
+  )
     async throws
   {
     try await withSharedPeer(
@@ -758,6 +810,11 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
           try rfbWrite(fd, [attach[0]])
           try rfbExpectQuiet(fd, milliseconds: 10)
           attach.removeFirst()
+        }
+        if fault == 7 { descriptors[1] = pool.descriptors.0 }
+        if fault == 8 {
+          attach[56] = 3
+          descriptors.append(pool.descriptors.1)  // Slots 1 and 2 alias.
         }
         try sharedSend(fd, attach, descriptors: descriptors)
         try rfbExpectClosed(fd)
@@ -835,7 +892,8 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
       })
   }
 
-  @Test func ackReconstructionPreservesEveryWireFieldAcrossSlotsAndReattach()
+  @Test(arguments: [false, true])
+  func ackReconstructionPreservesEveryWireFieldAcrossSlotsAndReattach(pipelining: Bool)
     async throws
   {
     let epochs = [sharedEpoch, (0..<16).map { UInt8(truncatingIfNeeded: $0 * 17 + 9) }]
@@ -893,9 +951,10 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
         var retained: SharedFrame?
         for stream in 0..<2 {
           let shape = shapes[stream]
+          var copied: SharedFrame?
           for value in 1...counts[stream] {
             let sequence = UInt64(value)
-            let frame = try await client.nextFrame()
+            let frame = try await client.nextFrame(acknowledging: copied)
             #expect(frame.sequence == sequence)
             #expect(frame.generation == generations[stream] + sequence)
             #expect(frame.sentNanoseconds == timestamps[stream] + sequence)
@@ -918,6 +977,9 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
               await #expect(throws: RFBClientError.unexpectedMessage) {
                 try await client.acknowledge(old)
               }
+              await #expect(throws: RFBClientError.unexpectedMessage) {
+                _ = try await client.nextFrame(acknowledging: old)
+              }
               // The producer has retired this original pool. Its fixed fixture
               // bytes remain readable through the independently retained mapping.
               old.mapping.withUnsafeBytes { raw in
@@ -928,6 +990,10 @@ private func sharedAssemblyPeerEvent(_ fd: Int32) throws {
               }
             }
             await #expect(throws: RFBClientError.busy) { _ = try await client.nextFrame() }
+            if pipelining, value < counts[stream] {
+              copied = frame
+              continue
+            }
             try await client.acknowledge(frame)
             if value == 1 || value == counts[stream] {
               await #expect(throws: RFBClientError.unexpectedMessage) {

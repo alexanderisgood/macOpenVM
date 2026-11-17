@@ -54,6 +54,13 @@ import SwiftUI
               draft.cpuCountText = String(recommendation.cpuCount)
               draft.memoryMiBText = String(recommendation.memoryBytes / 1_048_576)
             }.vmGlassControl()
+            Button("Use graphics CPU allocation") {
+              draft.cpuCountText = String(host.recommendedWindowsGraphicsCPUCount)
+            }.vmGlassControl()
+            Text(
+              "The graphics allocation starts with \(host.recommendedWindowsGraphicsCPUCount) virtual CPUs to leave scheduling capacity for Mac rendering and shader compilation."
+            )
+            .font(.caption).vmSupportingText()
             Text("Windows requires at least 2 CPUs and 4,096 MiB of memory.")
               .font(.caption).vmSupportingText()
           }

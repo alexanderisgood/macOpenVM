@@ -1,0 +1,409 @@
+--- a/ui/mvo-metal-readback.h
++++ b/ui/mvo-metal-readback.h
+@@ -4,6 +4,7 @@
+ #ifndef MVO_METAL_READBACK_H
+ #define MVO_METAL_READBACK_H
+ #include <stdbool.h>
++#include <stddef.h>
+ #include <stdint.h>
+ void *mvo_metal_retain(void *texture);
+ void mvo_metal_release(void *texture);
+@@ -11,4 +12,8 @@
+ uint32_t mvo_metal_format(void *texture);
+ bool mvo_metal_copy(void *texture, uint8_t *target, uint32_t stride,
+                     uint32_t width, uint32_t height, uint32_t x, uint32_t y);
++void *mvo_metal_import_output(void *texture, void *bytes, size_t length);
++bool mvo_metal_can_publish(void *texture);
++bool mvo_metal_publish(void *texture, void *buffer, uint32_t stride,
++                       uint32_t width, uint32_t height, uint32_t x, uint32_t y);
+ #endif
+--- a/ui/mvo-metal-readback.m
++++ b/ui/mvo-metal-readback.m
+@@ -22,6 +22,60 @@
+          t.pixelFormat == MTLPixelFormatBGRA8Unorm_sRGB ||
+          t.pixelFormat == MTLPixelFormatRGBA8Unorm ||
+          t.pixelFormat == MTLPixelFormatRGBA8Unorm_sRGB);
++}
++
++bool mvo_metal_can_publish(void *texture)
++{
++    id<MTLTexture> t = (id<MTLTexture>)texture;
++    return mvo_metal_can_read(texture) &&
++        (t.pixelFormat == MTLPixelFormatBGRA8Unorm ||
++         t.pixelFormat == MTLPixelFormatBGRA8Unorm_sRGB);
++}
++
++void *mvo_metal_import_output(void *texture, void *bytes, size_t length)
++{
++    id<MTLDevice> device = [(id<MTLTexture>)texture device];
++    return [device newBufferWithBytesNoCopy:bytes length:length
++                                    options:MTLResourceStorageModeShared
++                                deallocator:nil];
++}
++
++/* The virtio flush owns the source scanout only for the synchronous call.
++ * Complete the GPU transfer here, before its backing can be reused. */
++bool mvo_metal_publish(void *texture, void *buffer, uint32_t stride,
++                       uint32_t width, uint32_t height, uint32_t x, uint32_t y)
++{
++    static id<MTLCommandQueue> queue;
++    @autoreleasepool {
++        id<MTLTexture> source = (id<MTLTexture>)texture;
++        id<MTLBuffer> target = (id<MTLBuffer>)buffer;
++        if (!mvo_metal_can_publish(texture) || !target ||
++            source.device != target.device || !width || !height ||
++            (uint64_t)width * 4 > stride ||
++            (uint64_t)stride * height > target.length ||
++            x > source.width || y > source.height ||
++            width > source.width - x || height > source.height - y) {
++            return false;
++        }
++        if (queue.device != source.device) {
++            [queue release];
++            queue = [source.device newCommandQueue];
++        }
++        id<MTLCommandBuffer> command = [queue commandBuffer];
++        id<MTLBlitCommandEncoder> blit = [command blitCommandEncoder];
++        if (!blit) {
++            return false;
++        }
++        [blit copyFromTexture:source sourceSlice:0 sourceLevel:0
++                 sourceOrigin:MTLOriginMake(x, y, 0)
++                   sourceSize:MTLSizeMake(width, height, 1)
++                     toBuffer:target destinationOffset:0 destinationBytesPerRow:stride
++     destinationBytesPerImage:(uint64_t)stride * height];
++        [blit endEncoding];
++        [command commit];
++        [command waitUntilCompleted];
++        return command.status == MTLCommandBufferStatusCompleted;
++    }
+ }
+ 
+ uint32_t mvo_metal_format(void *texture)
+--- a/ui/mvo-shared-frame.h
++++ b/ui/mvo-shared-frame.h
+@@ -7,6 +7,10 @@
+ void mvo_shared_frame_update(MVOSharedFrameServer *s, void *owner, int console,
+                             const uint8_t *pixels, uint32_t width, uint32_t height,
+                             uint32_t stride);
++bool mvo_shared_frame_render(MVOSharedFrameServer *s, void *owner, int console,
++                             void *texture, uint32_t width, uint32_t height,
++                             uint32_t x, uint32_t y, void (*refresh)(void *));
++void mvo_shared_frame_request_raster(int console);
+ void mvo_shared_frame_invalidate(MVOSharedFrameServer *s, void *owner);
+ void mvo_shared_frame_selected(int console);
+ #endif
+--- a/ui/mvo-shared-frame.c
++++ b/ui/mvo-shared-frame.c
+@@ -8,6 +8,7 @@
+ #include "qemu/error-report.h"
+ #include "qemu/cutils.h"
+ #include "mvo-shared-frame.h"
++#include "mvo-metal-readback.h"
+ #include <sys/mman.h>
+ #include <sys/stat.h>
+ #include <sys/un.h>
+@@ -16,6 +17,10 @@
+ struct MVOSharedFrameServer {
+     int listener, peer, output_fd[2], input_fd[2];
+     uint8_t *maps[2];
++    void *metal_buffers[2];
++    bool direct_metal;
++    bool reported_metal;
++    void (*refresh_raster)(void *owner);
+     size_t length;
+     uint32_t width, height, stride;
+     void *source_owner;
+@@ -39,11 +44,14 @@
+ static void clear_pool(MVOSharedFrameServer *s)
+ {
+     for (unsigned i=0;i<2;i++) {
++        mvo_metal_release(s->metal_buffers[i]);
++        s->metal_buffers[i]=NULL;
+         if (s->maps[i]) { munmap(s->maps[i],s->length); s->maps[i]=NULL; }
+         if (s->output_fd[i]>=0) { close(s->output_fd[i]);s->output_fd[i]=-1; }
+         if (s->input_fd[i]>=0) { close(s->input_fd[i]);s->input_fd[i]=-1; }
+     }
+     s->length=0;s->width=s->height=s->stride=0;s->attached=false;
++    s->direct_metal=false;
+ }
+ static void close_peer(MVOSharedFrameServer *s)
+ {
+@@ -128,6 +136,14 @@
+     }
+     return true;
+ }
++static void publish_frame(MVOSharedFrameServer *s, unsigned slot)
++{
++    s->sequence++;s->last_generation=s->generation;s->request=false;
++    uint8_t b[PACKET];header(s,b,FRAME);geometry(s,b);
++    stq_le_p(b+24,s->sequence);stq_le_p(b+32,s->generation);stl_le_p(b+56,slot);
++    stq_le_p(b+64,qemu_clock_get_ns(QEMU_CLOCK_REALTIME));start_tx(s,b,false,true);
++}
++
+ static void advance(MVOSharedFrameServer *s)
+ {
+     if (s->peer<0 || !s->request || s->waiting_ack || s->tx_used<PACKET ||
+@@ -153,11 +169,55 @@
+         if (s->reports++<64) error_report("macOpenVM shared host copy: frame=%ux%u copies=120 total_ns=%" PRIu64,s->width,s->height,s->copy_ns);
+         s->copy_count=s->copy_ns=0;
+     }
+-    s->sequence++;s->last_generation=s->generation;s->request=false;
+-    uint8_t b[PACKET];header(s,b,FRAME);geometry(s,b);
+-    stq_le_p(b+24,s->sequence);stq_le_p(b+32,s->generation);stl_le_p(b+56,slot);
+-    stq_le_p(b+64,qemu_clock_get_ns(QEMU_CLOCK_REALTIME));start_tx(s,b,false,true);
+-}
++    publish_frame(s, slot);
++}
++
++bool mvo_shared_frame_render(MVOSharedFrameServer *s, void *owner, int console,
++                             void *texture, uint32_t width, uint32_t height,
++                             uint32_t x, uint32_t y, void (*refresh)(void *))
++{
++    if (!s || s->peer < 0 || !s->attached || console != selected_console ||
++        s->source_owner != owner || s->width != width || s->height != height ||
++        !mvo_metal_can_publish(texture)) {
++        return false;
++    }
++    if (!s->request || s->waiting_ack || s->tx_used != PACKET) {
++        return s->direct_metal;
++    }
++    if (s->sequence == UINT64_MAX || s->generation == UINT64_MAX) {
++        close_peer(s);
++        return false;
++    }
++    unsigned slot = s->sequence % 2;
++    if (!s->metal_buffers[slot]) {
++        s->metal_buffers[slot] = mvo_metal_import_output(texture, s->maps[slot],
++                                                         s->length);
++    }
++    if (!mvo_metal_publish(texture, s->metal_buffers[slot], s->stride,
++                           width, height, x, y)) {
++        s->direct_metal = false;
++        return false;
++    }
++    s->direct_metal = true;
++    s->refresh_raster = refresh;
++    s->generation++;
++    if (!s->reported_metal) {
++        error_report("macOpenVM Metal shared scanout active");
++        s->reported_metal = true;
++    }
++    publish_frame(s, slot);
++    return true;
++}
++
++void mvo_shared_frame_request_raster(int console)
++{
++    MVOSharedFrameServer *s = singleton;
++    if (s && s->source_console == console && s->source_owner &&
++        s->refresh_raster) {
++        s->refresh_raster(s->source_owner);
++    }
++}
++
+ static void read_peer(void *opaque)
+ {
+     MVOSharedFrameServer *s=opaque;
+@@ -250,7 +310,9 @@
+ }
+ void mvo_shared_frame_invalidate(MVOSharedFrameServer *s,void *owner)
+ {
+-    if (s && s->source_owner==owner) { s->source=NULL;s->source_owner=NULL;close_peer(s); }
++    if (s && s->source_owner==owner) {
++        s->source=NULL;s->source_owner=NULL;s->refresh_raster=NULL;close_peer(s);
++    }
+ }
+ void mvo_shared_frame_selected(int console)
+ {
+--- a/ui/egl-headless.c
++++ b/ui/egl-headless.c
+@@ -28,7 +28,7 @@
+     void *metal_texture;
+     uint32_t metal_x, metal_y;
+     uint32_t metal_width, metal_height;
+-    bool metal_damage_readback, metal_full_readback;
++    bool metal_damage_readback, metal_full_readback, metal_raster_stale;
+     unsigned metal_geometry_reports, metal_copy_failures, metal_timing_reports;
+     uint64_t metal_copy_count, metal_copy_ns;
+     uint64_t metal_partial_count, metal_copy_pixels;
+@@ -72,6 +72,7 @@
+     edpy->ds = new_surface;
+ #ifdef __APPLE__
+     edpy->metal_full_readback = true;
++    edpy->metal_raster_stale = false;
+ #endif
+ }
+ 
+@@ -90,6 +91,7 @@
+     mvo_metal_release(edpy->metal_texture);
+     edpy->metal_texture = NULL;
+     edpy->metal_full_readback = true;
++    edpy->metal_raster_stale = false;
+ #endif
+     egl_fb_destroy(&edpy->guest_fb);
+     egl_fb_destroy(&edpy->blit_fb);
+@@ -209,6 +211,75 @@
+     edpy->pos_y = pos_y;
+ }
+ 
++#ifdef __APPLE__
++static void egl_metal_readback(egl_dpy *edpy,
++                               uint32_t x, uint32_t y, uint32_t w, uint32_t h)
++{
++    uint32_t dx = 0, dy = 0;
++    uint32_t sx = edpy->metal_x, sy = edpy->metal_y;
++    uint32_t width = surface_width(edpy->ds);
++    uint32_t height = surface_height(edpy->ds);
++    if (edpy->metal_damage_readback) {
++        MVODamagePlan plan;
++        if (mvo_damage_plan(edpy->metal_x, edpy->metal_y,
++                            edpy->metal_width, edpy->metal_height,
++                            width, height, x, y, w, h,
++                            edpy->metal_full_readback, &plan)) {
++            if (!plan.width || !plan.height) {
++                return;
++            }
++            sx = plan.source_x;
++            sy = plan.source_y;
++            dx = plan.destination_x;
++            dy = plan.destination_y;
++            width = plan.width;
++            height = plan.height;
++        }
++        /* Unknown/mismatched geometry retains the full-copy fallback. */
++    }
++    uint32_t stride = surface_stride(edpy->ds);
++    uint8_t *target = surface_data(edpy->ds) + (uint64_t)dy * stride + (uint64_t)dx * 4;
++    int64_t copy_start = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
++    if (mvo_metal_copy(edpy->metal_texture, target, stride,
++                       width, height, sx, sy)) {
++        edpy->metal_full_readback = false;
++        edpy->metal_raster_stale = false;
++        edpy->metal_copy_ns += qemu_clock_get_ns(QEMU_CLOCK_REALTIME) - copy_start;
++        edpy->metal_copy_count++;
++        edpy->metal_copy_pixels += (uint64_t)width * height;
++        edpy->metal_partial_count += dx || dy ||
++            width != (uint32_t)surface_width(edpy->ds) ||
++            height != (uint32_t)surface_height(edpy->ds);
++        if (edpy->metal_copy_count == 120) {
++            if (edpy->metal_timing_reports++ < 64) {
++                error_report("macOpenVM Metal readback: frame=%dx%d copies=120 total_ns=%" PRIu64
++                             " partial=%" PRIu64 " pixels=%" PRIu64 " damage=%d",
++                             surface_width(edpy->ds), surface_height(edpy->ds),
++                             edpy->metal_copy_ns, edpy->metal_partial_count,
++                             edpy->metal_copy_pixels, edpy->metal_damage_readback);
++            }
++            edpy->metal_copy_count = edpy->metal_copy_ns = 0;
++            edpy->metal_partial_count = edpy->metal_copy_pixels = 0;
++        }
++        qemu_console_update(edpy->dcl.con, dx, dy, width, height);
++    } else if (edpy->metal_copy_failures++ < 16) {
++        error_report("macOpenVM Metal readback failed: surface=%dx%d stride=%d scanout=%ux%u origin=%u,%u",
++                     surface_width(edpy->ds), surface_height(edpy->ds),
++                     surface_stride(edpy->ds), edpy->metal_width, edpy->metal_height,
++                     edpy->metal_x, edpy->metal_y);
++    }
++}
++
++static void egl_refresh_raster(void *opaque)
++{
++    egl_dpy *edpy = opaque;
++    if (!edpy->metal_raster_stale || !edpy->metal_texture || !edpy->ds) {
++        return;
++    }
++    egl_metal_readback(edpy, 0, 0, edpy->metal_width, edpy->metal_height);
++}
++#endif
++
+ static void egl_scanout_flush(DisplayChangeListener *dcl,
+                               uint32_t x, uint32_t y,
+                               uint32_t w, uint32_t h)
+@@ -217,58 +288,18 @@
+ 
+ #ifdef __APPLE__
+     if (edpy->metal_texture && edpy->ds) {
+-        uint32_t dx = 0, dy = 0;
+-        uint32_t sx = edpy->metal_x, sy = edpy->metal_y;
+-        uint32_t width = surface_width(edpy->ds);
+-        uint32_t height = surface_height(edpy->ds);
+-        if (edpy->metal_damage_readback) {
+-            MVODamagePlan plan;
+-            if (mvo_damage_plan(edpy->metal_x, edpy->metal_y,
+-                                edpy->metal_width, edpy->metal_height,
+-                                width, height, x, y, w, h,
+-                                edpy->metal_full_readback, &plan)) {
+-                if (!plan.width || !plan.height) {
+-                    return;
+-                }
+-                sx = plan.source_x;
+-                sy = plan.source_y;
+-                dx = plan.destination_x;
+-                dy = plan.destination_y;
+-                width = plan.width;
+-                height = plan.height;
+-            }
+-            /* Unknown/mismatched geometry retains the full-copy fallback. */
++        if (edpy->metal_width == surface_width(edpy->ds) &&
++            edpy->metal_height == surface_height(edpy->ds) &&
++            mvo_shared_frame_render(edpy->shared_frame, edpy,
++                                    qemu_console_get_index(dcl->con),
++                                    edpy->metal_texture, edpy->metal_width,
++                                    edpy->metal_height, edpy->metal_x, edpy->metal_y,
++                                    egl_refresh_raster)) {
++            edpy->metal_full_readback = true;
++            edpy->metal_raster_stale = true;
++            return;
+         }
+-        uint32_t stride = surface_stride(edpy->ds);
+-        uint8_t *target = surface_data(edpy->ds) + (uint64_t)dy * stride + (uint64_t)dx * 4;
+-        int64_t copy_start = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+-        if (mvo_metal_copy(edpy->metal_texture, target, stride,
+-                           width, height, sx, sy)) {
+-            edpy->metal_full_readback = false;
+-            edpy->metal_copy_ns += qemu_clock_get_ns(QEMU_CLOCK_REALTIME) - copy_start;
+-            edpy->metal_copy_count++;
+-            edpy->metal_copy_pixels += (uint64_t)width * height;
+-            edpy->metal_partial_count += dx || dy ||
+-                width != (uint32_t)surface_width(edpy->ds) ||
+-                height != (uint32_t)surface_height(edpy->ds);
+-            if (edpy->metal_copy_count == 120) {
+-                if (edpy->metal_timing_reports++ < 64) {
+-                    error_report("macOpenVM Metal readback: frame=%dx%d copies=120 total_ns=%" PRIu64
+-                                 " partial=%" PRIu64 " pixels=%" PRIu64 " damage=%d",
+-                                 surface_width(edpy->ds), surface_height(edpy->ds),
+-                                 edpy->metal_copy_ns, edpy->metal_partial_count,
+-                                 edpy->metal_copy_pixels, edpy->metal_damage_readback);
+-                }
+-                edpy->metal_copy_count = edpy->metal_copy_ns = 0;
+-                edpy->metal_partial_count = edpy->metal_copy_pixels = 0;
+-            }
+-            qemu_console_update(edpy->dcl.con, dx, dy, width, height);
+-        } else if (edpy->metal_copy_failures++ < 16) {
+-            error_report("macOpenVM Metal readback failed: surface=%dx%d stride=%d scanout=%ux%u origin=%u,%u",
+-                         surface_width(edpy->ds), surface_height(edpy->ds),
+-                         surface_stride(edpy->ds), edpy->metal_width, edpy->metal_height,
+-                         edpy->metal_x, edpy->metal_y);
+-        }
++        egl_metal_readback(edpy, x, y, w, h);
+         return;
+     }
+ #endif
+--- a/ui/vnc.c
++++ b/ui/vnc.c
+@@ -3268,6 +3268,15 @@
+     }
+ 
+     qemu_console_hw_update(vd->dcl.con);
++
++#ifdef __APPLE__
++    QTAILQ_FOREACH(vs, &vd->clients, next) {
++        if (vs->update != VNC_STATE_UPDATE_NONE) {
++            mvo_shared_frame_request_raster(qemu_console_get_index(vd->dcl.con));
++            break;
++        }
++    }
++#endif
+ 
+     if (vnc_trylock_display(vd)) {
+         qemu_console_listener_set_refresh(&vd->dcl, VNC_REFRESH_INTERVAL_BASE);

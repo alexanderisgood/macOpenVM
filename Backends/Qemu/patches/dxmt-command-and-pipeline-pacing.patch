@@ -1,0 +1,179 @@
+--- a/src/dxmt/dxmt_command_queue.hpp
++++ b/src/dxmt/dxmt_command_queue.hpp
+@@ -162,7 +162,6 @@
+ 
+   std::atomic_uint64_t ready_for_encode = 1; // we start from 1, so 0 is always coherent
+   std::atomic_uint64_t ready_for_commit = 1;
+-  std::atomic_uint64_t chunk_ongoing = 0;
+   CpuFence cpu_coherent;
+   CpuFence frame_latency_fence_;
+   std::atomic_bool stopped;
+--- a/src/dxmt/dxmt_command_queue.cpp
++++ b/src/dxmt/dxmt_command_queue.cpp
+@@ -104,11 +104,16 @@
+   ready_for_encode.fetch_add(1, std::memory_order_release);
+   ready_for_encode.notify_one();
+ 
+-  auto t0 = clock::now();
+-  chunk_ongoing.wait(kCommandChunkCount - 1, std::memory_order_acquire);
+-  chunk_ongoing.fetch_add(1, std::memory_order_relaxed);
+-  auto t1 = clock::now();
+-  statistics.commit_interval += (t1 - t0);
++  // The next slot must have been reset by completion before the producer
++  // can use it. Reuse that sequence instead of tracking both ends separately.
++  if (chunk_id >= kCommandChunkCount) {
++    const auto previous_slot_use = chunk_id - kCommandChunkCount + 1;
++    if (cpu_coherent.signaledValue() < previous_slot_use) {
++      const auto started = clock::now();
++      cpu_coherent.wait(previous_slot_use);
++      statistics.commit_interval += clock::now() - started;
++    }
++  }
+ 
+ #else
+   CommitChunkInternal(chunk, ready_for_encode.fetch_add(1, std::memory_order_relaxed));
+@@ -197,10 +202,12 @@
+     // Drain each retired chunk on this long-lived native completion thread.
+     auto pool = WMT::MakeAutoreleasePool();
+     auto &chunk = chunks[internal_seq % kCommandChunkCount];
+-    if (chunk.attached_cmdbuf.status() <= WMTCommandBufferStatusScheduled) {
++    auto status = chunk.attached_cmdbuf.status();
++    if (status <= WMTCommandBufferStatusScheduled) {
+       chunk.attached_cmdbuf.waitUntilCompleted();
+-    }
+-    if (chunk.attached_cmdbuf.status() == WMTCommandBufferStatusError) {
++      status = chunk.attached_cmdbuf.status();
++    }
++    if (status == WMTCommandBufferStatusError) {
+       ERR("Device error at frame ", chunk.frame_, ": ", chunk.attached_cmdbuf.error().description().getUTF8String());
+     }
+     if (auto logs = chunk.attached_cmdbuf.logs()) {
+@@ -214,8 +221,6 @@
+ 
+     chunk.reset();
+     cpu_coherent.signal(internal_seq);
+-    chunk_ongoing.fetch_sub(1, std::memory_order_release);
+-    chunk_ongoing.notify_one();
+ 
+     staging_allocator.free_blocks(internal_seq);
+     copy_temp_allocator.free_blocks(internal_seq);
+--- a/src/dxmt/dxmt_tasks.hpp
++++ b/src/dxmt/dxmt_tasks.hpp
+@@ -2,6 +2,7 @@
+ 
+ #include "thread.hpp"
+ #include "util_win32_compat.h"
++#include <algorithm>
+ #include <atomic>
+ #include <queue>
+ #include <unordered_map>
+@@ -46,7 +47,9 @@
+ };
+ 
+ template <typename Task> task_scheduler<Task>::task_scheduler() {
+-  max_threads = dxmt::thread::hardware_concurrency() * 2;
++  // Leave CPU capacity for the guest and Metal submission threads during
++  // bursts of shader compilation.
++  max_threads = std::max(2u, dxmt::thread::hardware_concurrency() / 2);
+   workers_.reserve(max_threads);
+   threads = 2;
+ 
+@@ -56,7 +59,10 @@
+ }
+ 
+ template <typename Task> task_scheduler<Task>::~task_scheduler() {
+-  destroyed.store(true);
++  {
++    std::lock_guard<dxmt::mutex> lock(worker_mutex_);
++    destroyed.store(true);
++  }
+   worker_cond_.notify_all();
+ 
+   for (auto &worker : workers_) {
+@@ -93,8 +99,8 @@
+       } else {
+         break;
+       }
++      running.fetch_add(1, std::memory_order_relaxed);
+     }
+-    running.fetch_add(1, std::memory_order_relaxed);
+     while (true) {
+       Task continuation = task_trait.run_task(task);
+       if (continuation == task) {
+@@ -107,14 +113,17 @@
+           task_continuation_.erase(range.first, range.second);
+           task_trait.set_done(continuation);
+         }
+-        {
+-          std::unique_lock<dxmt::mutex> lock(worker_mutex_);
+-          for (auto &task : continuation_buffer) {
+-            task_continuation_queue_.push(task);
++        if (!continuation_buffer.empty()) {
++          {
++            std::lock_guard<dxmt::mutex> lock(worker_mutex_);
++            for (auto &task : continuation_buffer) {
++              task_continuation_queue_.push(task);
++            }
+           }
++          if (continuation_buffer.size() > 1)
++            worker_cond_.notify_all();
++          continuation_buffer.clear();
+         }
+-        worker_cond_.notify_all();
+-        continuation_buffer.clear();
+       } else {
+         std::unique_lock<dxmt::mutex> lock(deps_mutex_);
+         // spurious dependency
+@@ -132,14 +141,17 @@
+ template <typename Task>
+ void
+ task_scheduler<Task>::submit(Task task) {
+-  std::unique_lock<dxmt::mutex> lock(worker_mutex_);
+-  task_queue_.push(task);
++  {
++    std::lock_guard<dxmt::mutex> lock(worker_mutex_);
++    task_queue_.push(task);
+ 
+-  if (running.load(std::memory_order_relaxed) == threads && threads < max_threads) {
+-    workers_.emplace_back([this]() { worker_func(); });
+-    threads++;
++    const auto demand = running.load(std::memory_order_relaxed) +
++                        task_queue_.size() + task_continuation_queue_.size();
++    if (demand > threads && threads < max_threads) {
++      workers_.emplace_back([this]() { worker_func(); });
++      threads++;
++    }
+   }
+-
+   worker_cond_.notify_one();
+ }
+ 
+--- a/src/d3d11/d3d11_context_impl.cpp
++++ b/src/d3d11/d3d11_context_impl.cpp
+@@ -5183,15 +5183,20 @@
+     EmitST([pso = std::move(pipeline)](ArgumentEncodingContext& enc) {
+       MTL_COMPILED_GRAPHICS_PIPELINE GraphicsPipeline{};
+       pso->GetPipeline(&GraphicsPipeline); // may block
++      auto *render_encoder = enc.currentRenderEncoder();
+       if (!GraphicsPipeline.PipelineState) {
+-        enc.currentRenderEncoder()->pipeline_invalid = true;
++        render_encoder->pipeline_invalid = true;
+         return;
+       }
+-      auto &cmd = enc.encodeRenderCommand<wmtcmd_render_setpso>();
+-      cmd.type = WMTRenderCommandSetPSO;
+-      cmd.pso = GraphicsPipeline.PipelineState;
+-      enc.currentRenderEncoder()->pipeline_invalid = false;
+-      enc.currentRenderEncoder()->last_pso = GraphicsPipeline.PipelineState;
++      // A shader or D3D state change can resolve to the same Metal pipeline.
++      // After a failed lookup, bind again before re-enabling draws.
++      if (render_encoder->pipeline_invalid || render_encoder->last_pso != GraphicsPipeline.PipelineState) {
++        auto &cmd = enc.encodeRenderCommand<wmtcmd_render_setpso>();
++        cmd.type = WMTRenderCommandSetPSO;
++        cmd.pso = GraphicsPipeline.PipelineState;
++        render_encoder->last_pso = GraphicsPipeline.PipelineState;
++      }
++      render_encoder->pipeline_invalid = false;
+     });
+ 
+     cmdbuf_state = CommandBufferState::RenderPipelineReady;

@@ -125,7 +125,7 @@ struct RfbQualificationPresentation: Sendable {
   private weak var observedWindow: NSWindow?
   private let directoryPath: String?
   private var presentation = GuestFullscreenPresentation()
-  private var menuBarVisibility = GuestMenuBarVisibility()
+  private let menuBarVisibility = GuestMenuBarVisibility()
   private let inputPolicy: RfbLabInputPolicy
   private let externalInputPolicy: ExternalWindowsHumanInputPolicy
   private let registeredContext: RegisteredRfbDisplayContext?
@@ -243,13 +243,17 @@ struct RfbQualificationPresentation: Sendable {
       }
       route = admitted
       state = status.state
+      // Overlap wire reads with drawing whenever this connection is using RFB
+      // for pixels. A shared-display connection still makes one request at a time.
+      let pipelineRfb =
+        canSelectDisplayConsole
+        && (sharedDisabled || registeredContext?.sharedRoute == nil)
       let peer = RFBClient(
         socketURL: URL(fileURLWithPath: admitted.displaySocket),
         expectedIdentity: RFBEndpointIdentity(
           parentDevice: admitted.parentDevice, parentInode: admitted.parentInode,
           socketDevice: admitted.socketDevice, socketInode: admitted.socketInode),
-        prefetchFrames: canSelectDisplayConsole && registeredContext?.sharedRoute == nil,
-        prefetchAfterHeader: canSelectDisplayConsole && registeredContext?.sharedRoute == nil)
+        prefetchFrames: pipelineRfb, prefetchAfterHeader: pipelineRfb)
       client = peer
       let epoch = peer.connectionEpoch
       try await peer.connect()
@@ -337,8 +341,9 @@ struct RfbQualificationPresentation: Sendable {
     sharedReplacementStream = nil
     do {
       try await stream.connect()
+      var acknowledged: SharedFrame?
       while !Task.isCancelled {
-        let next = try await stream.nextFrame()
+        let next = try await stream.nextFrame(acknowledging: acknowledged)
         guard sharedClient === stream, client === peer, view === target,
           registeredLaunchIsCurrent, frame?.connectionEpoch == next.connectionEpoch,
           frame?.size == next.size
@@ -348,14 +353,13 @@ struct RfbQualificationPresentation: Sendable {
         }
         sharedFrameInfo = (next.streamEpoch, next.sequence, next.size)
         receiveSharedTiming(next)
-        _ = try await target.presentShared(next)
+        try await target.presentShared(next)
         guard sharedClient === stream, client === peer, registeredLaunchIsCurrent else {
           await stream.close()
           return false
         }
-        // The renderer copied this slot into its private GPU cache and the
-        // actual command has completed. Only now may the producer reuse it.
-        try await stream.acknowledge(next)
+        // The previous slot is safe to reuse. This slot remains available for redraw.
+        acknowledged = next
         sharedRecovery.completedFrame()
       }
     } catch {
@@ -376,13 +380,16 @@ struct RfbQualificationPresentation: Sendable {
     let transient =
       replacementClosed || (error as? RFBClientError) == .posix(ECONNRESET)
       || (error as? SharedFrameMetalRenderer.Failure) == .geometry
-    let recover = transient && sharedRecovery.transientFailure(at: .now)
+    let now = ContinuousClock.now
+    let recover =
+      transient
+      && (sharedRecovery.transientFailure(at: now)
+        || sharedRecovery.retryDuringRasterDelivery(at: now))
     await stopSharedFrames()?.value
     if recover {
-      // Keep the admitted RFB input epoch through boot, unlock and game
-      // surface changes. The receiver waits for this bounded retry deadline
-      // and requests one full frame, so quiet Windows pixels cannot stall it.
-      // Replenish the three-attempt budget only after120 completed copies.
+      // Preserve the RFB input epoch through boot, unlock and game changes.
+      // Quick retries request a full frame; later retries keep raster delivery
+      // running until the next eligible frame. Sustained copies reset both budgets.
       sharedDisabled = false
       return false
     }
@@ -834,7 +841,6 @@ struct RfbQualificationPresentation: Sendable {
     }
     if active {
       presentation.prepare(application.presentationOptions)
-      menuBarVisibility.prepare()
       refreshFullscreenPresentation()
       // Observe our own completed native transition, rather than assuming an
       // accessible menu or accepted presentation assignment is visibly shown.
@@ -862,7 +868,6 @@ struct RfbQualificationPresentation: Sendable {
       let current = application.presentationOptions
       let desired = presentation.finish(current)
       if desired != current { application.presentationOptions = desired }
-      menuBarVisibility.finish(canChangeVisibility: application.isActive)
     }
   }
 
@@ -870,7 +875,6 @@ struct RfbQualificationPresentation: Sendable {
     finishInputSpaceRequest()
     guard let application = NSApp else { return }
     presentation.beginTransition(application.presentationOptions)
-    menuBarVisibility.prepare()
   }
 
   func refreshFullscreenPresentation() {
@@ -887,11 +891,7 @@ struct RfbQualificationPresentation: Sendable {
     if desired != current || (active && desired != effective) {
       application.presentationOptions = desired
     }
-    if active {
-      menuBarVisibility.show(activeOwner: true)
-    } else {
-      menuBarVisibility.suspend(canChangeVisibility: application.isActive)
-    }
+    menuBarVisibility.show(activeOwner: active)
   }
 
   func focusChanged() {
@@ -1536,12 +1536,20 @@ struct RfbQualificationPresentation: Sendable {
     return true
   }
 
-  func setRelativeMouse(_ relative: Bool) {
+  func selectDesktopMouse() {
+    guard canChangeMouseMode else {
+      releaseInput()
+      return
+    }
+    setRelativeMouse(false, keepCapture: !relativeMouse)
+  }
+
+  func setRelativeMouse(_ relative: Bool, keepCapture: Bool = true) {
     guard canChangeMouseMode, let route, let client else { return }
     mouseModePending = true
     mouseModeError = nil
     let attempt = connectAttempt
-    let recapture = capturePolicy.wanted
+    let recapture = keepCapture && capturePolicy.wanted
     releaseInput()
     let previous = inputTail
     Task { @MainActor [weak self, client] in
@@ -1893,6 +1901,7 @@ private struct RfbGuestSurface: NSViewRepresentable {
     view.onRelativePointer = session.relativePointer
     view.onScroll = session.scroll
     view.onRelease = session.releaseInput
+    view.onSelectDesktopMouse = session.selectDesktopMouse
     view.onCaptureRefused = session.rejectUnavailableHostPointerCapture
     view.onSuspend = session.suspendInput
     view.onCapture = session.captureInput
@@ -2005,6 +2014,7 @@ private struct RfbGuestSurface: NSViewRepresentable {
   private var pointerButtons: UInt8 = 0
   private var pointerTracking: NSTrackingArea?
   var onRelease: (@MainActor () -> Void)?
+  var onSelectDesktopMouse: (@MainActor () -> Void)?
   var onCaptureRefused: (@MainActor () -> Void)?
   var onSuspend: (@MainActor () -> Void)?
   var onCapture: (@MainActor () -> Void)?
@@ -2052,7 +2062,7 @@ private struct RfbGuestSurface: NSViewRepresentable {
     needsDisplay = true
   }
 
-  func presentShared(_ frame: SharedFrame) async throws -> SharedFrameMetalRenderer.Completion {
+  func presentShared(_ frame: SharedFrame) async throws {
     guard epoch == frame.connectionEpoch, pixels == frame.size, window != nil,
       let viewport = guestViewport(frame.size)
     else { throw SharedFrameMetalRenderer.Failure.geometry }
@@ -2096,14 +2106,12 @@ private struct RfbGuestSurface: NSViewRepresentable {
       addSubview(surface)
     }
     let backing = updateSharedLayerGeometry(renderer)
-    // Visibility can change before a renderer exists, or during attachment.
-    // Reconcile the current window on receipt as well as on notifications.
-    renderer.setPresentationActive(sharedPresentationVisible)
     sharedPresentation = true
     let area = viewport.fittedBackingRect ?? convertToBacking(viewport.fittedRect)
-    return try await renderer.present(
+    try await renderer.present(
       frame, drawableSize: backing.size,
-      viewport: area.offsetBy(dx: -backing.minX, dy: -backing.minY))
+      viewport: area.offsetBy(dx: -backing.minX, dy: -backing.minY),
+      presentationActive: sharedPresentationVisible)
   }
 
   private func updateSharedDrawFeedback() {
@@ -2704,10 +2712,7 @@ private struct RfbGuestSurface: NSViewRepresentable {
 
   override func keyDown(with event: NSEvent) {
     guard captured || capturePending, !event.isARepeat else { return }
-    if isReleaseShortcut(event) {
-      onRelease?()
-      return
-    }
+    guard !handleHostEscapeShortcut(event) else { return }
     guard permitsInputOnCurrentSpace() else { return }
     guard forwardModifiers(event.modifierFlags) else { return }
     guard let symbol = RFBKeySymbol.appKitCharacters(event.charactersIgnoringModifiers) else {
@@ -2746,10 +2751,7 @@ private struct RfbGuestSurface: NSViewRepresentable {
     else {
       return super.performKeyEquivalent(with: event)
     }
-    if isReleaseShortcut(event) {
-      onRelease?()
-      return true
-    }
+    if handleHostEscapeShortcut(event) { return true }
     guard permitsInputOnCurrentSpace() else { return true }
     // Command/menu navigation may consume key-up. Ordinary Control/Option
     // movement must stay held until its physical release reaches keyUp.
@@ -2798,13 +2800,18 @@ private struct RfbGuestSurface: NSViewRepresentable {
     }
     return true
   }
-  private func isReleaseShortcut(_ event: NSEvent) -> Bool {
+  private func handleHostEscapeShortcut(_ event: NSEvent) -> Bool {
     // Escape is a physical host command even when a keyboard layout or input
     // method omits its character string. Never send the release key to Windows.
-    event.keyCode == 53
-      && event.modifierFlags.intersection([.control, .option, .command, .shift]) == [
-        .control, .option,
-      ]
+    guard event.keyCode == 53 else { return false }
+    if relativeMouse, let onSelectDesktopMouse, DesktopMouseShortcut.matches(event) {
+      if !event.isARepeat { onSelectDesktopMouse() }
+      return true
+    }
+    let modifiers = event.modifierFlags.intersection([.control, .option, .command, .shift])
+    guard modifiers == [.control, .option] else { return false }
+    onRelease?()
+    return true
   }
   @discardableResult private func forwardModifiers(_ flags: NSEvent.ModifierFlags) -> Bool {
     forward(keyboard.changeModifiers(Self.guestModifiers(flags)))

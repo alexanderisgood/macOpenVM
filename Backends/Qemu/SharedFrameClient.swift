@@ -35,6 +35,10 @@ public final class SharedFrameMapping: @unchecked Sendable {
     munmap(address, byteCount)
     Darwin.close(descriptor)
   }
+  fileprivate func isDistinct(from other: SharedFrameMapping) -> Bool {
+    byteCount == other.byteCount
+      && mvo_hdr_readonly_slots_distinct(descriptor, other.descriptor, UInt64(byteCount)) == 1
+  }
   /// The pointer belongs to this mapping. GPU imports must retain the mapping
   /// through their deallocator/completion lifetime; it must never be written.
   public func withUnsafeBytes<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T {
@@ -51,6 +55,7 @@ public struct SharedFrame: Sendable {
   public let rowBytes: Int
   public let sentNanoseconds: UInt64
   public let mapping: SharedFrameMapping
+  fileprivate let slot: UInt32
   fileprivate let token: UUID
 }
 
@@ -82,6 +87,9 @@ public final class SharedFrameClient: @unchecked Sendable {
   private var geometry: (size: PixelSize, stride: Int, bytes: Int)?
   private var sequence: UInt64 = 0
   private var generation: UInt64 = 0
+  // The current texture may be used for redraws after its ACK. A producer
+  // must publish a different slot before reclaiming this one.
+  private var lastSlot: UInt32?
   private var outstanding: UUID?
 
   public init(socketURL: URL, expectedIdentity: RFBEndpointIdentity, connectionEpoch: UUID) {
@@ -128,7 +136,10 @@ public final class SharedFrameClient: @unchecked Sendable {
     }
   }
 
-  public func nextFrame() async throws -> SharedFrame {
+  /// Acknowledge a latched frame after the previous frame's GPU reads retire.
+  /// The producer may then reuse the previous slot. The latched frame stays
+  /// available for redraws until a later acknowledgement replaces it.
+  public func nextFrame(acknowledging frame: SharedFrame? = nil) async throws -> SharedFrame {
     try await withTaskCancellationHandler {
       try Task.checkCancellation()
       return try await withCheckedThrowingContinuation { waiter in
@@ -137,8 +148,15 @@ public final class SharedFrameClient: @unchecked Sendable {
             waiter.resume(throwing: terminalError ?? RFBClientError.closed)
             return
           }
-          guard frameWaiter == nil, outstanding == nil else {
+          guard frameWaiter == nil, frame != nil || outstanding == nil else {
             waiter.resume(throwing: RFBClientError.busy)
+            return
+          }
+          let ack: MVOSharedFrameHeader?
+          do {
+            ack = try frame.map(acknowledgement(for:))
+          } catch {
+            waiter.resume(throwing: error)
             return
           }
           frameWaiter = waiter
@@ -146,7 +164,12 @@ public final class SharedFrameClient: @unchecked Sendable {
             var header = MVOSharedFrameHeader()
             header.kind = UInt32(MVO_SF_REQUEST)
             setEpoch(&header, streamEpoch)
-            try send(header)
+            if let ack {
+              try send(ack, followedBy: header)
+              outstanding = nil
+            } else {
+              try send(header)
+            }
           } catch { fail(error) }
         }
       }
@@ -162,29 +185,12 @@ public final class SharedFrameClient: @unchecked Sendable {
           waiter.resume(throwing: terminalError ?? RFBClientError.closed)
           return
         }
-        guard outstanding == frame.token,
-          frame.connectionEpoch == connectionEpoch, frame.streamEpoch == streamEpoch,
-          frame.sequence == sequence
-        else {
-          waiter.resume(throwing: RFBClientError.unexpectedMessage)
+        let header: MVOSharedFrameHeader
+        do { header = try acknowledgement(for: frame) } catch {
+          waiter.resume(throwing: error)
           return
         }
         do {
-          var header = MVOSharedFrameHeader()
-          // Every field was admitted before this file-private immutable frame
-          // was constructed. Rebuild the same canonical ACK without retaining
-          // and decoding another copy of its already validated wire header.
-          header.kind = UInt32(MVO_SF_ACK)
-          setEpoch(&header, frame.streamEpoch)
-          header.sequence = frame.sequence
-          header.generation = frame.generation
-          header.width = UInt32(frame.size.width)
-          header.height = UInt32(frame.size.height)
-          header.row_bytes = UInt32(frame.rowBytes)
-          header.mapped_bytes = UInt32(frame.mapping.byteCount)
-          header.slot = UInt32((frame.sequence - 1) % 2)
-          header.format = 1
-          header.sent_ns = frame.sentNanoseconds
           try send(header)
           outstanding = nil
           waiter.resume()
@@ -194,6 +200,27 @@ public final class SharedFrameClient: @unchecked Sendable {
         }
       }
     }
+  }
+
+  private func acknowledgement(for frame: SharedFrame) throws -> MVOSharedFrameHeader {
+    guard outstanding == frame.token,
+      frame.connectionEpoch == connectionEpoch, frame.streamEpoch == streamEpoch,
+      frame.sequence == sequence
+    else { throw RFBClientError.unexpectedMessage }
+    // Reconstruct the canonical header from the previously admitted frame.
+    var header = MVOSharedFrameHeader()
+    header.kind = UInt32(MVO_SF_ACK)
+    setEpoch(&header, frame.streamEpoch)
+    header.sequence = frame.sequence
+    header.generation = frame.generation
+    header.width = UInt32(frame.size.width)
+    header.height = UInt32(frame.size.height)
+    header.row_bytes = UInt32(frame.rowBytes)
+    header.mapped_bytes = UInt32(frame.mapping.byteCount)
+    header.slot = frame.slot
+    header.format = 1
+    header.sent_ns = frame.sentNanoseconds
+    return header
   }
 
   public func close() async {
@@ -318,8 +345,10 @@ public final class SharedFrameClient: @unchecked Sendable {
       connectWaiter?.resume()
       connectWaiter = nil
     case MVO_SF_ATTACH:
-      guard ready, frameWaiter != nil, outstanding == nil, receive.descriptor_count == 2,
-        h.sequence == 0, h.generation == 0, h.slot == 2, h.format == 1, h.sent_ns == 0,
+      let count = Int(h.slot)
+      guard ready, frameWaiter != nil, outstanding == nil, receive.descriptor_count == count,
+        count == MVO_SF_SNAPSHOT_SLOTS || count == MVO_SF_LEASED_SLOTS,
+        h.sequence == 0, h.generation == 0, h.format == 1, h.sent_ns == 0,
         (1...8192).contains(h.width), (1...8192).contains(h.height),
         UInt64(h.width) * UInt64(h.height) <= 16_777_216,
         h.row_bytes >= h.width * 4, h.row_bytes <= h.width * 4 + 4096, h.row_bytes % 256 == 0,
@@ -328,15 +357,20 @@ public final class SharedFrameClient: @unchecked Sendable {
         mappings.isEmpty ? epoch == streamEpoch : epoch != streamEpoch
       else { throw RFBClientError.malformedMessage }
       var pool: [SharedFrameMapping] = []
-      for index in 0..<2 {
+      for index in 0..<count {
         let fd = mvo_sf_take_descriptor(&receive, index)
         guard fd >= 0 else { throw RFBClientError.malformedMessage }
-        pool.append(try SharedFrameMapping(taking: fd, byteCount: Int(h.mapped_bytes)))
+        let mapping = try SharedFrameMapping(taking: fd, byteCount: Int(h.mapped_bytes))
+        guard pool.allSatisfy({ mapping.isDistinct(from: $0) }) else {
+          throw RFBClientError.unsafeSocket
+        }
+        pool.append(mapping)
       }
       mappings = pool
       streamEpoch = epoch
       sequence = 0
       generation = 0
+      lastSlot = nil
       geometry = (
         PixelSize(width: Int(h.width), height: Int(h.height)), Int(h.row_bytes), Int(h.mapped_bytes)
       )
@@ -345,20 +379,22 @@ public final class SharedFrameClient: @unchecked Sendable {
       try send(ack)
     case MVO_SF_FRAME:
       guard ready, let geometry, frameWaiter != nil, outstanding == nil,
-        mappings.count == 2, receive.descriptor_count == 0, epoch == streamEpoch,
+        receive.descriptor_count == 0, epoch == streamEpoch,
         sequence < UInt64.max, h.sequence == sequence + 1, h.generation > generation,
-        h.slot == UInt32((h.sequence - 1) % 2), h.format == 1,
+        Int(h.slot) < mappings.count, h.slot != lastSlot, h.format == 1,
+        mappings.count != MVO_SF_SNAPSHOT_SLOTS || h.slot == UInt32((h.sequence - 1) % 2),
         Int(h.width) == geometry.size.width, Int(h.height) == geometry.size.height,
         Int(h.row_bytes) == geometry.stride, Int(h.mapped_bytes) == geometry.bytes, h.sent_ns > 0
       else { throw RFBClientError.unexpectedMessage }
       sequence = h.sequence
       generation = h.generation
+      lastSlot = h.slot
       let token = UUID()
       outstanding = token
       let frame = SharedFrame(
         connectionEpoch: connectionEpoch, streamEpoch: epoch,
         sequence: sequence, generation: generation, size: geometry.size, rowBytes: geometry.stride,
-        sentNanoseconds: h.sent_ns, mapping: mappings[Int(h.slot)], token: token)
+        sentNanoseconds: h.sent_ns, mapping: mappings[Int(h.slot)], slot: h.slot, token: token)
       let waiter = frameWaiter
       frameWaiter = nil
       waiter?.resume(returning: frame)
@@ -372,13 +408,20 @@ public final class SharedFrameClient: @unchecked Sendable {
       withUnsafeMutableBytes(of: &h.epoch) { $0.copyMemory(from: b) }
     }
   }
-  private func send(_ h: MVOSharedFrameHeader) throws {
+  private func send(_ h: MVOSharedFrameHeader, followedBy next: MVOSharedFrameHeader? = nil) throws
+  {
     guard !isClosed, try endpoint() == expectedIdentity else { throw RFBClientError.unsafeSocket }
-    var header = h
-    var bytes = [UInt8](repeating: 0, count: Int(MVO_SF_BYTES))
-    mvo_sf_encode(&header, &bytes)
-    let count = bytes.withUnsafeBytes { Darwin.send(descriptor, $0.baseAddress, $0.count, 0) }
-    guard count == bytes.count else { throw RFBClientError.disconnected }
+    let size = Int(MVO_SF_BYTES)
+    let byteCount = next == nil ? size : size * 2
+    try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: byteCount) { bytes in
+      let address = bytes.baseAddress!
+      var header = h
+      mvo_sf_encode(&header, address)
+      if var next { mvo_sf_encode(&next, address.advanced(by: size)) }
+      guard Darwin.send(descriptor, address, byteCount, 0) == byteCount else {
+        throw RFBClientError.disconnected
+      }
+    }
   }
   private func open() throws {
     guard try endpoint() == expectedIdentity else { throw RFBClientError.unsafeSocket }

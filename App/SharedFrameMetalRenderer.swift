@@ -8,9 +8,6 @@ import QuartzCore
 /// The render queue owns all mutable GPU state. MainActor only attaches and
 /// sizes the layer. No command-buffer wait or drawable acquisition blocks UI.
 final class SharedFrameMetalRenderer: @unchecked Sendable {
-  struct Completion: Sendable {
-    let gpuMS: Double?
-  }
   enum Failure: Error, Equatable { case unavailable, closed, geometry, gpu, timeout }
   let metalLayer = CAMetalLayer()
   private let device: any MTLDevice
@@ -25,11 +22,20 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
   private var drawableSize = CGSize.zero
   private var cache: (any MTLTexture)?
   private var imports: [ObjectIdentifier: any MTLBuffer] = [:]
+  private var importedTextures: [ObjectIdentifier: any MTLTexture] = [:]
+  private var importConnection: UUID?
+  private var importEpoch: UUID?
+  private var borrowed: BorrowedTexture?
+  private var sourceTexture: (any MTLTexture)? { borrowed?.texture ?? cache }
   private var closed = false
   private let acquire = DispatchQueue(
     label: "local.macOpenVM.metal-drawable", qos: .userInteractive,
     autoreleaseFrequency: .workItem)
-  private var drawablePending = false
+  // With three layer drawables, leave one to the compositor while a draw and
+  // the next acquisition overlap. A waiting acquisition never queues frames.
+  private var acquisitionPending = false
+  private var drawsInFlight = 0
+  private var drawablePending: Bool { acquisitionPending || drawsInFlight != 0 }
   private var presentationWanted = false
   private var presentationActive: Bool
   private var drawableRetryPolicy = SharedDrawableRetryPolicy()
@@ -53,6 +59,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
   private var slowCopies = 0
   private var drawableRequests = 0
   private var completedCopies = 0
+  private var directFrames = 0
   private var completedDraws = 0
   private var presentationCallbacks = 0
   private var zeroPresentationTimes = 0
@@ -84,11 +91,11 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
     metalLayer.presentsWithTransaction = false
   }
 
-  /// Completion releases only the shared input slot. Screen acquisition and
-  /// presentation are independent; their possible one-second wait cannot delay ACK.
-  func present(_ frame: SharedFrame, drawableSize: CGSize, viewport: CGRect) async throws
-    -> Completion
-  {
+  /// Keep the current slot for redraws. On replacement, retire all reads
+  /// of the previous slot before acknowledging the replacement.
+  func present(
+    _ frame: SharedFrame, drawableSize: CGSize, viewport: CGRect, presentationActive: Bool
+  ) async throws {
     try await withCheckedThrowingContinuation { continuation in
       render.async { [self] in
         autoreleasepool {
@@ -96,47 +103,95 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
             guard !closed else { throw Failure.closed }
             try prepare()
             try geometry(drawableSize, viewport)
+            updatePresentationVisibility(presentationActive)
             self.drawableSize = Self.pixelSize(drawableSize)
+            if let texture = try importTexture(frame) {
+              let previous = borrowed
+              borrowed = BorrowedTexture(texture)
+              cache = nil
+              directFrames += 1
+              queuePresentation(frame, viewport: viewport)
+              if let previous, previous.readers > 0 {
+                let pending = Pending(continuation)
+                let deadline = DispatchSource.makeTimerSource(queue: render)
+                deadline.schedule(deadline: .now() + 2)
+                deadline.setEventHandler { pending.finish(.failure(Failure.timeout)) }
+                deadline.activate()
+                previous.retired = {
+                  deadline.cancel()
+                  pending.finish(.success(()))
+                }
+              } else {
+                continuation.resume()
+              }
+              return
+            }
             guard let commands, let command = commands.makeCommandBuffer() else {
               throw Failure.unavailable
             }
             try encodeSharedCopy(frame, command: command)
-            self.viewport = viewport
-            stamp = RfbQualificationPresentation(
-              epoch: frame.streamEpoch, sequence: frame.sequence,
-              width: frame.size.width, height: frame.size.height, attached: true, visible: true,
-              drawn: true)
+            let previous = borrowed
+            borrowed = nil
             let pending = Pending(continuation)
             let deadline = DispatchSource.makeTimerSource(queue: render)
             deadline.schedule(deadline: .now() + 2)
             deadline.setEventHandler { pending.finish(.failure(Failure.timeout)) }
             deadline.activate()
             let began = ContinuousClock.now
-            command.addCompletedHandler { [self, mapping = frame.mapping] value in
+            command.addCompletedHandler { [self, mapping = frame.mapping, previous] value in
               let ok = value.status == .completed
-              let ms =
-                value.gpuStartTime > 0 && value.gpuEndTime >= value.gpuStartTime
-                ? (value.gpuEndTime - value.gpuStartTime) * 1000 : nil
               render.async {
                 _ = mapping
-                deadline.cancel()
                 if ok { self.completedCopies += 1 }
                 let waitMS = Self.milliseconds(began.duration(to: .now))
                 if waitMS > 50, self.slowCopies < 8 {
                   self.slowCopies += 1
                   NSLog("macOpenVM Metal cache completion: ms=%.3f", waitMS)
                 }
-                pending.finish(ok ? .success(Completion(gpuMS: ms)) : .failure(Failure.gpu))
+                if ok, let previous, previous.readers > 0 {
+                  previous.retired = {
+                    deadline.cancel()
+                    pending.finish(.success(()))
+                  }
+                } else {
+                  deadline.cancel()
+                  pending.finish(ok ? .success(()) : .failure(Failure.gpu))
+                }
               }
             }
             // One GPU queue orders cache writes and presentation reads. Neither
             // can overlap an overwrite; every submitted command retains resources.
             command.commit()
-            resetDrawableRetry()
-            presentationWanted = true
-            requestDrawable()
+            queuePresentation(frame, viewport: viewport)
           } catch { continuation.resume(throwing: error) }
         }
+      }
+    }
+  }
+
+  private func queuePresentation(_ frame: SharedFrame, viewport: CGRect) {
+    self.viewport = viewport
+    stamp = RfbQualificationPresentation(
+      epoch: frame.streamEpoch, sequence: frame.sequence,
+      width: frame.size.width, height: frame.size.height, attached: true, visible: true,
+      drawn: true)
+    resetDrawableRetry()
+    presentationWanted = true
+    requestDrawable()
+  }
+
+  private final class BorrowedTexture: @unchecked Sendable {
+    let texture: any MTLTexture
+    var readers = 0
+    var retired: (() -> Void)?
+
+    init(_ texture: any MTLTexture) { self.texture = texture }
+
+    func finishedReading() {
+      readers -= 1
+      if readers == 0 {
+        retired?()
+        retired = nil
       }
     }
   }
@@ -157,32 +212,35 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
       guard !closed, sharpeningEnabled != enabled else { return }
       sharpeningEnabled = enabled
       if enabled { prepareSharpening() }
-      presentationWanted = cache != nil
+      presentationWanted = sourceTexture != nil
       resetDrawableRetry()
       requestDrawable()
     }
   }
 
-  /// Hidden windows still copy and acknowledge producer slots. Defer screen
-  /// acquisition until AppKit reports the window visible, then draw the latest
-  /// cache instead of queuing obsolete frames while the layer is unavailable.
+  /// Hidden windows still receive producer frames. Acquire a drawable once
+  /// AppKit reports the window visible and present the most recent texture.
   func setPresentationActive(_ active: Bool) {
     render.async { [self] in
       guard !closed, presentationActive != active else { return }
-      presentationActive = active
-      if !active { timingCapture?.cancel() }
-      cancelDrawableRetry()
-      if visibilityReports < 8 {
-        visibilityReports += 1
-        NSLog(
-          "macOpenVM Metal presentation visibility: active=%d drawable_pending=%d",
-          active ? 1 : 0, drawablePending ? 1 : 0)
-      }
+      updatePresentationVisibility(active)
       if active {
-        drawableRetryPolicy.reset()
-        presentationWanted = cache != nil
+        presentationWanted = sourceTexture != nil
         requestDrawable()
       }
+    }
+  }
+
+  private func updatePresentationVisibility(_ active: Bool) {
+    guard presentationActive != active else { return }
+    presentationActive = active
+    if !active { timingCapture?.cancel() }
+    resetDrawableRetry()
+    if visibilityReports < 8 {
+      visibilityReports += 1
+      NSLog(
+        "macOpenVM Metal presentation visibility: active=%d drawable_pending=%d",
+        active ? 1 : 0, drawablePending ? 1 : 0)
     }
   }
 
@@ -231,10 +289,12 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
   }
 
   private func requestDrawable() {
-    guard !closed, presentationActive, !drawablePending, presentationWanted, cache != nil else {
+    guard !closed, presentationActive, !acquisitionPending, drawsInFlight < 2,
+      presentationWanted, sourceTexture != nil
+    else {
       return
     }
-    drawablePending = true
+    acquisitionPending = true
     drawableRequests += 1
     #if DEBUG
       let validationAcquire = acquireForValidation
@@ -266,16 +326,13 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
         let waitMS = Self.milliseconds(began.duration(to: .now))
         render.async { [self] in
           autoreleasepool {
+            acquisitionPending = false
             if waitMS > 50, slowAcquisitions < 8 {
               slowAcquisitions += 1
               NSLog("macOpenVM Metal drawable acquisition: ms=%.3f", waitMS)
             }
-            guard !closed, presentationActive else {
-              drawablePending = false
-              return
-            }
+            guard !closed, presentationActive else { return }
             guard let drawable else {
-              drawablePending = false
               scheduleDrawableRetry()
               return
             }
@@ -285,18 +342,17 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
             guard drawable.texture.width == Int(drawableSize.width),
               drawable.texture.height == Int(drawableSize.height)
             else {
-              drawablePending = false
               scheduleDrawableRetry()
               return
             }
             guard let commands, let command = commands.makeCommandBuffer(),
               let drawn = stamp
             else {
-              drawablePending = false
               return
             }
-            // Coalesce to the latest cache/stamp after acquisition, without
-            // keeping a queue of obsolete frames or borrowing the producer slot.
+            // Select the latest source after acquisition. Only a submitted draw
+            // retains a borrow, so drawable acquisition never holds up reuse.
+            let sourceBorrow = borrowed
             do {
               try encodePlane(command, texture: drawable.texture, viewport: viewport)
               // Only immutable numeric state crosses the native boundary.
@@ -335,23 +391,26 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
               #if DEBUG
                 if drawable.value == nil { outputForValidation = drawable.texture }
               #endif
-              command.addCompletedHandler { [self, feedback] value in
+              command.addCompletedHandler { [self, feedback, sourceBorrow] value in
                 let ok = value.status == .completed
                 // This is native callback-entry time, not GPU-end/scanout time.
                 feedback?.completed(success: ok, hostTime: CACurrentMediaTime())
                 render.async {
+                  sourceBorrow?.finishedReading()
                   if ok { self.completedDraws += 1 }
                   if !self.closed, self.presentationActive, ok, self.drawFeedbackEnabled {
                     self.onDraw(drawn)
                   }
-                  self.drawablePending = false
+                  self.drawsInFlight -= 1
                   self.requestDrawable()
                 }
               }
               presentationWanted = false
               resetDrawableRetry()
+              sourceBorrow?.readers += 1
+              drawsInFlight += 1
               command.commit()
-            } catch { drawablePending = false }
+            } catch { return }
           }
         }
       }
@@ -371,7 +430,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
   }
 
   private func scheduleDrawableRetry() {
-    guard !closed, presentationActive, presentationWanted, cache != nil,
+    guard !closed, presentationActive, presentationWanted, sourceTexture != nil,
       drawableRetryTicket == nil, let ticket = drawableRetryPolicy.next()
     else { return }
     drawableRetryTicket = ticket
@@ -408,6 +467,8 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
       presentationWanted = false
       cancelDrawableRetry()
       imports.removeAll()
+      importedTextures.removeAll()
+      borrowed = nil
       cache = nil
       stamp = nil
       // A waiting acquisition may return later. Closed checks prevent presentation;
@@ -457,9 +518,17 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
       && abs(viewport.minY - viewport.minY.rounded()) < epsilon
   }
   private func importBuffer(_ frame: SharedFrame) throws -> any MTLBuffer {
+    if frame.connectionEpoch != importConnection || frame.streamEpoch != importEpoch {
+      // Submitted GPU work and the current borrow retain their own textures.
+      imports.removeAll(keepingCapacity: true)
+      importedTextures.removeAll(keepingCapacity: true)
+      importConnection = frame.connectionEpoch
+      importEpoch = frame.streamEpoch
+    }
     let key = ObjectIdentifier(frame.mapping)
     if let existing = imports[key] { return existing }
-    guard frame.mapping.byteCount <= device.maxBufferLength
+    // A shared stream exposes at most three slots.
+    guard imports.count < 3, frame.mapping.byteCount <= device.maxBufferLength
     else { throw Failure.geometry }
     let mapping = frame.mapping
     let buffer: (any MTLBuffer)? = mapping.withUnsafeBytes { bytes in
@@ -470,11 +539,24 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
         deallocator: { _, _ in _ = mapping })
     }
     guard let buffer else { throw Failure.unavailable }
-    // The producer already supplies a padded BGRA buffer. A direct buffer blit
-    // avoids a linear-texture view and its device-specific alignment constraint.
-    if imports.count >= 2 { imports.removeAll() }
     imports[key] = buffer
     return buffer
+  }
+
+  private func importTexture(_ frame: SharedFrame) throws -> (any MTLTexture)? {
+    let format: MTLPixelFormat = .bgra8Unorm
+    let alignment = device.minimumLinearTextureAlignment(for: format)
+    guard alignment > 0, frame.rowBytes.isMultiple(of: alignment) else { return nil }
+    let buffer = try importBuffer(frame)
+    let key = ObjectIdentifier(frame.mapping)
+    if let existing = importedTextures[key] { return existing }
+    let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+      pixelFormat: format, width: frame.size.width, height: frame.size.height, mipmapped: false)
+    descriptor.storageMode = .shared
+    descriptor.usage = [.shaderRead]
+    let texture = buffer.makeTexture(descriptor: descriptor, offset: 0, bytesPerRow: frame.rowBytes)
+    importedTextures[key] = texture
+    return texture
   }
   private static let shader = """
     #include <metal_stdlib>
@@ -487,16 +569,6 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
     fragment half4 opaque(Vertex v [[stage_in]],texture2d<half> image [[texture(0)]]) {
       constexpr sampler points(coord::normalized,address::clamp_to_edge,filter::nearest);
       return half4(image.sample(points,v.uv).rgb,1);
-    }
-    """
-
-  private static let smoothingShader = """
-    #include <metal_stdlib>
-    using namespace metal;
-    struct Vertex { float4 p [[position]]; float2 uv; };
-    vertex Vertex plane(uint i [[vertex_id]]) {
-      float2 p[3] = {float2(-1,-1),float2(3,-1),float2(-1,3)};
-      return Vertex{float4(p[i],0,1),float2((p[i].x+1)/2,(1-p[i].y)/2)};
     }
     fragment half4 smooth(Vertex v [[stage_in]],texture2d<half> image [[texture(0)]]) {
       constexpr sampler linear(coord::normalized,address::clamp_to_edge,filter::linear);
@@ -535,9 +607,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
     desc.fragmentFunction = library.makeFunction(name: "opaque")
     desc.colorAttachments[0].pixelFormat = .bgra8Unorm
     let prepared = try device.makeRenderPipelineState(descriptor: desc)
-    let smoothLibrary = try device.makeLibrary(source: Self.smoothingShader, options: nil)
-    desc.vertexFunction = smoothLibrary.makeFunction(name: "plane")
-    desc.fragmentFunction = smoothLibrary.makeFunction(name: "smooth")
+    desc.fragmentFunction = library.makeFunction(name: "smooth")
     let preparedSmoothing = try device.makeRenderPipelineState(descriptor: desc)
     guard let queue = device.makeCommandQueue() else { throw Failure.unavailable }
     pipeline = prepared
@@ -577,7 +647,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
         sharpeningPipeline = prepared?.value
         guard sharpeningEnabled, prepared != nil else { return }
         resetDrawableRetry()
-        presentationWanted = cache != nil
+        presentationWanted = sourceTexture != nil
         requestDrawable()
       }
     }
@@ -609,18 +679,21 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
     _ command: any MTLCommandBuffer, texture: any MTLTexture,
     viewport: CGRect
   ) throws {
-    guard let cache, let pipeline else { throw Failure.unavailable }
+    guard let sourceTexture, let pipeline else { throw Failure.unavailable }
     let pass = MTLRenderPassDescriptor()
     pass.colorAttachments[0].texture = texture
-    pass.colorAttachments[0].loadAction = .clear
+    let fillsDrawable = viewport == CGRect(x: 0, y: 0, width: texture.width, height: texture.height)
+    pass.colorAttachments[0].loadAction = fillsDrawable ? .dontCare : .clear
     pass.colorAttachments[0].storeAction = .store
     pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 1)
     guard let encoder = command.makeRenderCommandEncoder(descriptor: pass) else {
       throw Failure.gpu
     }
-    let enlarged = viewport.width > CGFloat(cache.width) && viewport.height > CGFloat(cache.height)
+    let enlarged =
+      viewport.width > CGFloat(sourceTexture.width)
+      && viewport.height > CGFloat(sourceTexture.height)
     let aligned = Self.hasAlignedWholePixels(
-      source: CGSize(width: cache.width, height: cache.height), viewport: viewport)
+      source: CGSize(width: sourceTexture.width, height: sourceTexture.height), viewport: viewport)
     let fittedPipeline = aligned ? pipeline : (smoothingPipeline ?? pipeline)
     encoder.setRenderPipelineState(
       sharpeningEnabled && enlarged ? (sharpeningPipeline ?? fittedPipeline) : fittedPipeline)
@@ -628,7 +701,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
       MTLViewport(
         originX: viewport.minX, originY: viewport.minY,
         width: viewport.width, height: viewport.height, znear: 0, zfar: 1))
-    encoder.setFragmentTexture(cache, index: 0)
+    encoder.setFragmentTexture(sourceTexture, index: 0)
     encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
     encoder.endEncoding()
   }
@@ -640,7 +713,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
       schedule: (@Sendable (Int, @escaping @Sendable () -> Void) -> Void)? = nil,
       drawableSize: (@Sendable () -> CGSize)? = nil,
       beforeSharpeningInstall: (@Sendable () -> Void)? = nil,
-      checkerboard: Bool = false
+      checkerboard: Bool = false, borrowedTexture: Bool = false
     ) async throws {
       try await withCheckedThrowingContinuation {
         (continuation: CheckedContinuation<Void, Error>) in
@@ -672,11 +745,17 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
                 region: MTLRegionMake2D(0, 0, 64, 64), mipmapLevel: 0,
                 withBytes: bytes.baseAddress!, bytesPerRow: 64 * 4)
             }
-            cache = source
+            if borrowedTexture {
+              borrowed = BorrowedTexture(source)
+              cache = nil
+            } else {
+              cache = source
+            }
             stamp = RfbQualificationPresentation(
               epoch: UUID(), sequence: 1, width: 64, height: 64,
               attached: true, visible: true, drawn: true)
             viewport = CGRect(x: 0, y: 0, width: 64, height: 64)
+            self.drawableSize = viewport.size
             acquireForValidation = acquire
             drawableSizeForValidation = drawableSize
             beforeSharpeningInstallForValidation = beforeSharpeningInstall
@@ -691,6 +770,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
       let requests: Int
       let draws: Int
       let copies: Int
+      let directFrames: Int
       let scheduled: Bool
       let wanted: Bool
       let pending: Bool
@@ -704,6 +784,7 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
           continuation.resume(
             returning: DrawableRetryValidationState(
               requests: drawableRequests, draws: completedDraws, copies: completedCopies,
+              directFrames: directFrames,
               scheduled: drawableRetryTicket != nil, wanted: presentationWanted,
               pending: drawablePending, active: presentationActive, closed: closed))
         }
@@ -787,11 +868,11 @@ final class SharedFrameMetalRenderer: @unchecked Sendable {
     }
   #endif
   private final class Pending: @unchecked Sendable {
-    private var continuation: CheckedContinuation<Completion, Error>?
-    init(_ continuation: CheckedContinuation<Completion, Error>) {
+    private var continuation: CheckedContinuation<Void, Error>?
+    init(_ continuation: CheckedContinuation<Void, Error>) {
       self.continuation = continuation
     }
-    func finish(_ result: Result<Completion, Error>) {
+    func finish(_ result: Result<Void, Error>) {
       let current = continuation
       continuation = nil
       current?.resume(with: result)

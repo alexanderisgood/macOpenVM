@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 import AppKit
 
-/// A reversible public AppKit visibility override for the active VM owner.
-/// Does not change system preferences or act while another app owns focus.
+/// Reveals the menu for the active fullscreen VM. AppKit owns the menu policy
+/// once the fullscreen window loses focus or exits.
 @MainActor struct GuestMenuBarVisibility {
   private let visible: @MainActor () -> Bool
   private let setVisible: @MainActor (Bool) -> Void
-  private var saved: Bool?
-  private var applied = false
   init(
     visible: @escaping @MainActor () -> Bool = { NSMenu.menuBarVisible() },
     setVisible: @escaping @MainActor (Bool) -> Void = { NSMenu.setMenuBarVisible($0) }
@@ -15,21 +13,9 @@ import AppKit
     self.visible = visible
     self.setVisible = setVisible
   }
-  mutating func prepare() {
-    if saved == nil { saved = visible() }
-  }
-  mutating func show(activeOwner: Bool) {
-    guard activeOwner, saved != nil else { return }
-    if !visible() { setVisible(true) }
-    applied = true
-  }
-  mutating func suspend(canChangeVisibility: Bool) {
-    guard applied, let saved else { return }
-    if canChangeVisibility, visible() != saved { setVisible(saved) }
-    applied = false
-  }
-  mutating func finish(canChangeVisibility: Bool) {
-    suspend(canChangeVisibility: canChangeVisibility)
-    saved = nil
+  func show(activeOwner: Bool) {
+    // The visibility getter can report a transient hidden state during a
+    // Space transition. Restoring it as a policy can hide the desktop menu.
+    if activeOwner, !visible() { setVisible(true) }
   }
 }

@@ -1,0 +1,189 @@
+--- a/src/d3d11/d3d11_pipeline_cache.cpp
++++ b/src/d3d11/d3d11_pipeline_cache.cpp
+@@ -193,8 +193,6 @@
+ 
+   ShaderCache& scache_;
+ 
+-  task_scheduler<ThreadpoolWork *> scheduler_;
+-
+   MTLD3D11Device *device;
+   StateObjectCache<D3D11_BLEND_DESC1, IMTLD3D11BlendState> blend_states;
+ 
+@@ -219,6 +217,9 @@
+ 
+   std::unordered_map<ManagedShader, std::unique_ptr<MTLCompiledComputePipeline>> pipelines_cs_;
+   dxmt::mutex mutex_cs_;
++
++  // Join compiler workers before destroying the cached tasks they reference.
++  task_scheduler<ThreadpoolWork *> scheduler_;
+ 
+   CachedSM50Shader *CreateShader(const void *pBytecode,
+                                  uint32_t BytecodeLength) {
+@@ -463,4 +464,4 @@
+   return std::make_unique<PipelineCache>(device);
+ }
+ 
+-}; // namespace dxmt
+\ No newline at end of file
++}; // namespace dxmt
+--- a/src/dxmt/dxmt_command_queue.cpp
++++ b/src/dxmt/dxmt_command_queue.cpp
+@@ -37,12 +37,16 @@
+ }
+ 
+ CommandQueue::CommandQueue(WMT::Device device) :
++#ifndef DXMT_NATIVE
+     encodeThread([this]() { this->EncodingThread(); }),
+     finishThread([this]() { this->WaitForFinishThread(); }),
++#endif
+     device(device),
+     commandQueue(device.newCommandQueue(kCommandChunkCount)),
+     shared_event_listener(SharedEventListener_create()),
++#ifndef DXMT_NATIVE
+     event_listener_thread([this]() { SharedEventListener_start(this->shared_event_listener); }),
++#endif
+     staging_allocator({
+         device, WMTResourceOptionCPUCacheModeWriteCombined | WMTResourceHazardTrackingModeUntracked |
+                     WMTResourceStorageModeManaged, false
+@@ -82,19 +86,37 @@
+   ready_for_encode.notify_one();
+   ready_for_commit++;
+   ready_for_commit.notify_one();
++#ifndef DXMT_NATIVE
+   SharedEventListener_destroy(shared_event_listener);
+-  encodeThread.join();
+-  finishThread.join();
++#endif
++  if (encodeThread.joinable())
++    encodeThread.join();
++  if (finishThread.joinable())
++    finishThread.join();
+   for (unsigned i = 0; i < kCommandChunkCount; i++) {
+     auto &chunk = chunks[i];
+     chunk.reset();
+   };
++#ifdef DXMT_NATIVE
++  SharedEventListener_destroy(shared_event_listener);
++#else
+   event_listener_thread.join();
++#endif
+   TRACE("Destructed command queue");
+ }
+ 
+ void
+ CommandQueue::CommitCurrentChunk() {
++#ifdef DXMT_NATIVE
++  // The immediate context serializes commits. Adapter probes that never
++  // submit work need no dedicated submission or completion threads.
++  if (!finishThread.joinable())
++    finishThread = dxmt::thread([this]() { this->WaitForFinishThread(); });
++#if ASYNC_ENCODING
++  if (!encodeThread.joinable())
++    encodeThread = dxmt::thread([this]() { this->EncodingThread(); });
++#endif
++#endif
+   auto chunk_id = ready_for_encode.load(std::memory_order_relaxed);
+   auto &chunk = chunks[chunk_id % kCommandChunkCount];
+   chunk.chunk_id = chunk_id;
+--- a/src/dxmt/dxmt_command_queue.hpp
++++ b/src/dxmt/dxmt_command_queue.hpp
+@@ -164,7 +164,7 @@
+   std::atomic_uint64_t ready_for_commit = 1;
+   CpuFence cpu_coherent;
+   CpuFence frame_latency_fence_;
+-  std::atomic_bool stopped;
++  std::atomic_bool stopped{false};
+ 
+   std::array<CommandChunk, kCommandChunkCount> chunks;
+   uint64_t encoder_seq = 1;
+@@ -177,7 +177,9 @@
+   WMT::Reference<WMT::CommandQueue> commandQueue;
+ 
+   obj_handle_t shared_event_listener;
++#ifndef DXMT_NATIVE
+   dxmt::thread event_listener_thread;
++#endif
+ 
+   friend class CommandChunk;
+   uint64_t
+@@ -314,4 +316,4 @@
+   void Retain(uint64_t seq, Allocation *allocation);
+ };
+ 
+-} // namespace dxmt
+\ No newline at end of file
++} // namespace dxmt
+--- a/src/dxmt/dxmt_tasks.hpp
++++ b/src/dxmt/dxmt_tasks.hpp
+@@ -53,12 +53,16 @@
+   // Leave CPU capacity for the guest and Metal submission threads during
+   // bursts of shader compilation.
+   max_threads = std::max(2u, dxmt::thread::hardware_concurrency() / 2);
++#ifndef DXMT_NATIVE
+   workers_.reserve(max_threads);
+   threads = 2;
+ 
+   for (unsigned i = 0; i < threads; i++) {
+     workers_.emplace_back([this]() { worker_func(); });
+   }
++#else
++  threads = 0;
++#endif
+ }
+ 
+ template <typename Task> task_scheduler<Task>::~task_scheduler() {
+@@ -98,6 +102,9 @@
+           return task_queue_.size() || task_continuation_queue_.size() || destroyed.load();
+         });
+       }
++
++      if (destroyed.load())
++        break;
+ 
+       if (!task_continuation_queue_.empty()) {
+         task = task_continuation_queue_.front();
+--- a/src/winemetal/unix/winemetal_unix.c
++++ b/src/winemetal/unix/winemetal_unix.c
+@@ -2698,6 +2698,7 @@
+ 
+ #else
+ 
++#include <dispatch/dispatch.h>
+ #include <directx-native/dxn_event.h>
+ 
+ /* Native: the HANDLE is a directx-native event (dxn_event.h) created by the
+@@ -2708,11 +2709,18 @@
+ static NTSTATUS
+ _MTLSharedEvent_setWin32EventAtValue(void *obj) {
+   struct unixcall_mtlsharedevent_setevent *params = obj;
+-  void *pinned = dxn_event_duplicate((void *)params->event_handle);
++  id<MTLSharedEvent> event = (id<MTLSharedEvent>)params->shared_event;
++  void *handle = (void *)params->event_handle;
++
++  // Completed fences can signal synchronously while the caller owns the handle.
++  if (event.signaledValue >= params->value) {
++    dxn_event_signal(handle);
++    return STATUS_SUCCESS;
++  }
++  void *pinned = dxn_event_duplicate(handle);
+   if (!pinned)
+     return STATUS_SUCCESS;
+-  [(id<MTLSharedEvent>)params->shared_event
+-      notifyListener:(MTLSharedEventListener *)params->shared_event_listener
++  [event notifyListener:(MTLSharedEventListener *)params->shared_event_listener
+              atValue:params->value
+                block:^(id<MTLSharedEvent> _e, uint64_t _v) {
+                  dxn_event_signal(pinned);
+@@ -2731,7 +2739,11 @@
+ static NTSTATUS
+ _SharedEventListener_create(void *obj) {
+   struct unixcall_generic_obj_ret *params = obj;
+-  params->ret = (obj_handle_t)[[MTLSharedEventListener alloc] init];
++  dispatch_queue_attr_t attr =
++      dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0);
++  dispatch_queue_t queue = dispatch_queue_create("org.dxmt.fence-completion", attr);
++  params->ret = (obj_handle_t)[[MTLSharedEventListener alloc] initWithDispatchQueue:queue];
++  dispatch_release(queue);
+   return STATUS_SUCCESS;
+ }
+ 

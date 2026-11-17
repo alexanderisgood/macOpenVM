@@ -683,7 +683,7 @@ struct DesktopVMTrashConfirmation: Equatable {
   @Published private var lock: VMLock?
   private let files = VMFiles()
   private var presentation = GuestFullscreenPresentation()
-  private var menuBarVisibility = GuestMenuBarVisibility()
+  private let menuBarVisibility = GuestMenuBarVisibility()
   var isActive: Bool { backend?.isActive == true || windowsRuntime?.isActive == true }
   var needsOwnershipRecovery: Bool {
     recordedRuntime?.phase == .recoveryRequired || windowsRuntime?.phase == .recoveryRequired
@@ -3243,13 +3243,11 @@ struct DesktopVMTrashConfirmation: Equatable {
   func enteringFullscreen() {
     guard windowsRuntime == nil, let application: NSApplication = NSApp else { return }
     presentation.beginTransition(application.presentationOptions)
-    menuBarVisibility.prepare()
   }
   func enteredFullscreen() {
     fullscreen = true
     guard windowsRuntime == nil, let application: NSApplication = NSApp else { return }
     presentation.prepare(application.presentationOptions)
-    menuBarVisibility.prepare()
     refreshFullscreenPresentation()
   }
   func refreshFullscreenPresentation() {
@@ -3264,11 +3262,7 @@ struct DesktopVMTrashConfirmation: Equatable {
     if desired != current || (active && desired != effective) {
       application.presentationOptions = desired
     }
-    if active {
-      menuBarVisibility.show(activeOwner: true)
-    } else {
-      menuBarVisibility.suspend(canChangeVisibility: application.isActive)
-    }
+    menuBarVisibility.show(activeOwner: active)
   }
   func leavingFullscreen() {
     fullscreen = false
@@ -3276,7 +3270,6 @@ struct DesktopVMTrashConfirmation: Equatable {
     let current = application.presentationOptions
     let desired = presentation.finish(current)
     if desired != current { application.presentationOptions = desired }
-    menuBarVisibility.finish(canChangeVisibility: application.isActive)
   }
   private func show(_ error: Error) {
     errorMessage =

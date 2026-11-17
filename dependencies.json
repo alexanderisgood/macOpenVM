@@ -698,11 +698,22 @@
       "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
       "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
       "license": "LGPL-2.1-or-later",
-      "modifications": "Original staging upload fix retained. App47 bounded native completion timing trial now exercised Windows Start and shader workloads; no120Hz or hardware utilization claim. Source48 restores the original timing-disabled library and removes receive-buffer materialization in original host code. Timing candidate and all source/build records remain preserved. App68 forces literal interface GUID initialization at compile time, eliminating parser work observed in the O3 shader-binding profile. Exact public-header probes preserve known bits; native exports/imports match. No driver/timing change; live Windows gain remains pending. App69 adds a per-retired-chunk autorelease pool to the long-lived native D3D11 completion thread. GPU completion, readback, fence publication and allocator retirement retain their ordering. Native exports/imports match. No guest-driver/timing change; live memory/FPS benefit remains unqualified. Protocol2 pair16October: update five upstream commits, retain completion-thread pool and constant GUID initialization; upstream replaces local staging uploads. Use pinned directx-native ABI1. Actual paired loader/capset2 check and191 native offscreen D3D11 cases pass. Isolated candidate only; Windows/native120Hz qualification pending. ADR55 pipeline-task pool remains separate. November 16 constant-buffer correction: legacy and null-range rebinds now reset a prior range on the same resource. The offscreen immediate/deferred regression improves from 18 passing and 8 failing checks to 26 passing checks; 191 native graphics and 82 shared-texture checks also pass. Windows text rendering and interactive performance remain unqualified.",
+      "modifications": "Original staging upload fix retained. App47 bounded native completion timing trial now exercised Windows Start and shader workloads; no120Hz or hardware utilization claim. Source48 restores the original timing-disabled library and removes receive-buffer materialization in original host code. Timing candidate and all source/build records remain preserved. App68 forces literal interface GUID initialization at compile time, eliminating parser work observed in the O3 shader-binding profile. Exact public-header probes preserve known bits; native exports/imports match. No driver/timing change; live Windows gain remains pending. App69 adds a per-retired-chunk autorelease pool to the long-lived native D3D11 completion thread. GPU completion, readback, fence publication and allocator retirement retain their ordering. Native exports/imports match. No guest-driver/timing change; live memory/FPS benefit remains unqualified. Protocol2 pair16October: update five upstream commits, retain completion-thread pool and constant GUID initialization; upstream replaces local staging uploads. Use pinned directx-native ABI1. Actual paired loader/capset2 check and191 native offscreen D3D11 cases pass. Isolated candidate only; Windows/native120Hz qualification pending. ADR55 pipeline-task pool remains separate. November 16 constant-buffer correction: legacy and null-range rebinds now reset a prior range on the same resource. The offscreen immediate/deferred regression improves from 18 passing and 8 failing checks to 26 passing checks; 191 native graphics and 82 shared-texture checks also pass. Windows text rendering and interactive performance remain unqualified. November 17 command and pipeline changes reuse the command completion fence for slot reuse, deduplicate D3D11 Metal render pipeline binds, scale compilation workers on queued demand within half the host logical CPU count with a minimum of two workers, and drain each pipeline task autorelease pool. Native offscreen graphics, constant-buffer, shared-texture and command queue wraparound checks pass. The macOS build uses user-initiated QoS for GPU encoding and completion and a lower relative priority for shader compilers. Actual native threads reported the requested QoS. The effect on game FPS is unmeasured. The native fence-pacing update signals already-completed Metal events synchronously, assigns pending completions to an explicit user-initiated queue, starts encoding and compilation workers on demand, and joins pipeline workers before releasing cached tasks. Native D3D11, constant-buffer, shared-texture, command queue, fence ownership and two cross-process scanout resolution checks pass. Game frame times remain unmeasured. The native throughput update skips identical draw-state commands and pipeline invalidations, uses encoder-owned argument and temporary allocators with completion-based reuse, hashes complete shader-variant keys, synchronizes variant task publication, and reduces redundant shader/pipeline cache work. Graphics pipeline keys distinguish stream-output layouts. Windowless native graphics, concurrent upload, deferred-state replay, shader cache, allocator boundary and shared-scanout checks pass. Isolated warm shader-variant lookup latency improves from about39ns to18ns. Full game throughput is unmeasured.",
       "scope": "gpu-evaluation",
       "redistributed": false,
       "obligations": "Independent native source build; explicit zstd link option. Source notices, modifications, relinking rights and complete incorporated-source inventory required before distribution. Original Apache-2.0 helper integration, combined-license compatibility and relinking/source arrangements require review before distribution.",
-      "privateBinarySHA256": "ca617d512bf6c962abafcff2dfb30382aa9e03a932e05e17e104ce54590ef186",
+      "privateBinarySHA256": "215211e4efc900a2fd834ea1d13ad8f49a4b6ffdf7d7f20e076accc759327b87",
+      "priorNativeThroughputBinarySHA256": "fcba5806444e9a219a68b186ebbee9da2563a9a2daf2cb45cb447d2587ff1b21",
+      "nativeDrawThroughputPatchSHA256": "9893a9164777ab37710e37ab4548d435b80cd24d87f73d1715b04cab81fe24fb",
+      "nativeOverlapPatchSHA256": "e7a06db0c66cb47cc9539fbc5d288290224b2ae49d6f3eb627d7f85742d8bcf4",
+      "nativeShaderThroughputPatchSHA256": "6660428eddc95100f6935a4f18cefe61d734f2dbc4d7d3c6bb6e30e4f5f0ecb5",
+      "priorNativeFencePacingBinarySHA256": "4e46ed915899773779bd1877cb4ad9fba4323461414a70db25395501e60f7133",
+      "nativeFencePacingPatchSHA256": "d4d9661344616853e37fe5d336f2ccdf6a8bdb83abf9ebfd1a3004073c1c24ef",
+      "priorThreadQoSBinarySHA256": "de8f6439fda322e427d268603ddd825b7a8af482929c939def7c365714b7d687",
+      "nativeThreadQoSPatchSHA256": "26a8270df909a23118a6f9dc05a8b3c945f8ddc9070c4439f2141153719b2f61",
+      "priorCommandPacingBinarySHA256": "ca617d512bf6c962abafcff2dfb30382aa9e03a932e05e17e104ce54590ef186",
+      "commandPacingPatchSHA256": "23ba6e1c6d38a6044ce7f69ac95e99ff01c5040abd4390b1eb33f5e44ef4dd29",
+      "pipelineTaskAutoreleasePatchSHA256": "561bd48fa65caf96297b8f48dbde475d68b8d2cc3aa20b8783298a1abc1dd663",
       "patchSHA256": "41bf8739c9f388542a50db52b1f0a377a85a76f57307580943c95481e139a01e",
       "priorStablePrivateBinarySHA256": "c6ec27b5ec818e8d13e5a3f09419f524c6990f500af7c4e1e870b966302f6b80",
       "incrementalTimingPatchSHA256": "3d42daacc990108851d58b76014a255631a927338ad4cfb4950c16ad7a2f625b",
@@ -851,11 +862,15 @@
       "version": "11.1.0-private-candidate39-protocol2-20261016",
       "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
       "license": "GPL-2.0-only",
-      "modifications": "Source49 adds an optional private read-only host-frame snapshot connection and original Metal host presentation. Two immediately unlinked shared-memory slots are acknowledged only after consumer GPU completion; a private GPU cache supports redraws after ACK. Ordinary RFB remains input/fallback. CPU readback, guest driver, guest error/completion policy and timing-disabled DXMT remain unchanged. Generated native/4K exact-pixel and descriptor validation passed; live Windows qualification is pending. Signed driver remains60Hz; no120FPS or physical-scanout claim. Source50 checks shm creation permissions with fstat instead of Darwin-unsupported fchmod, found by actual Windows49; manual display reconnect can retry a failed shared attempt. Prior source49 preserved. Source51 separates private-cache upload/ACK from drawable acquisition, coalesces presentation to the latest cache on the same ordered GPU queue, and drains autoreleased Metal resources per work item. Boot-time shared disconnects can resume the existing RFB reader for at most three admitted attempts during45seconds. Source50 live CS2 reported periodic stalls; source51 pacing gain unqualified pending live comparison. Source52 adds a host-process activity token scoped to actual preparing/running runtime notifications, released on pause/settlement and final ownership teardown. Public live proc_bsdinfo flags found App51 suppressed while QEMU31 and its graphics worker were not; both host display paths recorded roughly10-second gaps. No global power or lock setting changes and no new renderer/driver binary. QEMU32 replaces startup-only command logging with monotonic numeric command-gap/reply/oldest-pending timing, bounded to256 records plus exhaustion marker under BQL. No payload/pixels, extra timer, queue walk, synchronization or completion-policy change. Separate candidate built/signed; live classification pending under ADR47. App57 applied4GiB host-visible capacity, which Windows reports, but its CS2 menu still has a10097.66ms delivery gap. No FPS gain claimed. QEMU32 diagnostic output is unqualified because virtqueue_pop command storage was not zero-initialized. QEMU33 explicitly initializes only the original timing fields at admission; actual-header poisoned-field and boundary checks pass. No32 timing inference is retained. QEMU34 adapts Odaki GPL patch6/9 to track command suspension independently of guest fencing, retaining suspended unmap/unref at the queue head until cleanup and real fence creation. Corrected33 live trace records10.019-10.022s unmap replies. Actual old/new queue-function regression reproduces the premature transition and passes the corrected delayed-cleanup ordering. Live benefit pending ADR48. QEMU35 explicitly enables the existing CoreAudio playback backend in the minimal build. Original output callback correction silences early returns, plays available partial frames, clamps to actual host-buffer capacity and emits at most eight numeric teardown summaries per process. Fixed HDA output-only codec and zero input voices; no microphone, recording or new guest kernel driver. Actual extracted callback old/new regression passes; CoreAudio is present in the signed native help/import closure. Live Windows playback remains unqualified. QEMU36 tracks the specific output IOProc start/stop state instead of inferring callback startup from device-running state. Unknown/default-device and property/callback initialization failures retain their errors rather than returning success. Initialization/control status is bounded to16 numeric records, and up to8 counter summaries include zero callbacks and snapshot under the buffer lock before logging outside it. Exact-function start/control and initialization regressions pass. Actual App69 Windows driver/endpoint checks passed, but user hearing failed and playback remains unqualified pending App70. Candidate37 adds bounded actual-format readback and PCM peak/RMS/invalid/out-of-range/callback-layout statistics without altering copied samples or retaining audio. Actual App70 non-silent callbacks pass but user hearing still fails. Source signal probe passes ASAN/UBSAN; clean Windows sound remains unqualified. Candidate38 fills the actual callback byte capacity rather than capping it at an earlier frame setting. Actual old/new callback probe reproduces a silent tail/under-consumption (43) and passes the correction (0) with ASAN/UBSAN. Actual Windows hearing still requires qualification. QEMU39 is a preserved QEMU38 copy with only its Mach-O renderer dependency rebound to the isolated protocol2 library, then re-signed with the same virtualization entitlements. No QEMU source/command, disk, platform identity or security policy change. Loader closure and Windows comparison remain required. Distinct accelerated/capture executable copies rebind only their renderer load request to the signed R3 cache renderer and are re-signed with the same Hypervisor entitlement. Original source, machine contract and runtime executables are preserved. The verified original renderer helper path is retained. No guest driver reinstall or new graphics protocol.",
+      "modifications": "Source49 adds an optional private read-only host-frame snapshot connection and original Metal host presentation. Two immediately unlinked shared-memory slots are acknowledged only after consumer GPU completion; a private GPU cache supports redraws after ACK. Ordinary RFB remains input/fallback. CPU readback, guest driver, guest error/completion policy and timing-disabled DXMT remain unchanged. Generated native/4K exact-pixel and descriptor validation passed; live Windows qualification is pending. Signed driver remains60Hz; no120FPS or physical-scanout claim. Source50 checks shm creation permissions with fstat instead of Darwin-unsupported fchmod, found by actual Windows49; manual display reconnect can retry a failed shared attempt. Prior source49 preserved. Source51 separates private-cache upload/ACK from drawable acquisition, coalesces presentation to the latest cache on the same ordered GPU queue, and drains autoreleased Metal resources per work item. Boot-time shared disconnects can resume the existing RFB reader for at most three admitted attempts during45seconds. Source50 live CS2 reported periodic stalls; source51 pacing gain unqualified pending live comparison. Source52 adds a host-process activity token scoped to actual preparing/running runtime notifications, released on pause/settlement and final ownership teardown. Public live proc_bsdinfo flags found App51 suppressed while QEMU31 and its graphics worker were not; both host display paths recorded roughly10-second gaps. No global power or lock setting changes and no new renderer/driver binary. QEMU32 replaces startup-only command logging with monotonic numeric command-gap/reply/oldest-pending timing, bounded to256 records plus exhaustion marker under BQL. No payload/pixels, extra timer, queue walk, synchronization or completion-policy change. Separate candidate built/signed; live classification pending under ADR47. App57 applied4GiB host-visible capacity, which Windows reports, but its CS2 menu still has a10097.66ms delivery gap. No FPS gain claimed. QEMU32 diagnostic output is unqualified because virtqueue_pop command storage was not zero-initialized. QEMU33 explicitly initializes only the original timing fields at admission; actual-header poisoned-field and boundary checks pass. No32 timing inference is retained. QEMU34 adapts Odaki GPL patch6/9 to track command suspension independently of guest fencing, retaining suspended unmap/unref at the queue head until cleanup and real fence creation. Corrected33 live trace records10.019-10.022s unmap replies. Actual old/new queue-function regression reproduces the premature transition and passes the corrected delayed-cleanup ordering. Live benefit pending ADR48. QEMU35 explicitly enables the existing CoreAudio playback backend in the minimal build. Original output callback correction silences early returns, plays available partial frames, clamps to actual host-buffer capacity and emits at most eight numeric teardown summaries per process. Fixed HDA output-only codec and zero input voices; no microphone, recording or new guest kernel driver. Actual extracted callback old/new regression passes; CoreAudio is present in the signed native help/import closure. Live Windows playback remains unqualified. QEMU36 tracks the specific output IOProc start/stop state instead of inferring callback startup from device-running state. Unknown/default-device and property/callback initialization failures retain their errors rather than returning success. Initialization/control status is bounded to16 numeric records, and up to8 counter summaries include zero callbacks and snapshot under the buffer lock before logging outside it. Exact-function start/control and initialization regressions pass. Actual App69 Windows driver/endpoint checks passed, but user hearing failed and playback remains unqualified pending App70. Candidate37 adds bounded actual-format readback and PCM peak/RMS/invalid/out-of-range/callback-layout statistics without altering copied samples or retaining audio. Actual App70 non-silent callbacks pass but user hearing still fails. Source signal probe passes ASAN/UBSAN; clean Windows sound remains unqualified. Candidate38 fills the actual callback byte capacity rather than capping it at an earlier frame setting. Actual old/new callback probe reproduces a silent tail/under-consumption (43) and passes the correction (0) with ASAN/UBSAN. Actual Windows hearing still requires qualification. QEMU39 is a preserved QEMU38 copy with only its Mach-O renderer dependency rebound to the isolated protocol2 library, then re-signed with the same virtualization entitlements. No QEMU source/command, disk, platform identity or security policy change. Loader closure and Windows comparison remain required. Distinct accelerated/capture executable copies rebind only their renderer load request to the signed R3 cache renderer and are re-signed with the same Hypervisor entitlement. Original source, machine contract and runtime executables are preserved. The verified original renderer helper path is retained. No guest driver reinstall or new graphics protocol. The November 17 accelerated runtime publishes BGRA scanout into two dedicated host slots via Metal and refreshes the raster surface on demand. The app samples those slots directly and defers reuse until previous GPU reads complete.",
       "scope": "gpu-evaluation",
       "redistributed": false,
       "obligations": "Preserve upstream authors, QEMU/component GPL notices, complete corresponding source, patches and build/signing/relink records. Public IPA source https://patchew.org/QEMU/20260424000544.9617-1-lucaaamaral%40gmail.com/. No production or distribution clearance.",
-      "privateBinarySHA256": "b3f6e87446c6967eb2efefd529f9b757de08b51caa6a225c5fb0831d15070955",
+      "privateBinarySHA256": "7e51d58e365454b9f01e9a21f60ea5fa2d64337185b52ee162a6fc669a0fac66",
+      "priorMetalScanoutRuntimeSHA256": "46e5ea88b35c1590909f99c0920b0318270f9fd655418ce7d9d435da9d10ee10",
+      "linearScanoutCopyPatchSHA256": "18e3e7b62e8e3f8e0b50c04fadd7e1dadef608985078f46ee113755e37fbe0c8",
+      "priorDisplayRuntimeSHA256": "b3f6e87446c6967eb2efefd529f9b757de08b51caa6a225c5fb0831d15070955",
+      "sharedScanoutPatchSHA256": "ac9a93909a69b9abc48bb11181646dfd6aa672d4b8f2d19206dbfb19709cef5f",
       "patchSHA256": "289fa2d9f9d7b31e2b14157dde8426ab848ca6197774ff32b270e04b6016d4f2",
       "incrementalPatchSHA256": "bb857d823a9c70e268c9e9719a7d936310a2040acd591a713b7f9e31632bf002",
       "evaluatedRuntime29": {
@@ -1353,6 +1368,168 @@
         {
           "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
           "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-command-and-pipeline-pacing.patch",
+      "version": "2026-11-17 snapshot (23ba6e1c6d38)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-11-17.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-command-and-pipeline-pacing.patch",
+      "patchSHA256": "23ba6e1c6d38a6044ce7f69ac85e99ff01c5040abd4390b1eb33f5e44ef4dd29",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-native-draw-throughput.patch",
+      "version": "2026-11-17 snapshot (9893a9164777)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-11-17.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-native-draw-throughput.patch",
+      "patchSHA256": "9893a9164777ab37710e37ab4548d435b80cd24d87f73d1715b04cab81fe24fb",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-native-fence-pacing.patch",
+      "version": "2026-11-17 snapshot (d4d966134461)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-11-17.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-native-fence-pacing.patch",
+      "patchSHA256": "d4d9661344616853e37fe5d336f2ccdf6a8bdb83abf9ebfd1a3004073c1c24ef",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-native-overlap.patch",
+      "version": "2026-11-17 snapshot (e7a06db0c66c)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-11-17.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-native-overlap.patch",
+      "patchSHA256": "e7a06db0c66cb47cc9539fbc5d288290224b2ae49d6f3eb627d7f85742d8bcf4",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-native-shader-throughput.patch",
+      "version": "2026-11-17 snapshot (6660428eddc9)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-11-17.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-native-shader-throughput.patch",
+      "patchSHA256": "6660428eddc95100f6935a4f18cefe61d734f2dbc4d7d3c6bb6e30e4f5f0ecb5",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: dxmt-native-thread-qos.patch",
+      "version": "2026-11-17 snapshot (26a8270df909)",
+      "sourceURL": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+      "license": "LGPL-2.1-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-11-17.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/dxmt-native-thread-qos.patch",
+      "patchSHA256": "26a8270df909a23118a6f9dc05a8b3c945f8ddc9070c4439f2141153719b2f61",
+      "upstreamSources": [
+        {
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: metal-linear-scanout-copy.patch",
+      "version": "2026-11-17 snapshot (18e3e7b62e8e)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-11-17.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/metal-linear-scanout-copy.patch",
+      "patchSHA256": "18e3e7b62e8e3f8e0b50c04fadd7e1dadef608985078f46ee113755e37fbe0c8",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: metal-shared-scanout.patch",
+      "version": "2026-11-17 snapshot (ac9a93909a69)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-or-later AND MIT",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-11-17.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/metal-shared-scanout.patch",
+      "patchSHA256": "ac9a93909a69b9abc48bb11181646dfd6aa672d4b8f2d19206dbfb19709cef5f",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Redistributed source patch: shared-scanout-leases.patch",
+      "version": "2026-11-17 snapshot (cb90c4e0e7fc)",
+      "sourceURL": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+      "license": "GPL-2.0-or-later",
+      "modifications": "Downstream macOpenVM source diff against the upstream targets recorded in LICENSES/patches/patch-license-map.json. Snapshot date is 2026-11-17.",
+      "scope": "redistributed-source-patch",
+      "redistributed": true,
+      "obligations": "Preserve the patch and its upstream copyright/license notices, applicable complete license texts, and the per-target license map in LICENSES/patches. GNU-licensed source remains under its applicable GNU terms; original independently added Apache helpers retain their notices. No upstream binaries, complete runtime, linking/relinking or binary redistribution clearance is granted by this source inventory.",
+      "patchPath": "Backends/Qemu/patches/shared-scanout-leases.patch",
+      "patchSHA256": "cb90c4e0e7fc93f8006a19c52d347d8d48de92c706aed8e35576e97ed3ef37c5",
+      "upstreamSources": [
+        {
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "version": "11.1.0"
         }
       ]
     }

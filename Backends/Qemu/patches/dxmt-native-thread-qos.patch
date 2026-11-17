@@ -1,0 +1,62 @@
+--- a/src/dxmt/dxmt_command_queue.cpp
++++ b/src/dxmt/dxmt_command_queue.cpp
+@@ -23,6 +23,9 @@
+ #include "util_env.hpp"
+ #include "util_win32_compat.h"
+ #include <atomic>
++#if defined(__APPLE__) && !defined(_WIN32)
++#include <pthread/qos.h>
++#endif
+ 
+ #define ASYNC_ENCODING 1
+ 
+@@ -173,7 +176,11 @@
+ CommandQueue::EncodingThread() {
+ #if ASYNC_ENCODING
+   env::setThreadName("dxmt-encode-thread");
++#if defined(__APPLE__) && !defined(_WIN32)
++  pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
++#else
+   SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
++#endif
+   uint64_t internal_seq = 1;
+   while (!stopped.load()) {
+     ready_for_encode.wait(internal_seq, std::memory_order_acquire);
+@@ -192,7 +199,11 @@
+ uint32_t
+ CommandQueue::WaitForFinishThread() {
+   env::setThreadName("dxmt-finish-thread");
++#if defined(__APPLE__) && !defined(_WIN32)
++  pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
++#else
+   SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
++#endif
+   uint64_t internal_seq = 1;
+   while (!stopped.load()) {
+     ready_for_commit.wait(internal_seq, std::memory_order_acquire);
+--- a/src/dxmt/dxmt_tasks.hpp
++++ b/src/dxmt/dxmt_tasks.hpp
+@@ -4,6 +4,9 @@
+ #include "util_win32_compat.h"
+ #include <algorithm>
+ #include <atomic>
++#if defined(__APPLE__) && !defined(_WIN32)
++#include <pthread/qos.h>
++#endif
+ #include <queue>
+ #include <unordered_map>
+ 
+@@ -78,7 +81,13 @@
+ task_scheduler<Task>::worker_func() {
+   struct task_trait<Task> task_trait;
+   std::vector<Task> continuation_buffer;
++#if defined(__APPLE__) && !defined(_WIN32)
++  // Compilers can unblock encoding, so keep them in the same QoS class
++  // at a lower relative priority than submission and completion.
++  pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, -4);
++#else
+   SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
++#endif
+   while (!destroyed.load()) {
+     Task task;
+     {

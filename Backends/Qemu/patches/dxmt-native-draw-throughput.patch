@@ -1,0 +1,158 @@
+--- a/src/d3d11/d3d11_context_impl.cpp
++++ b/src/d3d11/d3d11_context_impl.cpp
+@@ -1927,8 +1927,12 @@
+     std::lock_guard<mutex_t> lock(mutex);
+ 
+     if (auto expected = com_cast<IMTLD3D11InputLayout>(pInputLayout)) {
++      if (state_.InputAssembler.InputLayout.ptr() == expected.ptr())
++        return;
+       state_.InputAssembler.InputLayout = std::move(expected);
+     } else {
++      if (!state_.InputAssembler.InputLayout)
++        return;
+       state_.InputAssembler.InputLayout = nullptr;
+     }
+     InvalidateRenderPipeline();
+@@ -1973,11 +1977,13 @@
+ 
+     auto pBuffer = GetResourceCommon(pIndexBuffer);
+     if (pBuffer && (pBuffer->bindFlags() & D3D11_BIND_INDEX_BUFFER) && ValidateIAHazard(pBuffer)) {
+-      state_.InputAssembler.IndexBuffer = pBuffer;
+-      EmitST([buffer = state_.InputAssembler.IndexBuffer->buffer()](ArgumentEncodingContext &enc) mutable {
+-        enc.bindIndexBuffer(forward_rc(buffer));
+-      });
+-    } else {
++      if (state_.InputAssembler.IndexBuffer.ptr() != pBuffer) {
++        state_.InputAssembler.IndexBuffer = pBuffer;
++        EmitST([buffer = state_.InputAssembler.IndexBuffer->buffer()](ArgumentEncodingContext &enc) mutable {
++          enc.bindIndexBuffer(forward_rc(buffer));
++        });
++      }
++    } else if (state_.InputAssembler.IndexBuffer) {
+       state_.InputAssembler.IndexBuffer = nullptr;
+       EmitST([](ArgumentEncodingContext &enc) { enc.bindIndexBuffer({}); });
+     }
+@@ -2006,8 +2012,18 @@
+   IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY Topology) override {
+     std::lock_guard<mutex_t> lock(mutex);
+ 
+-    if (state_.InputAssembler.Topology != Topology) {
+-      state_.InputAssembler.Topology = Topology;
++    auto previous = state_.InputAssembler.Topology;
++    if (previous == Topology)
++      return;
++
++    state_.InputAssembler.Topology = Topology;
++    // Ordinary draws encode the list/strip choice in the draw command.
++    // Geometry and tessellation can specialize the pipeline on that choice.
++    if (state_.ShaderStages[PipelineStage::Geometry].Shader ||
++        state_.ShaderStages[PipelineStage::Hull].Shader ||
++        previous == D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED ||
++        Topology == D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED ||
++        to_metal_primitive_topology(previous) != to_metal_primitive_topology(Topology)) {
+       InvalidateRenderPipeline();
+     }
+   }
+@@ -2991,13 +3007,11 @@
+         should_invalidate_pipeline = true;
+       }
+     }
+-    if (BlendFactor) {
+-      memcpy(state_.OutputMerger.BlendFactor, BlendFactor, sizeof(float[4]));
+-    } else {
+-      state_.OutputMerger.BlendFactor[0] = 1.0f;
+-      state_.OutputMerger.BlendFactor[1] = 1.0f;
+-      state_.OutputMerger.BlendFactor[2] = 1.0f;
+-      state_.OutputMerger.BlendFactor[3] = 1.0f;
++    const float default_factor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
++    const float *factor = BlendFactor ? BlendFactor : default_factor;
++    if (memcmp(state_.OutputMerger.BlendFactor, factor, sizeof(float[4])) != 0) {
++      memcpy(state_.OutputMerger.BlendFactor, factor, sizeof(float[4]));
++      dirty_state.set(DirtyState::BlendFactorAndStencilRef);
+     }
+     if (state_.OutputMerger.SampleMask != SampleMask) {
+       state_.OutputMerger.SampleMask = SampleMask;
+@@ -3006,7 +3020,6 @@
+     if (should_invalidate_pipeline) {
+       InvalidateRenderPipeline();
+     }
+-    dirty_state.set(DirtyState::BlendFactorAndStencilRef);
+   }
+   void
+   STDMETHODCALLTYPE
+@@ -3033,7 +3046,11 @@
+   OMSetDepthStencilState(ID3D11DepthStencilState *pDepthStencilState, UINT StencilRef) override {
+     std::lock_guard<mutex_t> lock(mutex);
+ 
+-    if (auto expected = com_cast<IMTLD3D11DepthStencilState>(pDepthStencilState)) {
++    auto expected = com_cast<IMTLD3D11DepthStencilState>(pDepthStencilState);
++    if (state_.OutputMerger.DepthStencilState == expected.ptr() && state_.OutputMerger.StencilRef == StencilRef)
++      return;
++
++    if (expected) {
+       state_.OutputMerger.DepthStencilState = expected.ptr();
+     } else {
+       state_.OutputMerger.DepthStencilState = nullptr;
+@@ -3083,10 +3100,10 @@
+         ERR("RSSetState: invalid ID3D11RasterizerState object.");
+       }
+     } else {
+-      if (state_.Rasterizer.RasterizerState) {
+-        if (state_.Rasterizer.RasterizerState->IsScissorEnabled() != default_rasterizer_state->IsScissorEnabled()) {
+-          dirty_state.set(DirtyState::Scissors);
+-        }
++      if (!state_.Rasterizer.RasterizerState)
++        return;
++      if (state_.Rasterizer.RasterizerState->IsScissorEnabled() != default_rasterizer_state->IsScissorEnabled()) {
++        dirty_state.set(DirtyState::Scissors);
+       }
+       state_.Rasterizer.RasterizerState = nullptr;
+       dirty_state.set(DirtyState::RasterizerState);
+@@ -3419,6 +3436,8 @@
+         D3D11_ASSERT(0 && "unexpected shader object");
+       }
+     } else {
++      if (!ShaderStage.Shader)
++        return;
+       ShaderStage.Shader = nullptr;
+     }
+ 
+@@ -3737,8 +3756,6 @@
+   SetVertexBuffers(
+       UINT StartSlot, UINT NumBuffers, ID3D11Buffer *const *ppVertexBuffers, const UINT *pStrides, const UINT *pOffsets
+   ) {
+-    std::lock_guard<mutex_t> lock(mutex);
+-
+     auto &VertexBuffers = state_.InputAssembler.VertexBuffers;
+     for (unsigned slot = StartSlot; slot < StartSlot + NumBuffers; slot++) {
+       auto pVertexBuffer = GetResourceCommon(ppVertexBuffers[slot - StartSlot]);
+@@ -3746,14 +3763,14 @@
+         bool replaced = false;
+         auto &entry = VertexBuffers.bind(slot, {pVertexBuffer}, replaced, !pVertexBuffer->hazardsFree());
+         if (!replaced) {
+-          if (pStrides && pStrides[slot - StartSlot] != entry.Stride) {
+-            VertexBuffers.set_dirty(slot);
+-            entry.Stride = pStrides[slot - StartSlot];
+-          }
+-          if (pOffsets && pOffsets[slot - StartSlot] != entry.Offset) {
+-            VertexBuffers.set_dirty(slot);
+-            entry.Offset = pOffsets[slot - StartSlot];
+-          }
++          auto stride = pStrides ? pStrides[slot - StartSlot] : entry.Stride;
++          auto offset = pOffsets ? pOffsets[slot - StartSlot] : entry.Offset;
++          if (stride == entry.Stride && offset == entry.Offset)
++            continue;
++
++          VertexBuffers.set_dirty(slot);
++          entry.Stride = stride;
++          entry.Offset = offset;
+           EmitST([=, offset = entry.Offset,
+                 stride = entry.Stride](ArgumentEncodingContext &enc) mutable {
+             enc.bindVertexBufferOffset(slot, offset, stride);
+@@ -5908,4 +5925,4 @@
+ 
+ };
+ 
+-} // namespace dxmt
+\ No newline at end of file
++} // namespace dxmt

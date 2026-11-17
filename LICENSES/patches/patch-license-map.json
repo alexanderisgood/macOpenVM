@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "auditDate": "2026-10-18",
+  "auditDate": "2026-11-17",
   "scope": "Conservative aggregate license expressions for separately distributed source patches; per-target notices govern. Original application remains separately Apache-2.0.",
   "patches": [
     {
@@ -24,6 +24,57 @@
           "license": "GPL-2.0-or-later",
           "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
           "sourceNoticeKey": "qemu:hw/uefi/var-service-vars.c"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-command-and-pipeline-pacing.patch",
+      "patchSHA256": "23ba6e1c6d38a6044ce7f69ac85e99ff01c5040abd4390b1eb33f5e44ef4dd29",
+      "patchBytes": 6724,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.hpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.hpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.cpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_tasks.hpp",
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_tasks.hpp",
+          "newFile": false
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/d3d11/d3d11_context_impl.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Explicit LGPL-2.1-or-later notice in the modified source",
+          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_context_impl.cpp"
         }
       ],
       "sourceOnly": true,
@@ -58,6 +109,33 @@
       "notes": []
     },
     {
+      "path": "Backends/Qemu/patches/dxmt-constant-buffer-rebind.patch",
+      "patchSHA256": "7e74ff3b250d7ad2d7358b09efd8187b152e736e3ddb0cfa8a8e4faff3fe70ac",
+      "patchBytes": 2580,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/d3d11/d3d11_context_impl.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Explicit LGPL-2.1-or-later notice in the modified source",
+          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_context_impl.cpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
       "path": "Backends/Qemu/patches/dxmt-constant-interface-identifiers.patch",
       "patchSHA256": "6bac67898b6f9f070dd1e8f11dc3c04ba56618237caae450762ca702ea2e8ddc",
       "patchBytes": 796,
@@ -78,6 +156,92 @@
           "license": "LGPL-2.1-or-later AND MIT AND Zlib",
           "licenseBasis": "Current DXMT LICENSE plus file attribution to DXVK zlib and Alexander Bessonov MIT parser; complete retained DXVK notice copied",
           "sourceNoticeKey": "dxmt:src/util/com/com_guid.hpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-native-draw-throughput.patch",
+      "patchSHA256": "9893a9164777ab37710e37ab4548d435b80cd24d87f73d1715b04cab81fe24fb",
+      "patchBytes": 6584,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/d3d11/d3d11_context_impl.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Explicit LGPL-2.1-or-later notice in the modified source",
+          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_context_impl.cpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-native-fence-pacing.patch",
+      "patchSHA256": "d4d9661344616853e37fe5d336f2ccdf6a8bdb83abf9ebfd1a3004073c1c24ef",
+      "patchBytes": 6197,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/d3d11/d3d11_pipeline_cache.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_pipeline_cache.cpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.cpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.hpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.hpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_tasks.hpp",
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_tasks.hpp",
+          "newFile": false
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/winemetal/unix/winemetal_unix.c",
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/winemetal/unix/winemetal_unix.c",
+          "newFile": false
         }
       ],
       "sourceOnly": true,
@@ -161,6 +325,127 @@
           "license": "LGPL-2.1-or-later",
           "licenseBasis": "Upstream project license",
           "sourceNoticeKey": "dxmt:src/winemetal/Metal.hpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-native-overlap.patch",
+      "patchSHA256": "e7a06db0c66cb47cc9539fbc5d288290224b2ae49d6f3eb627d7f85742d8bcf4",
+      "patchBytes": 2284,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.cpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.hpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.hpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_ring_bump_allocator.hpp",
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_ring_bump_allocator.hpp",
+          "newFile": false
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-native-shader-throughput.patch",
+      "patchSHA256": "6660428eddc95100f6935a4f18cefe61d734f2dbc4d7d3c6bb6e30e4f5f0ecb5",
+      "patchBytes": 10123,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/d3d11/d3d11_shader.hpp",
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_shader.hpp",
+          "newFile": false
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/d3d11/d3d11_pipeline.hpp",
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_pipeline.hpp",
+          "newFile": false
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/d3d11/d3d11_pipeline_cache.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_pipeline_cache.cpp"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/dxmt-native-thread-qos.patch",
+      "patchSHA256": "26a8270df909a23118a6f9dc05a8b3c945f8ddc9070c4439f2141153719b2f61",
+      "patchBytes": 1961,
+      "license": "LGPL-2.1-or-later",
+      "upstreams": [
+        {
+          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
+          "default": "LGPL-2.1-or-later",
+          "family": "dxmt"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_command_queue.cpp",
+          "newFile": false,
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_command_queue.cpp"
+        },
+        {
+          "upstreamFamily": "dxmt",
+          "target": "src/dxmt/dxmt_tasks.hpp",
+          "license": "LGPL-2.1-or-later",
+          "licenseBasis": "Upstream project license",
+          "sourceNoticeKey": "dxmt:src/dxmt/dxmt_tasks.hpp",
+          "newFile": false
         }
       ],
       "sourceOnly": true,
@@ -332,6 +617,33 @@
       "notes": []
     },
     {
+      "path": "Backends/Qemu/patches/metal-linear-scanout-copy.patch",
+      "patchSHA256": "18e3e7b62e8e3f8e0b50c04fadd7e1dadef608985078f46ee113755e37fbe0c8",
+      "patchBytes": 2783,
+      "license": "GPL-2.0-or-later",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-metal-readback.m",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-metal-readback.m"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
       "path": "Backends/Qemu/patches/metal-readback-swizzle.patch",
       "patchSHA256": "110491137212a5481af317fafb93f81b4a3a7237685a595e0e040f42e86c7b5e",
       "patchBytes": 3792,
@@ -376,6 +688,73 @@
           "license": "GPL-2.0-or-later",
           "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
           "sourceNoticeKey": "qemu:ui/egl-headless.c"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
+      "path": "Backends/Qemu/patches/metal-shared-scanout.patch",
+      "patchSHA256": "ac9a93909a69b9abc48bb11181646dfd6aa672d4b8f2d19206dbfb19709cef5f",
+      "patchBytes": 16896,
+      "license": "GPL-2.0-or-later AND MIT",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-metal-readback.h",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-metal-readback.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-metal-readback.m",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-metal-readback.m"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-shared-frame.h",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-shared-frame.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-shared-frame.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-shared-frame.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/egl-headless.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "QEMU LICENSE point 2: files without a file-specific notice are GPL-2.0-or-later",
+          "sourceNoticeKey": "qemu:ui/egl-headless.c"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/vnc.c",
+          "newFile": false,
+          "license": "MIT",
+          "licenseBasis": "Complete permission/copyright notice in retained source header",
+          "sourceNoticeKey": "qemu:ui/vnc.c"
         }
       ],
       "sourceOnly": true,
@@ -953,6 +1332,41 @@
       "notes": []
     },
     {
+      "path": "Backends/Qemu/patches/shared-scanout-leases.patch",
+      "patchSHA256": "cb90c4e0e7fc93f8006a19c52d347d8d48de92c706aed8e35576e97ed3ef37c5",
+      "patchBytes": 14945,
+      "license": "GPL-2.0-or-later",
+      "upstreams": [
+        {
+          "version": "11.1.0",
+          "url": "https://gitlab.com/qemu-project/qemu/-/tree/v11.1.0",
+          "default": "GPL-2.0-or-later",
+          "family": "qemu"
+        }
+      ],
+      "files": [
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-shared-frame.h",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-shared-frame.h"
+        },
+        {
+          "upstreamFamily": "qemu",
+          "target": "ui/mvo-shared-frame.c",
+          "newFile": false,
+          "license": "GPL-2.0-or-later",
+          "licenseBasis": "Explicit SPDX notice in added source",
+          "sourceNoticeKey": "qemu:ui/mvo-shared-frame.c"
+        }
+      ],
+      "sourceOnly": true,
+      "licenseClearance": false,
+      "notes": []
+    },
+    {
       "path": "Backends/Qemu/patches/vnc-active-refresh-16ms.patch",
       "patchSHA256": "57f998d98167ac13ee06b6375ec49d9d39ebce7fd44c0d3738f19430c2579615",
       "patchBytes": 471,
@@ -973,33 +1387,6 @@
           "license": "MIT",
           "licenseBasis": "Complete permission/copyright notice in retained source header",
           "sourceNoticeKey": "qemu:ui/vnc.c"
-        }
-      ],
-      "sourceOnly": true,
-      "licenseClearance": false,
-      "notes": []
-    },
-    {
-      "path": "Backends/Qemu/patches/dxmt-constant-buffer-rebind.patch",
-      "patchSHA256": "7e74ff3b250d7ad2d7358b09efd8187b152e736e3ddb0cfa8a8e4faff3fe70ac",
-      "patchBytes": 2580,
-      "license": "LGPL-2.1-or-later",
-      "upstreams": [
-        {
-          "version": "66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
-          "url": "https://github.com/utmapp/dxmt/tree/66e27f3759ff79e41a791ec40e2a70ef6d0c964c",
-          "default": "LGPL-2.1-or-later",
-          "family": "dxmt"
-        }
-      ],
-      "files": [
-        {
-          "upstreamFamily": "dxmt",
-          "target": "src/d3d11/d3d11_context_impl.cpp",
-          "newFile": false,
-          "license": "LGPL-2.1-or-later",
-          "licenseBasis": "Explicit LGPL-2.1-or-later notice in the modified source",
-          "sourceNoticeKey": "dxmt:src/d3d11/d3d11_context_impl.cpp"
         }
       ],
       "sourceOnly": true,

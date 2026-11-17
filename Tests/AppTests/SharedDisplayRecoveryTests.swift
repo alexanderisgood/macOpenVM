@@ -59,6 +59,30 @@ import Testing
     #expect(fresh.retryDeadline == now + .milliseconds(250) && !fresh.incremental)
   }
 
+  @Test func laterRetriesKeepTheStandardDisplayResponsiveAndAreBounded() {
+    var recovery = SharedDisplayRecovery()
+    let now = ContinuousClock.now
+    let beforeExhaustion = recovery.retryDuringRasterDelivery(at: now)
+    #expect(!beforeExhaustion)
+    for _ in 0..<3 { let _ = recovery.transientFailure(at: now) }
+    let quickRetry = recovery.transientFailure(at: now)
+    let firstRasterRetry = recovery.retryDuringRasterDelivery(at: now)
+    let frameRequest = recovery.nextFrameRequest()
+    #expect(!quickRetry && firstRasterRetry && frameRequest.incremental)
+    #expect(!recovery.canAttempt(at: now + .seconds(7)))
+    #expect(recovery.canAttempt(at: now + .seconds(8)))
+    let later = now + .seconds(8)
+    let laterQuickRetry = recovery.transientFailure(at: later)
+    let secondRasterRetry = recovery.retryDuringRasterDelivery(at: later)
+    #expect(!laterQuickRetry && secondRasterRetry)
+    #expect(!recovery.canAttempt(at: later + .seconds(19)))
+    #expect(recovery.canAttempt(at: later + .seconds(20)))
+    let exhausted = recovery.retryDuringRasterDelivery(at: later + .seconds(20))
+    #expect(!exhausted)
+    for _ in 0..<120 { recovery.completedFrame() }
+    #expect(recovery.canAttempt(at: now))
+  }
+
   @Test func requiresSustainedCompletedFramesBeforeReplenishingBudget() {
     var recovery = SharedDisplayRecovery()
     let now = ContinuousClock.now

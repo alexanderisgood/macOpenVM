@@ -33,7 +33,7 @@ package struct RfbDecoder {
   private var buffer = Data()
   private var cursor = 0
   private var canvas: [UInt8] = []
-  private var coverage: [UInt8] = []
+  private var coverage: [UInt64] = []
   private var coveredPixels = 0
   private var rectanglesRemaining = 0
   private var rawUpdateAnnounced = false
@@ -369,7 +369,7 @@ package struct RfbDecoder {
 
   private static func applyRaw(
     _ bytes: Data, start: Int, count: Int, rect: Rect, offset: Int, stride: Int,
-    canvas: inout [UInt8], coverage: inout [UInt8], coveredPixels: inout Int,
+    canvas: inout [UInt8], coverage: inout [UInt64], coveredPixels: inout Int,
     trackCoverage: Bool
   ) {
     // The Raw stage already bounds count by complete available pixels and the
@@ -384,10 +384,15 @@ package struct RfbDecoder {
 
   private static func applyRaw(
     _ source: UnsafeRawBufferPointer, start: Int, count: Int, rect: Rect, offset: Int, stride: Int,
-    canvas: inout [UInt8], coverage: inout [UInt8], coveredPixels: inout Int,
+    canvas: inout [UInt8], coverage: inout [UInt64], coveredPixels: inout Int,
     trackCoverage: Bool
   ) {
-    canvas.withUnsafeMutableBufferPointer { destination in
+    canvas.withUnsafeMutableBufferPointer { bytes in
+      let destination = UnsafeMutableRawBufferPointer(bytes)
+      let byteMask = SIMD4<UInt32>(repeating: 0x0000_00ff)
+      let greenMask = SIMD4<UInt32>(repeating: 0x0000_ff00)
+      let opacity = SIMD4<UInt32>(repeating: 0xff00_0000)
+      let shift = SIMD4<UInt32>(repeating: 16)
       var sourceIndex = start
       var row = rect.y + offset / rect.width
       var column = offset % rect.width
@@ -402,17 +407,15 @@ package struct RfbDecoder {
         // copyMemory also permits an unaligned byte-array destination.
         while pixelsLeft >= 4 {
           let wire = source.loadUnaligned(fromByteOffset: sourceIndex, as: SIMD4<UInt32>.self)
-          let byteMask = SIMD4<UInt32>(repeating: 0x0000_00ff)
-          let shift = SIMD4<UInt32>(repeating: 16)
           let blue = (wire & byteMask) &<< shift
-          let green = wire & SIMD4<UInt32>(repeating: 0x0000_ff00)
+          let green = wire & greenMask
           let red = (wire &>> shift) & byteMask
-          var rgba = blue | green | red | SIMD4<UInt32>(repeating: 0xff00_0000)
+          var rgba = blue | green | red | opacity
           withUnsafeBytes(of: &rgba) { converted in
             UnsafeMutableRawBufferPointer(
-              rebasing: UnsafeMutableRawBufferPointer(destination)[
-                destinationIndex..<destinationIndex + 16]
-            ).copyMemory(from: converted)
+              rebasing: destination[destinationIndex..<destinationIndex + 16]
+            )
+            .copyMemory(from: converted)
           }
           sourceIndex += 16
           destinationIndex += 16
@@ -427,12 +430,17 @@ package struct RfbDecoder {
           destinationIndex += 4
         }
         if trackCoverage {
-          for pixel in firstPixel..<firstPixel + length {
-            let mask = UInt8(1 << (pixel & 7))
-            if coverage[pixel >> 3] & mask == 0 {
-              coverage[pixel >> 3] |= mask
-              coveredPixels += 1
-            }
+          var pixel = firstPixel
+          let end = firstPixel + length
+          while pixel < end {
+            let bit = pixel % 64
+            let word = pixel / 64
+            let span = min(64 - bit, end - pixel)
+            let mask = (UInt64.max >> (64 - span)) << bit
+            let existing = coverage[word]
+            coveredPixels += (mask & ~existing).nonzeroBitCount
+            coverage[word] = existing | mask
+            pixel += span
           }
         }
         remaining -= length
@@ -449,7 +457,7 @@ package struct RfbDecoder {
     self.width = width
     self.height = height
     canvas = [UInt8](repeating: 0, count: width * height * 4)
-    coverage = [UInt8](repeating: 0, count: (width * height + 7) / 8)
+    coverage = [UInt64](repeating: 0, count: (width * height + 63) / 64)
     coveredPixels = 0
   }
 

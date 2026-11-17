@@ -55,6 +55,24 @@ import Testing
     #expect(edited.diskBytes == 85 << 30)
   }
 
+  @Test(arguments: [(4, 2), (8, 6), (10, 7), (12, 8), (18, 12), (32, 12)])
+  func graphicsCPUAllocationLeavesHostSchedulingCapacity(cpu: Int, expected: Int) throws {
+    let host = HostResources(cpuCount: cpu, memoryBytes: 48 << 30)
+    let configuration = VMConfiguration(
+      name: "Windows graphics", guest: .windows11, backend: .qemuHVF,
+      cpuCount: host.recommendedWindowsGraphicsCPUCount, memoryBytes: 24 << 30,
+      diskBytes: 128 << 30)
+    #expect(configuration.cpuCount == expected)
+    #expect(configuration.cpuCount <= cpu - max(2, cpu / 3))
+    try ConfigurationValidator.validate(configuration, host: host)
+  }
+
+  @Test(arguments: [Int.min, -1, 0, 1, 2, 3, Int.max])
+  func graphicsCPURecommendationRemainsBoundedForUnknownOrExtremeHostCounts(cpu: Int) {
+    let host = HostResources(cpuCount: cpu, memoryBytes: 48 << 30)
+    #expect((2...12).contains(host.recommendedWindowsGraphicsCPUCount))
+  }
+
   @Test func insufficientHostsStillRejectRecommendedValues() {
     for host in [
       HostResources(cpuCount: 2, memoryBytes: 8 << 30),

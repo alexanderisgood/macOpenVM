@@ -1,0 +1,61 @@
+--- a/ui/mvo-metal-readback.m
++++ b/ui/mvo-metal-readback.m
+@@ -40,6 +40,39 @@
+                                 deallocator:nil];
+ }
+ 
++static bool mvo_metal_copy_linear(id<MTLBlitCommandEncoder> blit,
++                                  id<MTLTexture> source, id<MTLBuffer> target,
++                                  uint32_t stride, uint32_t width, uint32_t height,
++                                  uint32_t x, uint32_t y)
++{
++    const uint64_t bytes = (uint64_t)height * stride;
++    /* Direct buffer blits had more consistent completion at desktop sizes
++     * up to 1920 by 1200 in the native test. Preserve the texture path at
++     * higher resolutions, where their tail latency varied between runs. */
++    if (bytes > 1920u * 1200u * 4u) {
++        return false;
++    }
++    /* Only transmit visible pixels. Row padding in a shared guest
++     * allocation can contain bytes outside the scanout. */
++    if (source.textureType != MTLTextureType2D || x != 0 ||
++        source.width != width || (uint64_t)width * 4 != stride) {
++        return false;
++    }
++    id<MTLBuffer> backing = source.buffer;
++    if (!backing || source.bufferBytesPerRow != stride) {
++        return false;
++    }
++    NSUInteger offset = source.bufferOffset;
++    uint64_t first_row = (uint64_t)y * stride;
++    if (offset > backing.length || first_row > backing.length - offset ||
++        bytes > backing.length - offset - first_row) {
++        return false;
++    }
++    [blit copyFromBuffer:backing sourceOffset:offset + first_row
++                toBuffer:target destinationOffset:0 size:bytes];
++    return true;
++}
++
+ /* The virtio flush owns the source scanout only for the synchronous call.
+  * Complete the GPU transfer here, before its backing can be reused. */
+ bool mvo_metal_publish(void *texture, void *buffer, uint32_t stride,
+@@ -66,11 +99,13 @@
+         if (!blit) {
+             return false;
+         }
+-        [blit copyFromTexture:source sourceSlice:0 sourceLevel:0
+-                 sourceOrigin:MTLOriginMake(x, y, 0)
+-                   sourceSize:MTLSizeMake(width, height, 1)
+-                     toBuffer:target destinationOffset:0 destinationBytesPerRow:stride
+-     destinationBytesPerImage:(uint64_t)stride * height];
++        if (!mvo_metal_copy_linear(blit, source, target, stride, width, height, x, y)) {
++            [blit copyFromTexture:source sourceSlice:0 sourceLevel:0
++                     sourceOrigin:MTLOriginMake(x, y, 0)
++                       sourceSize:MTLSizeMake(width, height, 1)
++                         toBuffer:target destinationOffset:0 destinationBytesPerRow:stride
++         destinationBytesPerImage:(uint64_t)stride * height];
++        }
+         [blit endEncoding];
+         [command commit];
+         [command waitUntilCompleted];

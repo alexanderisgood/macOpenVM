@@ -1,6 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
+import AppKit
 import SwiftUI
 import VMCore
+
+@MainActor enum DesktopMouseShortcut {
+  static let menu = KeyboardShortcut(.escape, modifiers: [.control, .option, .shift])
+  static let symbols = "⌃⌥⇧⎋"
+
+  static func matches(_ event: NSEvent) -> Bool {
+    event.keyCode == 53
+      && event.modifierFlags.intersection([.control, .option, .command, .shift]) == [
+        .control, .option, .shift,
+      ]
+  }
+}
 
 /// Observe the active display itself. DesktopSession publishes its replacement,
 /// but frame availability, capture and resize completion belong to this object.
@@ -117,14 +130,16 @@ import VMCore
       Toggle("Use Windows Cursor", isOn: $display.useGuestCursor)
         .disabled(!display.canChooseGuestCursor)
       Divider()
-      if display.relativeMouse { Text("Control–Option–Escape returns the mouse to macOS") }
-      Button(display.relativeMouse ? "Game Mouse ✓" : "Game Mouse") {
+      let gameMouse = display.relativeMouse ? "Game Mouse ✓" : "Game Mouse"
+      Button("\(gameMouse) (\(DesktopMouseShortcut.symbols) to exit)") {
         display.setRelativeMouse(true)
       }
       .disabled(!display.canChangeMouseMode)
-      Button(display.relativeMouse ? "Desktop Mouse" : "Desktop Mouse ✓") {
-        display.setRelativeMouse(false)
-      }
+      Button(
+        display.relativeMouse ? "Desktop Mouse" : "Desktop Mouse ✓",
+        action: display.selectDesktopMouse
+      )
+      .keyboardShortcut(display.relativeMouse ? DesktopMouseShortcut.menu : nil)
       .disabled(!display.canChangeMouseMode)
       if let error = display.mouseModeError { Text(error) }
     }

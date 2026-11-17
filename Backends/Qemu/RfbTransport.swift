@@ -52,6 +52,7 @@ final class RfbTransport: @unchecked Sendable {
   private var messageDeadline: ContinuousClock.Instant?
   private var outputTimer: (any DispatchSourceTimer)?
   private var outputToken: UUID?
+  private var outputDeadline: ContinuousClock.Instant?
   private var sourceCount = 0
   private var closeWaiters: [CheckedContinuation<Void, Never>] = []
   private var receiveBuffer = [UInt8](repeating: 0, count: 65_536)
@@ -511,7 +512,6 @@ final class RfbTransport: @unchecked Sendable {
         bytes: bytes, deadline: deadline ?? ContinuousClock.now.advanced(by: timeout),
         continuation: continuation))
     queuedBytes += bytes.count
-    armOutputDeadline()
   }
 
   private func flushWrites() throws {
@@ -530,12 +530,14 @@ final class RfbTransport: @unchecked Sendable {
           let completed = writes.removeFirst()
           queuedBytes -= completed.bytes.count
           completed.continuation?.resume()
-          armOutputDeadline()
         }
         continue
       }
       if count < 0, errno == EINTR { continue }
       if count < 0, errno == EAGAIN || errno == EWOULDBLOCK {
+        // The immediate send path checks the deadline inline. Allocate a timer
+        // only when a socket write stays pending after this queue turn.
+        armOutputDeadline(writes[0].deadline)
         startWriteSource()
         return
       }
@@ -544,6 +546,7 @@ final class RfbTransport: @unchecked Sendable {
     writeToken = nil
     writeSource?.cancel()
     writeSource = nil
+    clearOutputDeadline()
   }
 
   private func startWriteSource() {
@@ -597,16 +600,22 @@ final class RfbTransport: @unchecked Sendable {
     }
   }
 
-  private func armOutputDeadline() {
+  private func clearOutputDeadline() {
     outputToken = nil
+    outputDeadline = nil
     outputTimer?.cancel()
     outputTimer = nil
-    guard let first = writes.first else { return }
+  }
+
+  private func armOutputDeadline(_ deadline: ContinuousClock.Instant) {
+    guard outputDeadline != deadline else { return }
+    clearOutputDeadline()
     let token = UUID()
     outputToken = token
+    outputDeadline = deadline
     let timer = DispatchSource.makeTimerSource(queue: queue)
     outputTimer = timer
-    schedule(timer, deadline: first.deadline)
+    schedule(timer, deadline: deadline)
     sourceCount += 1
     timer.setCancelHandler { [self] in
       sourceCount -= 1
@@ -642,9 +651,7 @@ final class RfbTransport: @unchecked Sendable {
     readSource = nil
     writeSource = nil
     clearMessageDeadline()
-    outputToken = nil
-    outputTimer?.cancel()
-    outputTimer = nil
+    clearOutputDeadline()
     connectWaiter?.resume(throwing: failure!)
     connectWaiter = nil
     frameWaiter?.resume(throwing: failure!)

@@ -67,7 +67,7 @@ import Testing
   }
 
   @Test(arguments: [false, true])
-  func ordinaryAndAcceleratedDefaultsRemainTheirExistingExactProfiles(shared: Bool) throws {
+  func ordinaryAndAcceleratedUseDistinctPinnedProfiles(shared: Bool) throws {
     let value = configuration(shared: shared)
     let ordinary = try QemuRegisteredCatalog.registeredEvaluation(for: value, projectRoot: root)
     let accelerated = try QemuRegisteredCatalog.acceleratedDisplayEvaluation(
@@ -81,7 +81,7 @@ import Testing
           : "26674b130d910136b31c7c576277639e8b4c5bc2bc499165acb8f39919e58529"))
     #expect(
       accelerated.runtimeQemu.sha256
-        == "b3f6e87446c6967eb2efefd529f9b757de08b51caa6a225c5fb0831d15070955")
+        == "7e51d58e365454b9f01e9a21f60ea5fa2d64337185b52ee162a6fc669a0fac66")
     #expect(ordinary.runtimeQemu != selected.runtimeQemu)
     #expect(accelerated.runtimeQemu != selected.runtimeQemu)
     let ordinaryAfter = try QemuRegisteredCatalog.registeredEvaluation(

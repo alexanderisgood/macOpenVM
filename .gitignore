@@ -33,5 +33,5 @@ docs/checkpoints/
 *.key
 *.p8
 
-# Local Markdown notes; existing tracked project documentation stays tracked.
+# Keep Markdown files local.
 *.[mM][dD]

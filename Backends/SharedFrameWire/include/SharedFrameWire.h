@@ -5,7 +5,8 @@
 #include <stdint.h>
 
 enum { MVO_SF_BYTES=80, MVO_SF_READY=1, MVO_SF_ATTACH=2,
-       MVO_SF_FRAME=3, MVO_SF_ACK=4, MVO_SF_REQUEST=5 };
+       MVO_SF_FRAME=3, MVO_SF_ACK=4, MVO_SF_REQUEST=5,
+       MVO_SF_SNAPSHOT_SLOTS=2, MVO_SF_LEASED_SLOTS=3 };
 typedef struct {
     uint32_t kind;
     uint8_t epoch[16];
@@ -16,7 +17,7 @@ typedef struct {
 typedef struct {
     uint8_t bytes[MVO_SF_BYTES];
     size_t used;
-    int descriptors[2];
+    int descriptors[MVO_SF_LEASED_SLOTS];
     size_t descriptor_count;
 } MVOSharedFrameReceive;
 

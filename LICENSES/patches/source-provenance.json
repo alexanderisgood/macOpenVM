@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "auditDate": "2026-10-18",
-  "scope": "Exact license copies and source-header attribution for 21 downstream patch files only. No binary/runtime redistribution clearance.",
+  "auditDate": "2026-11-17",
+  "scope": "Exact license copies and source-header attribution for 31 downstream patch files. Source inventory.",
   "licenseCopies": [
     {
       "path": "licenses/QEMU-LICENSE.txt",
@@ -514,6 +514,51 @@
       "sourceBytesSHA256": "536aa15885f120bb46155db7c5ada5893409a648f35b96855924cb7f68848a33",
       "license": "LGPL-2.1-or-later",
       "licenseBasis": "Explicit LGPL-2.1-or-later notice in the modified source",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/dxmt/dxmt_tasks.hpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/dxmt/dxmt_tasks.hpp",
+      "sourceBytesSHA256": "e8cab7e01d1257c4c7c532048033b7455c2ac53eea3fa0aee730bbc692ed025f",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/winemetal/unix/winemetal_unix.c",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/winemetal/unix/winemetal_unix.c",
+      "sourceBytesSHA256": "b9a71675263bc1ccfbe44078ea61323d93483b69e8424fab1c82df6edd6ae3df",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/dxmt/dxmt_ring_bump_allocator.hpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/dxmt/dxmt_ring_bump_allocator.hpp",
+      "sourceBytesSHA256": "8cd469b634eb5be1100f4f928cb0159114a16f334973209743190531cdcbb74e",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/d3d11/d3d11_shader.hpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/d3d11/d3d11_shader.hpp",
+      "sourceBytesSHA256": "69dc8dc98a4c91b2807a150c3f19f6a5033fc7b8cde745f37ee20ec7806402d3",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
+      "addedByPatch": false
+    },
+    {
+      "family": "dxmt",
+      "target": "src/d3d11/d3d11_pipeline.hpp",
+      "retainedSource": ".lab/neptune-protocol2-20261016/dxmt-source/src/d3d11/d3d11_pipeline.hpp",
+      "sourceBytesSHA256": "8f8796c7ed0bb8ea16667e0d9b80f25716c0a7853c3b318c4966ee488a9f2e88",
+      "license": "LGPL-2.1-or-later",
+      "licenseBasis": "Upstream project license",
       "addedByPatch": false
     }
   ]

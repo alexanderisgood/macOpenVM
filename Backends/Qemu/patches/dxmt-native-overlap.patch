@@ -1,0 +1,62 @@
+--- a/src/dxmt/dxmt_command_queue.cpp
++++ b/src/dxmt/dxmt_command_queue.cpp
+@@ -151,6 +151,13 @@
+ CommandQueue::CommitChunkInternal(CommandChunk &chunk, uint64_t seq) {
+ 
+   auto pool = WMT::MakeAutoreleasePool();
++#ifdef DXMT_NATIVE
++  // Completion is published after readbacks and references have retired.
++  // Reclaim on the encoder so argument allocation needs no cross-thread lock.
++  const auto coherent_seq = cpu_coherent.signaledValue();
++  copy_temp_allocator.free_blocks(coherent_seq);
++  argbuf_allocator.free_blocks(coherent_seq);
++#endif
+ 
+   switch (capture_state.getNextAction(chunk.frame_)) {
+   case CaptureState::NextAction::StartCapture: {
+@@ -256,8 +263,10 @@
+     cpu_coherent.signal(internal_seq);
+ 
+     staging_allocator.free_blocks(internal_seq);
++#ifndef DXMT_NATIVE
+     copy_temp_allocator.free_blocks(internal_seq);
+     argbuf_allocator.free_blocks(internal_seq);
++#endif
+ 
+     internal_seq++;
+   }
+--- a/src/dxmt/dxmt_command_queue.hpp
++++ b/src/dxmt/dxmt_command_queue.hpp
+@@ -188,8 +188,14 @@
+   }
+ 
+   RingBumpState<StagingBufferBlockAllocator> staging_allocator;
++#ifdef DXMT_NATIVE
++  // Only the serial encoder allocates and retires these blocks.
++  RingBumpState<GpuPrivateBufferBlockAllocator, kStagingBlockSize, dxmt::null_mutex> copy_temp_allocator;
++  RingBumpState<StagingBufferBlockAllocator, kCommandChunkGPUHeapSize, dxmt::null_mutex> argbuf_allocator;
++#else
+   RingBumpState<GpuPrivateBufferBlockAllocator> copy_temp_allocator;
+   RingBumpState<StagingBufferBlockAllocator, kCommandChunkGPUHeapSize> argbuf_allocator;
++#endif
+   RingBumpState<HostBufferBlockAllocator, kCommandChunkCPUHeapSize, dxmt::null_mutex> cpu_command_allocator;
+   RingBumpState<HostBufferBlockAllocator, 0x1000 /* 4kB */> reftracker_storage_allocator;
+   CaptureState capture_state;
+--- a/src/dxmt/dxmt_ring_bump_allocator.hpp
++++ b/src/dxmt/dxmt_ring_bump_allocator.hpp
+@@ -212,7 +212,7 @@
+ ) {
+   while (!fifo.empty()) {
+     auto &front = fifo.front();
+-    if (front.last_used_seq_id < coherent_id) {
++    if (front.last_used_seq_id <= coherent_id) {
+       if (front.total_size != BlockSize) {
+         fifo.pop();
+         continue;
+@@ -238,4 +238,4 @@
+   return fifo.back();
+ };
+ 
+-} // namespace dxmt
+\ No newline at end of file
++} // namespace dxmt

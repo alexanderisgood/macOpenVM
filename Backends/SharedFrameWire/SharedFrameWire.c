@@ -34,14 +34,15 @@ int mvo_sf_decode(const uint8_t b[MVO_SF_BYTES],MVOSharedFrameHeader *h) {
     h->sent_ns=get_le(b+64,8);return 1;
 }
 void mvo_sf_receive_init(MVOSharedFrameReceive *s) {
-    memset(s,0,sizeof *s);s->descriptors[0]=s->descriptors[1]=-1;
+    memset(s,0,sizeof *s);
+    for(size_t i=0;i<MVO_SF_LEASED_SLOTS;i++) s->descriptors[i]=-1;
 }
 void mvo_sf_receive_clear(MVOSharedFrameReceive *s) {
-    for(size_t i=0;i<2;i++) if(s->descriptors[i]>=0) close(s->descriptors[i]);
+    for(size_t i=0;i<MVO_SF_LEASED_SLOTS;i++) if(s->descriptors[i]>=0) close(s->descriptors[i]);
     mvo_sf_receive_init(s);
 }
 int mvo_sf_take_descriptor(MVOSharedFrameReceive *s,size_t index) {
-    if(index>=s->descriptor_count || index>=2) return -1;
+    if(index>=s->descriptor_count || index>=MVO_SF_LEASED_SLOTS) return -1;
     int result=s->descriptors[index];s->descriptors[index]=-1;return result;
 }
 int mvo_sf_receive(int fd,MVOSharedFrameReceive *s) {
@@ -76,7 +77,7 @@ int mvo_sf_receive(int fd,MVOSharedFrameReceive *s) {
         }
     }
     if(message.msg_flags&(MSG_TRUNC|MSG_CTRUNC)) invalid=1;
-    if(number && (s->used || s->descriptor_count || number>2)) invalid=1;
+    if(number && (s->used || s->descriptor_count || number>MVO_SF_LEASED_SLOTS)) invalid=1;
     for(size_t i=0;!invalid && i<number;i++) {
         if(fcntl(received[i],F_SETFD,FD_CLOEXEC)<0) invalid=1;
     }

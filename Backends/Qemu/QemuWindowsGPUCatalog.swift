@@ -58,8 +58,8 @@ extension QemuRegisteredCatalog {
       ReviewedQemuLibrary(
         url: projectRoot.appendingPathComponent(
           ".lab/neptune-protocol2-20261016/graphics/lib/libdxmt-native.dylib"),
-        byteCount: 29_390_752,
-        sha256: "ca617d512bf6c962abafcff2dfb30382aa9e03a932e05e17e104ce54590ef186",
+        byteCount: 29_374_352,
+        sha256: "215211e4efc900a2fd834ea1d13ad8f49a4b6ffdf7d7f20e076accc759327b87",
         importPaths: [
           "/Users/developer/Documents/Code/VM/macOpenVM/.lab/neptune-protocol2-20261016/graphics/lib/libdxmt-native.dylib"
         ],
@@ -133,9 +133,9 @@ extension QemuRegisteredCatalog {
       runtimeQemu: ReviewedQemuResource(
         role: .qemu,
         url: projectRoot.appendingPathComponent(
-          ".lab/unified-graphics-20261018/runtimes/accelerated/qemu-system-aarch64"),
-        byteCount: 26_796_048,
-        sha256: "b3f6e87446c6967eb2efefd529f9b757de08b51caa6a225c5fb0831d15070955"),
+          ".lab/host-frame-performance-20261117/runtime/qemu-system-aarch64"),
+        byteCount: 26_814_464,
+        sha256: "7e51d58e365454b9f01e9a21f60ea5fa2d64337185b52ee162a6fc669a0fac66"),
       supportsShared: original.supportsShared,
       supportImage: carrier,
       renderServer: ReviewedQemuRenderServer(

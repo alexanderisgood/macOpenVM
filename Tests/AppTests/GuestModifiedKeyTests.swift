@@ -99,6 +99,37 @@ import Testing
   }
 
   @Test(arguments: [false, true])
+  func desktopMouseShortcutWorksWhileGameMouseOwnsInput(_ keyEquivalent: Bool) throws {
+    let (window, view) = try fixture()
+    defer { window.contentView = nil }
+    view.relativeMouse = true
+    var selections = 0
+    var forwarded: [RFBKeyStroke] = []
+    view.onSelectDesktopMouse = { selections += 1 }
+    view.onKey = { forwarded.append(.init($0, down: $1)) }
+
+    for repeating in [false, true] {
+      let escape = try event(
+        .keyDown, modifiers: [.control, .option, .shift], characters: "", keyCode: 53,
+        repeating: repeating)
+      if keyEquivalent {
+        #expect(view.performKeyEquivalent(with: escape))
+      } else {
+        view.keyDown(with: escape)
+      }
+    }
+    #expect(selections == 1)
+    #expect(forwarded.isEmpty)
+
+    view.relativeMouse = false
+    view.keyDown(
+      with: try event(
+        .keyDown, modifiers: [.control, .option, .shift], characters: "\u{1b}", keyCode: 53))
+    #expect(selections == 1)
+    #expect(forwarded.contains(RFBKeyStroke(0xff1b, down: true)))
+  }
+
+  @Test(arguments: [false, true])
   func offSpaceModifiedEventsCannotReachCapturedOrPendingGuestInput(_ pending: Bool) throws {
     let (window, view) = try fixture()
     defer { window.contentView = nil }

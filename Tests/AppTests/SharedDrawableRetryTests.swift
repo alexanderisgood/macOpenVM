@@ -234,14 +234,17 @@ import Testing
     #expect(script.delays == [16, 16])
   }
 
-  @Test @MainActor func productionTimerWakesAndDrawsTheStaticCacheWithoutAnotherFrame() async throws
+  @Test(arguments: [false, true])
+  @MainActor func becomingVisibleRetriesTheLatestTextureWithoutAnotherFrame(_ borrowed: Bool)
+    async throws
   {
     let script = AcquisitionScript([false, true])
-    let renderer = try SharedFrameMetalRenderer(presentationActive: true)
+    let renderer = try SharedFrameMetalRenderer()
     defer { renderer.close() }
     // No scheduling injection: the real render-queue DispatchSource timer fires.
-    try await renderer.configureDrawableRetryValidation(acquire: { script.acquire() })
-    redraw(renderer)
+    try await renderer.configureDrawableRetryValidation(
+      acquire: { script.acquire() }, borrowedTexture: borrowed)
+    renderer.setPresentationActive(true)
     let drawn = try await wait(renderer) { $0.draws == 1 && !$0.pending }
     #expect(drawn.requests == 2 && drawn.copies == 0 && !drawn.scheduled && !drawn.wanted)
     #expect(script.attempts == 2 && script.delays.isEmpty)

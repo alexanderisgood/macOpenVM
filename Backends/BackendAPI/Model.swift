@@ -80,6 +80,14 @@ public struct HostResources: Sendable {
     return (cpus, memoryGiB * 1_073_741_824)
   }
 
+  /// A starting point for graphics workloads that also run host-side rendering
+  /// and shader compilation. macOS schedules physical cores independently.
+  public var recommendedWindowsGraphicsCPUCount: Int {
+    let logicalCPUs = max(2, cpuCount)
+    let hostBudget = max(2, logicalCPUs / 3)
+    return max(2, min(12, logicalCPUs - hostBudget))
+  }
+
   public static var current: HostResources {
     #if arch(arm64)
       let architecture = GuestArchitecture.arm64

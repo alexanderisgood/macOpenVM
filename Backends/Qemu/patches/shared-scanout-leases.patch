@@ -1,0 +1,338 @@
+--- a/ui/mvo-shared-frame.h
++++ b/ui/mvo-shared-frame.h
+@@ -3,6 +3,35 @@
+ #define MVO_SHARED_FRAME_H
+ #include "qapi/error.h"
+ typedef struct MVOSharedFrameServer MVOSharedFrameServer;
++typedef struct MVOSharedFrameLease {
++    uint64_t sequence;
++    uint32_t slot;
++} MVOSharedFrameLease;
++typedef struct MVOSharedFrameLeaseOps {
++    bool (*take_latest)(void *producer, MVOSharedFrameLease *lease);
++    void (*release)(void *producer, MVOSharedFrameLease lease);
++    void (*retire)(void *producer);
++} MVOSharedFrameLeaseOps;
++
++/*
++ * Trusted native producer only, on the QEMU display thread. The three
++ * descriptors must be read-only views of distinct, dedicated render targets.
++ * The producer reserves a slot before any GPU writes and implements
++ * take_latest using only GPU-completed frames. Normal guest blob resources
++ * and display primaries are ineligible. No raw guest FD enters this API.
++ *
++ * A successful attach owns duplicates of the descriptors and the callbacks
++ * until retire is invoked. The callback table must outlive that attachment.
++ * A release permits reuse of exactly the named lease. Retirement permanently
++ * ends writes into these objects; the UI may still have GPU reads in flight.
++ * Callbacks may not reenter the shared frame server.
++ */
++bool mvo_shared_frame_attach_leases(MVOSharedFrameServer *s, void *owner,
++                                   int console, uint32_t width, uint32_t height,
++                                   uint32_t stride, size_t length, const int fds[3],
++                                   const MVOSharedFrameLeaseOps *ops, void *producer);
++void mvo_shared_frame_leases_ready(MVOSharedFrameServer *s, void *producer);
++
+ MVOSharedFrameServer *mvo_shared_frame_new(const char *path, Error **errp);
+ void mvo_shared_frame_update(MVOSharedFrameServer *s, void *owner, int console,
+                             const uint8_t *pixels, uint32_t width, uint32_t height,
+--- a/ui/mvo-shared-frame.c
++++ b/ui/mvo-shared-frame.c
+@@ -14,10 +14,15 @@
+ #include <sys/un.h>
+ 
+ enum { PACKET=80, READY=1, ATTACH=2, FRAME=3, ACK=4, REQUEST=5 };
++enum { SNAPSHOT_SLOTS = 2, LEASED_SLOTS = 3 };
+ struct MVOSharedFrameServer {
+-    int listener, peer, output_fd[2], input_fd[2];
+-    uint8_t *maps[2];
+-    void *metal_buffers[2];
++    int listener, peer, output_fd[SNAPSHOT_SLOTS], input_fd[LEASED_SLOTS];
++    uint8_t *maps[SNAPSHOT_SLOTS];
++    void *metal_buffers[SNAPSHOT_SLOTS];
++    const MVOSharedFrameLeaseOps *lease_ops;
++    void *lease_producer, *lease_owner;
++    MVOSharedFrameLease pending_lease, current_lease;
++    bool lease_replaces_epoch;
+     bool direct_metal;
+     bool reported_metal;
+     void (*refresh_raster)(void *owner);
+@@ -43,11 +48,22 @@
+ 
+ static void clear_pool(MVOSharedFrameServer *s)
+ {
+-    for (unsigned i=0;i<2;i++) {
++    if (s->lease_ops) {
++        s->lease_ops->retire(s->lease_producer);
++        s->lease_ops = NULL;
++        s->lease_producer = NULL;
++        s->lease_owner = NULL;
++        s->pending_lease = (MVOSharedFrameLease){0};
++        s->current_lease = (MVOSharedFrameLease){0};
++        s->lease_replaces_epoch = false;
++    }
++    for (unsigned i=0;i<SNAPSHOT_SLOTS;i++) {
+         mvo_metal_release(s->metal_buffers[i]);
+         s->metal_buffers[i]=NULL;
+         if (s->maps[i]) { munmap(s->maps[i],s->length); s->maps[i]=NULL; }
+         if (s->output_fd[i]>=0) { close(s->output_fd[i]);s->output_fd[i]=-1; }
++    }
++    for (unsigned i=0;i<LEASED_SLOTS;i++) {
+         if (s->input_fd[i]>=0) { close(s->input_fd[i]);s->input_fd[i]=-1; }
+     }
+     s->length=0;s->width=s->height=s->stride=0;s->attached=false;
+@@ -93,11 +109,12 @@
+     if (s->peer<0 || s->tx_used>=PACKET) return;
+     struct iovec io={s->tx+s->tx_used,PACKET-s->tx_used};
+     struct msghdr msg={0};msg.msg_iov=&io;msg.msg_iovlen=1;
+-    union { struct cmsghdr align; char bytes[CMSG_SPACE(2*sizeof(int))]; } control;
++    union { struct cmsghdr align; char bytes[CMSG_SPACE(LEASED_SLOTS*sizeof(int))]; } control;
+     if (s->tx_descriptors && !s->descriptor_sent) {
+-        memset(&control,0,sizeof control);msg.msg_control=control.bytes;msg.msg_controllen=sizeof control;
++        size_t bytes = (s->lease_ops ? LEASED_SLOTS : SNAPSHOT_SLOTS) * sizeof(int);
++        memset(&control,0,sizeof control);msg.msg_control=control.bytes;msg.msg_controllen=CMSG_SPACE(bytes);
+         struct cmsghdr *c=CMSG_FIRSTHDR(&msg);c->cmsg_level=SOL_SOCKET;c->cmsg_type=SCM_RIGHTS;
+-        c->cmsg_len=CMSG_LEN(2*sizeof(int));memcpy(CMSG_DATA(c),s->input_fd,2*sizeof(int));
++        c->cmsg_len=CMSG_LEN(bytes);memcpy(CMSG_DATA(c),s->input_fd,bytes);
+     }
+     ssize_t n=sendmsg(s->peer,&msg,0);
+     if (n<0 && (errno==EINTR || errno==EAGAIN || errno==EWOULDBLOCK)) {
+@@ -116,7 +133,7 @@
+     uint64_t size=(row*s->source_height+page-1)/page*page;
+     if (!size || size>67108864) return false;
+     s->length=size;s->stride=row;s->width=s->source_width;s->height=s->source_height;
+-    for (unsigned i=0;i<2;i++) {
++    for (unsigned i=0;i<SNAPSHOT_SLOTS;i++) {
+         char name[32];snprintf(name,sizeof name,"/mvo-%08x%08x%08x",arc4random(),arc4random(),arc4random());
+         int write_fd=shm_open(name,O_RDWR|O_CREAT|O_EXCL,0600);
+         if (write_fd<0) return false;
+@@ -136,30 +153,63 @@
+     }
+     return true;
+ }
+-static void publish_frame(MVOSharedFrameServer *s, unsigned slot)
+-{
+-    s->sequence++;s->last_generation=s->generation;s->request=false;
++static void publish_frame(MVOSharedFrameServer *s, unsigned slot, uint64_t generation)
++{
++    s->sequence++;s->last_generation=generation;s->request=false;
+     uint8_t b[PACKET];header(s,b,FRAME);geometry(s,b);
+-    stq_le_p(b+24,s->sequence);stq_le_p(b+32,s->generation);stl_le_p(b+56,slot);
++    stq_le_p(b+24,s->sequence);stq_le_p(b+32,generation);stl_le_p(b+56,slot);
+     stq_le_p(b+64,qemu_clock_get_ns(QEMU_CLOCK_REALTIME));start_tx(s,b,false,true);
+ }
+ 
++static void advance_leases(MVOSharedFrameServer *s)
++{
++    if (!s->attached) {
++        if (s->lease_replaces_epoch) {
++            arc4random_buf(s->epoch, sizeof(s->epoch));
++            s->lease_replaces_epoch = false;
++        }
++        uint8_t b[PACKET];
++        header(s, b, ATTACH);
++        geometry(s, b);
++        stl_le_p(b + 56, LEASED_SLOTS);
++        start_tx(s, b, true, true);
++        return;
++    }
++    if (!s->lease_ops->take_latest(s->lease_producer, &s->pending_lease)) {
++        return;
++    }
++    MVOSharedFrameLease lease = s->pending_lease;
++    if (s->sequence == UINT64_MAX || lease.slot >= LEASED_SLOTS ||
++        lease.sequence <= s->last_generation ||
++        (s->current_lease.sequence && lease.slot == s->current_lease.slot)) {
++        /* The producer violated its contract. Drop the stream and retire the
++         * targets without releasing any previously displayed lease. */
++        close_peer(s);
++        return;
++    }
++    publish_frame(s, lease.slot, lease.sequence);
++}
++
+ static void advance(MVOSharedFrameServer *s)
+ {
+-    if (s->peer<0 || !s->request || s->waiting_ack || s->tx_used<PACKET ||
+-        !s->source || s->source_console!=selected_console ||
++    if (s->peer<0 || !s->request || s->waiting_ack || s->tx_used<PACKET) return;
++    if (s->lease_ops) {
++        advance_leases(s);
++        return;
++    }
++    if (!s->source || s->source_console!=selected_console ||
+         s->generation<=s->last_generation) return;
+     if (!s->length || s->width!=s->source_width || s->height!=s->source_height) {
+         bool replacement=s->length!=0;
+         if (!allocate_pool(s)) { close_peer(s);return; }
+         if (replacement) arc4random_buf(s->epoch,sizeof s->epoch);
+         s->sequence=0;s->last_generation=0;
+-        uint8_t b[PACKET];header(s,b,ATTACH);geometry(s,b);stl_le_p(b+56,2);
++        uint8_t b[PACKET];header(s,b,ATTACH);geometry(s,b);stl_le_p(b+56,SNAPSHOT_SLOTS);
+         start_tx(s,b,true,true);return;
+     }
+     if (!s->attached || s->sequence==UINT64_MAX) { close_peer(s);return; }
+     uint64_t started=qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+-    unsigned slot=(unsigned)(s->sequence%2);
++    unsigned slot=(unsigned)(s->sequence%SNAPSHOT_SLOTS);
+     for (uint32_t y=0;y<s->height;y++) {
+         memcpy(s->maps[slot]+(size_t)y*s->stride,
+                s->source+(size_t)y*s->source_stride,(size_t)s->width*4);
+@@ -169,13 +219,86 @@
+         if (s->reports++<64) error_report("macOpenVM shared host copy: frame=%ux%u copies=120 total_ns=%" PRIu64,s->width,s->height,s->copy_ns);
+         s->copy_count=s->copy_ns=0;
+     }
+-    publish_frame(s, slot);
++    publish_frame(s, slot, s->generation);
++}
++
++bool mvo_shared_frame_attach_leases(MVOSharedFrameServer *s, void *owner,
++                                   int console, uint32_t width, uint32_t height,
++                                   uint32_t stride, size_t length,
++                                   const int fds[LEASED_SLOTS],
++                                   const MVOSharedFrameLeaseOps *ops, void *producer)
++{
++    uint64_t logical = (uint64_t)stride * height;
++    if (!s || !owner || !producer || !ops || !ops->take_latest || !ops->release ||
++        !ops->retire || !fds || s->peer < 0 || s->lease_ops ||
++        s->waiting_ack || s->tx_used != PACKET || console != selected_console ||
++        !width || !height || width > 8192 || height > 8192 ||
++        (uint64_t)width * height > 16777216 ||
++        stride < width * 4 || stride > width * 4 + 4096 || stride % 256 ||
++        length < logical || length >= logical + getpagesize() ||
++        length % getpagesize() || length > 67108864) {
++        return false;
++    }
++
++    int duplicates[LEASED_SLOTS];
++    unsigned copied = 0;
++    for (; copied < LEASED_SLOTS; ++copied) {
++        struct stat actual;
++        int fd = fds[copied];
++        int flags = fcntl(fd, F_GETFL);
++        if (flags < 0 || (flags & O_ACCMODE) != O_RDONLY || fstat(fd, &actual) ||
++            actual.st_size != length || actual.st_uid != geteuid() ||
++            actual.st_nlink || (actual.st_mode & (S_IFMT | 0777)) != 0600) {
++            break;
++        }
++        duplicates[copied] = fcntl(fd, F_DUPFD_CLOEXEC, 0);
++        if (duplicates[copied] < 0) {
++            break;
++        }
++    }
++    if (copied != LEASED_SLOTS) {
++        while (copied) {
++            close(duplicates[--copied]);
++        }
++        return false;
++    }
++
++    bool replacement = s->length != 0;
++    clear_pool(s);
++    memcpy(s->input_fd, duplicates, sizeof(duplicates));
++    s->lease_ops = ops;
++    s->lease_producer = producer;
++    s->lease_owner = owner;
++    s->lease_replaces_epoch = replacement;
++    s->width = width;
++    s->height = height;
++    s->stride = stride;
++    s->length = length;
++    s->sequence = s->last_generation = 0;
++    advance(s);
++    /* Ownership transferred even if the initial send retired the stream. */
++    return true;
++}
++
++void mvo_shared_frame_leases_ready(MVOSharedFrameServer *s, void *producer)
++{
++    if (s && s->lease_ops && s->lease_producer == producer) {
++        advance(s);
++    }
+ }
+ 
+ bool mvo_shared_frame_render(MVOSharedFrameServer *s, void *owner, int console,
+                              void *texture, uint32_t width, uint32_t height,
+                              uint32_t x, uint32_t y, void (*refresh)(void *))
+ {
++    if (s && s->lease_ops) {
++        if (console == selected_console && s->lease_owner == owner &&
++            s->width == width && s->height == height) {
++            s->refresh_raster = refresh;
++            return true;
++        }
++        close_peer(s);
++    }
+     if (!s || s->peer < 0 || !s->attached || console != selected_console ||
+         s->source_owner != owner || s->width != width || s->height != height ||
+         !mvo_metal_can_publish(texture)) {
+@@ -188,7 +311,7 @@
+         close_peer(s);
+         return false;
+     }
+-    unsigned slot = s->sequence % 2;
++    unsigned slot = s->sequence % SNAPSHOT_SLOTS;
+     if (!s->metal_buffers[slot]) {
+         s->metal_buffers[slot] = mvo_metal_import_output(texture, s->maps[slot],
+                                                          s->length);
+@@ -205,7 +328,7 @@
+         error_report("macOpenVM Metal shared scanout active");
+         s->reported_metal = true;
+     }
+-    publish_frame(s, slot);
++    publish_frame(s, slot, s->generation);
+     return true;
+ }
+ 
+@@ -250,7 +373,16 @@
+         if (kind==ACK) {
+             if (!s->waiting_ack || memcmp(b,s->expected_ack,PACKET)) { close_peer(s);return; }
+             s->waiting_ack=false;
+-            if (lduw_le_p(s->tx+6)==ATTACH) s->attached=true;
++            if (lduw_le_p(s->tx+6)==ATTACH) {
++                s->attached=true;
++            } else if (s->lease_ops) {
++                MVOSharedFrameLease previous = s->current_lease;
++                s->current_lease = s->pending_lease;
++                s->pending_lease = (MVOSharedFrameLease){0};
++                if (previous.sequence) {
++                    s->lease_ops->release(s->lease_producer, previous);
++                }
++            }
+         } else if (kind==REQUEST) {
+             uint8_t expected[PACKET];header(s,expected,REQUEST);
+             if (s->waiting_ack || s->request || memcmp(b,expected,PACKET)) { close_peer(s);return; }
+@@ -286,7 +418,8 @@
+     g_free(directory);
+     if (!valid) { error_setg(errp,"Shared host-frame endpoint is not private and absent");return NULL; }
+     MVOSharedFrameServer *s=g_new0(MVOSharedFrameServer,1);s->listener=s->peer=-1;
+-    for (unsigned i=0;i<2;i++) s->input_fd[i]=s->output_fd[i]=-1;
++    for (unsigned i=0;i<SNAPSHOT_SLOTS;i++) s->output_fd[i]=-1;
++    for (unsigned i=0;i<LEASED_SLOTS;i++) s->input_fd[i]=-1;
+     s->deadline=timer_new_ns(QEMU_CLOCK_REALTIME,expired,s);s->tx_used=PACKET;
+     int fd=socket(AF_UNIX,SOCK_STREAM,0);
+     addr.sun_len=sizeof addr;addr.sun_family=AF_UNIX;pstrcpy(addr.sun_path,sizeof addr.sun_path,path);
+@@ -303,6 +436,9 @@
+ {
+     if (!s || console!=selected_console || !pixels || !width || !height || width>8192 || height>8192 ||
+         (uint64_t)width*height>16777216 || (uint64_t)width*4>stride || stride>width*4+4096) return;
++    if (s->lease_ops && (s->lease_owner != owner || s->width != width || s->height != height)) {
++        close_peer(s);
++    }
+     if (s->generation==UINT64_MAX) { close_peer(s);return; }
+     s->source_owner=owner;s->source_console=console;s->source=pixels;
+     s->source_width=width;s->source_height=height;s->source_stride=stride;s->generation++;
+@@ -310,8 +446,11 @@
+ }
+ void mvo_shared_frame_invalidate(MVOSharedFrameServer *s,void *owner)
+ {
+-    if (s && s->source_owner==owner) {
+-        s->source=NULL;s->source_owner=NULL;s->refresh_raster=NULL;close_peer(s);
++    if (s && (s->source_owner == owner || s->lease_owner == owner)) {
++        s->source = NULL;
++        s->source_owner = NULL;
++        s->refresh_raster = NULL;
++        close_peer(s);
+     }
+ }
+ void mvo_shared_frame_selected(int console)
